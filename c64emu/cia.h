@@ -1,0 +1,57 @@
+#ifndef _CIA_H_
+#define _CIA_H_
+
+#include <string.h>
+#include <stdlib.h>
+
+// #include "rprintf.h"
+
+#include "6510.h"
+#include "sidheader.h"
+
+typedef struct ciaReg {
+	// Peripheral Data Register
+	unsigned char PDRa;
+	unsigned char PDRb;
+	// Data Direction Register
+	unsigned char DDRa;
+	unsigned char DDRb;
+	// Timer low, high
+//	unsigned char TimerAl;
+//	unsigned char TimerAh;
+//	unsigned char TimerBl;
+//	unsigned char TimerBh;
+	// Time Of Day, 1/10s, s, m, h
+	unsigned char TODts;
+	unsigned char TODs;
+	unsigned char TODm;
+	unsigned char TODh;
+	// Serial Data Register
+	unsigned char SDR;
+	// Interrupt Control Register
+	unsigned char ICR;	// write
+	unsigned char IDR;	// read
+} ciaReg;
+
+typedef struct ciaTimer {
+	unsigned short latches[2];
+	unsigned short counters[2];
+	unsigned char enabled[2];
+	unsigned char CR[2];		// control registers
+} ciaTimer;
+
+//#define CIA_INTERRUPT_THRESHOLD 0x2000
+
+ciaReg ciaRegister[2];
+ciaTimer ciaTimers[2];
+
+unsigned short ciaLastInterrupt;
+unsigned short ciaFastInterrupt;
+
+char ciaGetNextTimer(void);
+void ciaInit(void);
+unsigned char ciaRead(unsigned char chip, unsigned char addr);
+void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data);
+
+
+#endif
