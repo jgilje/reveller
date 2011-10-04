@@ -70,14 +70,15 @@ void initPWM(void) {
 	w |= 0x2;
 	*((uint32_t *) v_gpio_b_conf) = w;
 	
-	// counter and compare to 50 & 25
-	*((uint32_t *) v_tcntb0) = 0x32;
-	*((uint32_t *) v_tcmpb0) = 0x19;
+	// counter and compare to 24 & 12
+	*((uint32_t *) v_tcntb0) = 0x18;
+	*((uint32_t *) v_tcmpb0) = 0xC;
 	
 	// enable timer0
 	res = *((uint32_t *) v_tcon);
 	w = res & 0xffffff00;
 	*((uint32_t *) v_tcon) = w | 0xa;
+	usleep(1000);
 	*((uint32_t *) v_tcon) = w | 0x9;
 	
 	release_addr(gpio_b_conf);

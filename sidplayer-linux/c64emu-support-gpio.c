@@ -9,11 +9,9 @@ extern FILE* inputSidFile;
 extern void* v_gpio_base;
 
 void c64_sid_block_start(void) {
-	printf("=>\n");
 }
 
 void c64_sid_block_end(void) {
-	printf("<=\n");
 }
 
 void c64_sid_write(uint8_t reg, uint8_t data) {
@@ -22,15 +20,7 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	void* v_gpg_data = v_gpio_base + (GPGDAT & MAP_MASK);
 	
 	// wait for bus, if already high - wait for low
-	printf("=1\n");
-	/*
-	uint32_t clk = *((uint32_t *) v_gpc_data) & CS_CLK;
-	if (clk) {
-	    while(*((uint32_t *) v_gpc_data) & CS_CLK);
-	}
-	*/
-    while(*((uint32_t *) v_gpc_data) & CS_CLK);
-	printf("=2\n");
+    while (*(REG v_gpc_data) & CS_CLK);
 	
 	uint32_t gpc_data = (data << 8);	// sid data
 	gpc_data |= CS_ALL;
@@ -45,12 +35,12 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	*((uint32_t *) v_gpg_data) = gpg_data;
 	
 	// wait for bus
-	printf("=3\n");
-    while(!(*((uint32_t *) v_gpc_data) & CS_CLK));		// wait for high
-    while(*((uint32_t *) v_gpc_data) & CS_CLK);			// wait for low
-	printf("=4\n");
+    while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
+    while (*(REG v_gpc_data) & CS_CLK);			// wait for low
 	
-	*((uint32_t *) v_gpc_data) = CS_ALL;
+	*(REG v_gpc_data) = CS_ALL;
+	*(REG v_gpe_data) = 0;
+	*(REG v_gpg_data) = 0;
 }
 
 void c64_set_freq_vic(uint32_t hz) {
