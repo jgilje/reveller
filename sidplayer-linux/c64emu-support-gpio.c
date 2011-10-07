@@ -19,24 +19,59 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	void* v_gpe_data = v_gpio_base + (GPEDAT & MAP_MASK);
 	void* v_gpg_data = v_gpio_base + (GPGDAT & MAP_MASK);
 	
+	//	printf("|%02x-%02x|", reg, data);
 	// wait for bus, if already high - wait for low
-    while (*(REG v_gpc_data) & CS_CLK);
 	
+	/*
+    while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
+    while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+    
 	uint32_t gpc_data = (data << 8);	// sid data
 	gpc_data |= CS_ALL;
-	gpc_data &= ~CS_SID;				// sid cs
+	gpc_data &= ~CS_SID;	// sid cs
+	
 	uint32_t gpe_data = (reg << 11);	// ignore bits written to 14 and 15
 	gpe_data &= 0x3800;
 	uint32_t gpg_data = (reg >> 1);
 	gpg_data &= 0xc;
 	
-	*((uint32_t *) v_gpc_data) = gpc_data;
-	*((uint32_t *) v_gpe_data) = gpe_data;
-	*((uint32_t *) v_gpg_data) = gpg_data;
+	*(REG v_gpc_data) = gpc_data;
+	*(REG v_gpe_data) = gpe_data;
+	*(REG v_gpg_data) = gpg_data;
 	
 	// wait for bus
+	while (*(REG v_gpc_data) & CS_CLK);			// wait for low
     while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
     while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+    
+	*(REG v_gpc_data) = CS_ALL;
+	*(REG v_gpe_data) = 0;
+	*(REG v_gpg_data) = 0;
+	*/
+	
+	uint32_t gpc_data = (data << 8);	// sid data
+	gpc_data |= CS_ALL;
+	
+	uint32_t gpe_data = (reg << 11);	// ignore bits written to 14 and 15
+	gpe_data &= 0x3800;
+	uint32_t gpg_data = (reg >> 1);
+	gpg_data &= 0xc;
+	
+	// wait for bus
+	//while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+	//while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
+	
+	*(REG v_gpc_data) = gpc_data;
+	*(REG v_gpe_data) = gpe_data;
+	*(REG v_gpg_data) = gpg_data;
+	
+	//while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
+	while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+	gpc_data &= ~CS_SID;	// sid cs
+	*(REG v_gpc_data) = gpc_data;
+	
+	while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
+	while (*(REG v_gpc_data) & CS_CLK);			// wait for low
 	
 	*(REG v_gpc_data) = CS_ALL;
 	*(REG v_gpe_data) = 0;

@@ -41,16 +41,16 @@ void initGPIO(void) {
 	
 	// gpio_c: pin 0,1 as input (read clk), rest as outputs
 	// gpio_c_(8-15) is the data bus
-	*((uint32_t *) v_gpio_c_conf) = 0x55555550;
-	*((uint32_t *) v_gpio_c_data) = CS_ALL;		// all CS pins to high
+	*(REG v_gpio_c_conf) = 0x55555550;
+	*(REG v_gpio_c_data) = CS_ALL;		// all CS pins to high
 	
 	// gpio e 11-15 as outputs (problems reading from 14-15, so they are unused)
 	// using gpio_e_(11,12,13) for SID addressing
-	*((uint32_t *) v_gpio_e_conf) = 0x55400000;
+	*(REG v_gpio_e_conf) = 0x55400000;
 	
 	// all gpio g as outputs
 	// using gpio_g_(2,3) for SID addressing
-	*((uint32_t *) v_gpio_g_conf) = 0x55555555;
+	*(REG v_gpio_g_conf) = 0x55555555;
 }
 
 // 1.023MHz (PAL)
@@ -65,28 +65,42 @@ void initPWM(void) {
 	void* v_tcmpb0 = tcfg0 + (TCMPB0 & MAP_MASK);
 	
 	// tclk0 out
-	uint32_t res = *((uint32_t *) v_gpio_b_conf);
+	uint32_t res = *(REG v_gpio_b_conf);
 	uint32_t w = res;
 	w |= 0x2;
-	*((uint32_t *) v_gpio_b_conf) = w;
+	*(REG v_gpio_b_conf) = w;
 	
-	// counter and compare to 24 & 12
-	*((uint32_t *) v_tcntb0) = 0x18;
-	*((uint32_t *) v_tcmpb0) = 0xC;
+	// counter and compare to 24 (0x18) & 12 (0xC)
+	// from listening 26-13 SOUNDS correct
+	*(REG v_tcntb0) = 26;
+	*(REG v_tcmpb0) = 13;
 	
 	// enable timer0
-	res = *((uint32_t *) v_tcon);
+	res = *(REG v_tcon);
 	w = res & 0xffffff00;
-	*((uint32_t *) v_tcon) = w | 0xa;
+	*(REG v_tcon) = w | 0xa;
 	usleep(1000);
-	*((uint32_t *) v_tcon) = w | 0x9;
+	*(REG v_tcon) = w | 0x9;
 	
 	release_addr(gpio_b_conf);
 	release_addr(tcfg0);
 }
 
+void setPWM(uint8_t counter, uint8_t compare) {
+	void* tcfg0 = get_addr(TCFG0);
+	
+	void* v_tcntb0 = tcfg0 + (TCNTB0 & MAP_MASK);
+	void* v_tcmpb0 = tcfg0 + (TCMPB0 & MAP_MASK);
+
+	*(REG v_tcntb0) = counter;
+	*(REG v_tcmpb0) = compare;
+	
+	release_addr(tcfg0);
+}
+
 void printWelcome() {
 	printf("SID Companiet - 6510 Emulator\n");
+	printf("\tLinux Hosted. Dev 16\n");
 	PrintOpcodeStats();
 }
 
@@ -191,7 +205,7 @@ int main(int argc, char **argv) {
 				
 				while (getc(stdin) < 0) {
 					IRQTrigger();
-					usleep(1000000 / 50);
+					usleep(1000000 / 55);
 				}
 				
 				fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
@@ -207,7 +221,7 @@ int main(int argc, char **argv) {
 			    int j;
 			    for (j = 0; j < i; j++) {
 					IRQTrigger();
-					usleep(1000000 / 50);
+					usleep(1000000 / 55);
 			    }
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
@@ -230,6 +244,12 @@ int main(int argc, char **argv) {
 			}
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
 			dumpMem();
+		} else if (! strcmp(input, "pwm")) {
+			int i = strtoul(args, NULL, 0);
+			args = nextToken(args);
+			int j = strtoul(args, NULL, 0);
+			printf("Set PWM counter 0x%x - compare 0x%x\n", i, j);
+			setPWM(i, j);
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
 			// ikke så nøye her, vi er ferdige anyway
 			fflush(NULL);

@@ -9,6 +9,7 @@
 #define CS_ALL 0x1C
 #define CS_CLK 0x2
 #define CS_SID 0x4
+#define CS_CTRL 0x8
 
 // GPIO
 #define GPACON 0x56000000
