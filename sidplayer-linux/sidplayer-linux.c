@@ -72,7 +72,7 @@ void initPWM(void) {
 	
 	// counter and compare to 24 (0x18) & 12 (0xC)
 	// from listening 26-13 SOUNDS correct
-	*(REG v_tcntb0) = 26;
+	*(REG v_tcntb0) = 25;
 	*(REG v_tcmpb0) = 13;
 	
 	// enable timer0

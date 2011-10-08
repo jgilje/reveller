@@ -57,15 +57,9 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	uint32_t gpg_data = (reg >> 1);
 	gpg_data &= 0xc;
 	
-	// wait for bus
-	//while (*(REG v_gpc_data) & CS_CLK);			// wait for low
-	//while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
-	
-	*(REG v_gpc_data) = gpc_data;
 	*(REG v_gpe_data) = gpe_data;
 	*(REG v_gpg_data) = gpg_data;
 	
-	//while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
 	while (*(REG v_gpc_data) & CS_CLK);			// wait for low
 	gpc_data &= ~CS_SID;	// sid cs
 	*(REG v_gpc_data) = gpc_data;

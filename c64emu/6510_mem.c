@@ -1,7 +1,5 @@
 #include "6510_mem.h"
 
-// TODO: en funksjon for å legge inn SID fila i minne
-
 // Minnehåndtering
 void createMem(unsigned char page) {
     if (pages[page]) {
@@ -49,7 +47,6 @@ void initMem() {
     // legg inn SID fila i minne
     page = (sh.loadAddress >> 8);
     offset = sh.loadAddress;
-
     createMem(page);
 
     pageStart = sh.dataOffset;
@@ -59,17 +56,17 @@ void initMem() {
     memcpy(pages[page] + offset, buffer, 256 - offset);
     
     page++;
-    i++;
 
-    readBytes = c64_read_source(((i * 256) + pageStart), 256, buffer);
+	pageStart = sh.dataOffset + (256 - offset);
+    readBytes = c64_read_source(pageStart, 256, buffer);
     while (readBytes > 0) {
-	createMem(page);
+		createMem(page);
 	
-	memcpy(pages[page], buffer, readBytes);
-	i++;
+		memcpy(pages[page], buffer, readBytes);
+		i++;
 	
-	readBytes = c64_read_source(((i * 256) + pageStart), 256, buffer);
-	page++;
+		readBytes = c64_read_source(((i * 256) + pageStart), 256, buffer);
+		page++;
     }
 }
 
@@ -239,7 +236,7 @@ void loadMem(unsigned short addr) {
 			loadMemRAM(page, offset);
 			break;
 		case 0xd:
-			// test pŒ IO space, deretter CHAR
+			// test på IO space, deretter CHAR
 			if (data & 0x1 || data & 0x2)
 			{
 				switch (page) {
@@ -293,7 +290,7 @@ void dumpMem() {
 				if ((j % 0x10) == 0) {
 					c64_debug("\n%x: ", j);
 				}
-				c64_debug("%x ", (*(pages[i] + j)));
+				c64_debug("%02x ", (*(pages[i] + j)));
 			}
 		}
 		c64_debug("\n");

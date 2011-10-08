@@ -4,7 +4,7 @@
 unsigned char instruction[3];	// vi leser maksimalt inn 3 byte
 FILE* file;
 
-// PrÃ¸ver oss pÃ¥ Ã¥ lage en mindre minnetabell (da det antas at SID filene ikke
+// Prøver oss på å lage en mindre minnetabell (da det antas at SID filene ikke
 // trenger det fulle 64kB i C64)
 unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÃ¥der
 unsigned char work = 0;
@@ -277,7 +277,7 @@ void setSubSong(unsigned char song) {
 	interpret(1, 0xff84);
 	storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
 
-	// kjÃ¸r INIT adresse med sang i reg.a
+	// kjør INIT adresse med sang i reg.a
 	*(pages[0x0] + 0x1) = getIOPort(sh.initAddress);
 	reg.a = song;
 	interpret(1, sh.initAddress);
