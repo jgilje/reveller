@@ -100,7 +100,6 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 				if (chip) {
 				    //int newTiming;
 
-				    c64_debug("Start NMI Timer()\n");
 				    //newTiming = sh.hz / (ciaTimers[chip].latches[0] - 2);
 				    //c64_set_freq_cia_a_nmi(newTiming);
 				    c64_start_freq_cia_a_nmi();
