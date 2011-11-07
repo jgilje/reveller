@@ -1,12 +1,14 @@
 #include "6510.h"
 #include <unistd.h>
+#include <stdint.h>
 
 unsigned char instruction[3];	// vi leser maksimalt inn 3 byte
 FILE* file;
 
-// Prøver oss på å lage en mindre minnetabell (da det antas at SID filene ikke
-// trenger det fulle 64kB i C64)
-unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÃ¥der
+// the emulator once ran on a chip with a total of 64kb.
+// from that design, we allocated C64-pages only as needed
+// this system was good enough to run up to ~45kb songs
+unsigned char *pages[256];
 unsigned char work = 0;
 unsigned char ciaChip;
 
@@ -17,15 +19,13 @@ void setPC(short pc) {
 }
 
 void evalNZ(unsigned char byte) {
-    // 0x7D = ! (FLAG_N | FLAG_Z)
-
     reg.p &= 0x7d;
     if (byte & FLAG_N) reg.p |= FLAG_N;	// n
     if (byte == 0) reg.p |= FLAG_Z;	// z
     // se kommentaren i header, for fyldig info
 }
 
-// Insruksjoner
+// the actual 6510-instructions
 #include "6510_alu.c"
 #include "6510_move.c"
 #include "6510_branch.c"
@@ -135,7 +135,7 @@ void interpretMain(void) {
 	}
 }
 
-// interpret i ganger playAddr med sang song, fra adresse addr
+// interpret i times playAddr from address addr
 void interpret(int i, unsigned short addr) {
 	while (i > 0) {
 		work = 1;
@@ -160,9 +160,9 @@ void triggerInterrupt(void) {
 	work = 1;
 }
 
-void IRQTrigger(void) {
+void c64_trigger_irq(void) {
 	c64_sid_block_start();
-//    if (vicInterrupt || (ciaChip == 0)) { // && !(reg.p & FLAG_I)) {
+	
 	unsigned short addr = (*(pages[0xff] + 0xff) << 8) | *(pages[0xff] + 0xfe);
 	triggerInterrupt();
 	reg.p |= FLAG_I;
@@ -174,12 +174,10 @@ void IRQTrigger(void) {
 #endif
 
 	interpretMain();
-//    }
 	c64_sid_block_end();
 }
 
-void NMITrigger() {
-//    if (vicInterrupt || (ciaChip == 0)) { // && !(reg.p & FLAG_I)) {
+void c64_trigger_nmi() {
 	unsigned short addr = (*(pages[0xff] + 0xfb) << 8) | *(pages[0xff] + 0xfa);
 	triggerInterrupt();
 	setPC(addr);
@@ -191,7 +189,56 @@ void NMITrigger() {
 #endif
 
 	interpretMain();
-//    }
+}
+
+int32_t c64_next_trigger(void) {
+	int32_t cia_next = c64_cia_next_timer();
+	int32_t vic_next = c64_vic_next_timer();
+	
+	if (cia_next > 0 && vic_next > 0) {
+		if (cia_next < vic_next) {
+			return cia_next;
+		} else {
+			return vic_next;
+		}
+	}
+	
+	if (cia_next > 0) {
+		return cia_next;
+	}
+	if (vic_next > 0) {
+		return vic_next;
+	}
+	
+	c64_debug("c64_next_trigger(): no IRQ?\n");
+	return 20000;
+}
+
+int32_t c64_play(void) {
+	int interrupted = 0;
+	int32_t next = c64_next_trigger();
+
+	c64_cia_update_timers(next);
+	c64_vic_update_timer(next);
+
+	if (c64_cia_nmi()) {
+		interrupted = 1;
+		c64_trigger_nmi();
+	}
+	if (c64_cia_irq()) {
+		interrupted = 1;
+		c64_trigger_irq();
+	}
+	if (c64_vic_irq()) {
+		interrupted = 1;
+		c64_trigger_irq();
+	}
+	
+	if (interrupted) {
+		return next;
+	} else {
+		return next * -1;
+	}
 }
 
 unsigned char getIOPort(unsigned short address) {
@@ -235,16 +282,16 @@ void installSIDDriver(void) {
 #endif
 	address = freePage << 8;
 	
-	// for Œ hente rett IO Port konfigurasjon f¿r vi kj¿rer SID
+	// retrieve correct IOPort before running SID
 	storeMemRAMShort(address, 0xa9, IOPort); address += 2;
 	storeMemRAMShort(address, 0x85, 0x1); address += 2;
-	// JSR til PlayAddress
+	// JSR to PlayAddress
 	storeMemRAMChar(address, 0x20); address += 1;
 	storeMemRAMShort(address, (sh.playAddress & 0xff), (sh.playAddress >> 8)); address += 2;
-	// sett tilbake IO Porten til 0x37
+	// reset IOPort to 0x37
 	storeMemRAMShort(address, 0xa9, 0x37); address += 2;
 	storeMemRAMShort(address, 0x85, 0x1); address += 2;
-	// JMP til oss selv, emulator koden skj¿nner hva vi skal frem til
+	// JMP to yourself, the emulator will figure out what's happening
 	storeMemRAMChar(address, 0x4c); address += 1;
 	storeMemRAMShort(address, 0xb, freePage);
 
@@ -266,20 +313,23 @@ void initSong() {
 }
 
 void setSubSong(unsigned char song) {
-	ciaInit();
-//	initCPU();
-//	resetMem();
+	c64_cia_init();
 	initSong();
 
 	storeMemRAMShort(0xfffa, 0x43, 0xfe);
 	storeMemRAMShort(0xfffe, 0x48, 0xff);
 
-	interpret(1, 0xff84);
-	storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
+	if (! strcmp(sh.type, "RSID")) {
+		c64_debug("c64_setSubSong(): running KERNAL init\n");
+		interpret(1, 0xff84);
+	}
+	// TODO remove if not needed
+	// storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
 
-	// kjør INIT adresse med sang i reg.a
+	// run INIT adresse med sang i reg.a
 	*(pages[0x0] + 0x1) = getIOPort(sh.initAddress);
-	reg.a = song;
+	c64_current_song = (song == 0) ? (sh.startSong - 1) : (song - 1);
+	reg.a = c64_current_song;
 	interpret(1, sh.initAddress);
 	*(pages[0x0] + 0x1) = 0x37;
 	
@@ -292,10 +342,12 @@ void setSubSong(unsigned char song) {
 		}
 		
 		// sett opp CIA#1
-		if (sh.speed & (1 << song)) {
+		if (sh.speed & (1 << c64_current_song)) {
+			c64_debug("CIA#1 timer enabled from sh.speed\n");
 			ciaWrite(0, 0xd, 0x81);
 			ciaWrite(0, 0xe, 0x1);	// enable CIA#1TimerA
 		} else {
+			c64_debug("c64_setSubSong(): VIC Timer\n");
 			vicWrite(0x1a, 0x1);	// enable VIC Interrupts
 		}
 	}

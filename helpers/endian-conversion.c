@@ -14,3 +14,4 @@ void read_littleEndian_short(short *dest, unsigned char* source) {
     *dest = * (short*) source;
 }
 #endif
+

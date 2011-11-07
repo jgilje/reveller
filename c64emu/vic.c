@@ -7,7 +7,6 @@
 
 #include "vic.h"
 
-
 void vicInit(void) {
 	memset(&vicReg, 0, sizeof(vicRegister));
 }
@@ -16,20 +15,18 @@ void vicWrite(unsigned char addr, unsigned char data) {
 	switch (addr) {
 		case 0x19:			// Interrupt Register
 			vicReg.idr &= (~data & 0xf);
-//			if (vicReg.idr == 0x80) {
-//				vicInterrupt = 0;
-//			} else {
-//				vicInterrupt = 1;
-//			}
 			break;
 		case 0x1a:			// Interrupt Enable
 			vicReg.icr = (data & 0xf);
 			if (vicReg.icr != 0) {
-				vicInterrupt = 1;
 				c64_set_freq_vic(50);
 				c64_start_freq_vic();
+				
+				c64_vic_timer.latch = 19705;	// PAL latch, NTSC is different
+				c64_vic_timer.counter = c64_vic_timer.latch;
+				c64_vic_timer.enabled = 1;
 			} else {
-				vicInterrupt = 0;
+				c64_debug("Program Disabled VIC interrupts, and so should you!\n");
 			}
 			break;
 		case 0x11:			// kontrollregister
@@ -55,8 +52,39 @@ unsigned char vicRead(unsigned char addr) {
 	}
 }
 
+/*
 void vicNextInterrupt(void) {
 	if (vicReg.icr & 0x1) {		// vi sjekker kun VBI
 		vicReg.idr |= 0x81;
 	}
 }
+*/
+
+int32_t c64_vic_next_timer(void) {
+	if (c64_vic_timer.enabled) {
+		return c64_vic_timer.counter;
+	}
+	
+	return -1;
+}
+
+void c64_vic_update_timer(int32_t next) {
+	if (c64_vic_timer.enabled) {
+		c64_vic_timer.counter -= next;
+		if (c64_vic_timer.counter == 0) {
+			c64_vic_timer.interrupt = 1;
+			c64_vic_timer.counter = c64_vic_timer.latch;
+		}
+	}
+}
+
+uint32_t c64_vic_irq(void) {
+	uint32_t ret = 0;
+	if (c64_vic_timer.interrupt) {
+		ret = 1;
+		c64_vic_timer.interrupt = 0;
+	}
+	
+	return ret;
+}
+

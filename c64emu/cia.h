@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 // #include "rprintf.h"
 
@@ -37,6 +38,9 @@ typedef struct ciaTimer {
 	unsigned short latches[2];
 	unsigned short counters[2];
 	unsigned char enabled[2];
+	unsigned char oneshot[2];
+	unsigned char interrupt_enabled[2];
+	unsigned char interrupt_triggered[2];
 	unsigned char CR[2];		// control registers
 } ciaTimer;
 
@@ -45,13 +49,14 @@ typedef struct ciaTimer {
 ciaReg ciaRegister[2];
 ciaTimer ciaTimers[2];
 
-unsigned short ciaLastInterrupt;
-unsigned short ciaFastInterrupt;
+void c64_cia_init(void);
 
-char ciaGetNextTimer(void);
-void ciaInit(void);
 unsigned char ciaRead(unsigned char chip, unsigned char addr);
 void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data);
 
+int32_t c64_cia_next_timer(void);
+void c64_cia_update_timers(int32_t next);
+uint32_t c64_cia_nmi(void);
+uint32_t c64_cia_irq(void);
 
 #endif

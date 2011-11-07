@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 				// Windows har visst _en_ fordel i dette tilfellet (Shiver me Timbers)
 #ifdef WIN32
                 while (! kbhit()) {
-			IRQTrigger();
+					c64_play();
                 }
                 
                 getch();
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
 				printf("Playing... (any key to stop)...");
 				
 				while (getc(stdin) < 0) {
-					IRQTrigger();
+					c64_play();
 				}
 				
 				fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
 			{
 			    int j;
 			    for (j = 0; j < i; j++) {
-				IRQTrigger();
+					c64_play();
 			    }
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {

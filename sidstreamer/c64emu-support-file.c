@@ -34,10 +34,8 @@ void c64_start_freq_cia_a_irq(void) {
 
 void c64_set_freq_cia_a_nmi(uint32_t hz) {
     fprintf(outfile, "t0%c%c", (hz >> 8) & 0x000000ff, hz & 0x000000ff);
-    fprintf(stderr, "Exit at %s: %d\n", __FILE__, __LINE__);
-    exit(1);
 }
 void c64_start_freq_cia_a_nmi(void) {
-    fprintf(stderr, "Exit at %s: %d\n", __FILE__, __LINE__);
-    exit(1);
+    fprintf(outfile, "T2");
 }
+

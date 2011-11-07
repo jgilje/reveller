@@ -7,12 +7,20 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
+#include "6510.h"
 #include "sidheader.h"
+
 #include "sc2410.h"
+#include "lcd.h"
 
 FILE* inputSidFile;
 int fd_mem = -1;
 void* v_gpio_base = NULL;
+
+#define USLEEP_CLK 0
+#define USLEEP_NANOSLEEP 1
+#define USLEEP_CLOCK_NANOSLEEP 2
+int usleep_function = USLEEP_CLK;
 
 void* get_addr(uint32_t addr) {
 	void* m = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, addr & ~MAP_MASK);
@@ -115,6 +123,146 @@ char* nextToken(char* in) {
 	return NULL;
 }
 
+void usleep_sid_clk(uint32_t cycles) {
+	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
+	int i;
+	
+	for (i = 0; i < cycles; i++) {
+		while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+		while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
+	}
+}
+
+void usleep_nanosleep(uint32_t cycles) {
+	struct timespec time;
+	
+	time.tv_sec = 0;
+	time.tv_nsec = cycles*1000;
+	
+	if (nanosleep(&time, NULL) != 0) {
+		printf("clock_nanosleep() failed\n");
+	}
+}
+
+void usleep_clock_nanosleep(uint32_t cycles) {
+	struct timespec time;
+	
+	time.tv_sec = 0;
+	time.tv_nsec = cycles*1000;
+	
+	if (clock_nanosleep(CLOCK_REALTIME, 0, &time, NULL) != 0) {
+		printf("clock_nanosleep() failed\n");
+	}
+}
+
+#define NS_IN_S 1000000000
+void usleep_burn(uint32_t cycles) {
+	struct timespec now, start;
+	int d = 0;
+	int cycles_ns = cycles*1000;
+	
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+	
+	while (d < cycles_ns) {
+		d = 0;
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &now);
+		if (now.tv_sec != start.tv_sec) {
+			d += NS_IN_S;
+		}
+		d += (now.tv_nsec - start.tv_nsec);
+	}
+}
+
+void print_song(void) {
+	char songname[21];
+	char songauthor[21];
+	char songsubsong[21];
+	char copyright[21];
+	snprintf(songname, 21, "%s", sh.name);
+	snprintf(songauthor, 21, "%s", sh.author);
+	snprintf(copyright, 21, "(C) %s", sh.released);
+	snprintf(songsubsong, 21, "Song %d of %d", c64_current_song+1, sh.songs);
+	
+	lcd_clear();
+	lcd_gotoxy(0, 0);
+	lcd_puts(songname);
+	lcd_gotoxy(0, 1);
+	lcd_puts(songauthor);
+	lcd_gotoxy(0, 2);
+	lcd_puts(copyright);
+	lcd_gotoxy(0, 3);
+	lcd_puts(songsubsong);
+}
+
+#define SID_HZ_PAL_CONVERSION (1000000/985248)
+void continuosPlay(void) {
+	print_song();
+	
+	struct timespec b, a;
+	struct termios currentTerm;
+	struct termios originalTerm;
+	int originalFcntl;
+	
+	tcgetattr(STDIN_FILENO, &currentTerm);
+	originalTerm = currentTerm;
+	
+	currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
+	currentTerm.c_cc[VMIN] = 1;
+	currentTerm.c_cc[VTIME] = 0;
+	tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
+	originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
+	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+	
+	printf("Playing... (any key to stop)...");
+	
+	int32_t skipped_time = 0;
+	while (getc(stdin) < 0) {
+		clock_gettime(CLOCK_REALTIME, &b);
+		int32_t next = c64_play();
+		if (next < 0) {
+			skipped_time -= next;
+			continue;
+		}
+		next += skipped_time;
+		next = next * ((float) sh.hz / 1000000.0f);
+		skipped_time = 0;
+		clock_gettime(CLOCK_REALTIME, &a);
+		
+		long emulator_time = 0;
+		if (a.tv_sec != b.tv_sec) {
+			emulator_time += 1000000000;
+		}
+		emulator_time += (b.tv_nsec - a.tv_nsec);
+		emulator_time /= 1000;
+		
+		int n = next + emulator_time;
+		// printf("%d = %d(%d) + %d + %d\n", n, sh.hz/next, next, usleep_bias, emulator_time);
+		
+		if (n < 0) n = 1;
+		
+		if (usleep_function == USLEEP_CLK) {
+			usleep_sid_clk(n);
+		} else if (usleep_function == USLEEP_NANOSLEEP) {
+			usleep_nanosleep(n);
+		} else if (usleep_function == USLEEP_CLOCK_NANOSLEEP) {
+			usleep_clock_nanosleep(n);
+		}
+	}
+	
+	fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
+	printf("\n");
+}
+
+#include <sched.h>
+void set_realtime(void) {
+	struct sched_param param;
+	param.sched_priority = 20;
+	if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+		printf("Failed to get RealTime priority");
+	}
+}
+
 // SangSpilling foregår ved å sette registerene A (X, Y) før en kaller opp interpreteren
 int main(int argc, char **argv) {
 	char input[256];
@@ -132,6 +280,7 @@ int main(int argc, char **argv) {
 	printWelcome();
 	initPWM();
 	initGPIO();
+	lcd_init();
 
 	// sjekk opp argv[1]
 	if (argv[1]) {
@@ -144,6 +293,7 @@ int main(int argc, char **argv) {
 		printf("Inputfile is %ld bytes\n", ftell(inputSidFile));
 		
 		setSubSong(0);
+		printf("Loaded song %d of %d subsongs\n", sh.startSong, sh.songs);
 	}
 	
 	while(1) {
@@ -187,40 +337,16 @@ int main(int argc, char **argv) {
 					continue;
 				}
 			} else {
-				struct termios currentTerm;
-				struct termios originalTerm;
-				int originalFcntl;
-				
-				tcgetattr(STDIN_FILENO, &currentTerm);
-				originalTerm = currentTerm;
-				
-				currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
-				currentTerm.c_cc[VMIN] = 1;
-				currentTerm.c_cc[VTIME] = 0;
-				tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
-				originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
-				fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
-				
-				printf("Playing... (any key to stop)...");
-				
-				while (getc(stdin) < 0) {
-					IRQTrigger();
-					usleep(1000000 / 55);
-				}
-				
-				fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
-				tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
-				printf("\n");
-
+				continuosPlay();
 				continue;
 			}
 
 			// PLAY
-			printf("Starting PlayAddr %d times\n", i);
+			printf("Starting PlayAddr %d times (warning, no sleep)\n", i);
 			{
 			    int j;
 			    for (j = 0; j < i; j++) {
-					IRQTrigger();
+					c64_play();
 					usleep(1000000 / 55);
 			    }
 			}
@@ -241,6 +367,7 @@ int main(int argc, char **argv) {
 				song = i;
 				setSubSong(song);
 				printf("Song is now %d\n", song);
+				continuosPlay();
 			}
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
 			dumpMem();
@@ -250,6 +377,15 @@ int main(int argc, char **argv) {
 			int j = strtoul(args, NULL, 0);
 			printf("Set PWM counter 0x%x - compare 0x%x\n", i, j);
 			setPWM(i, j);
+		} else if (! strcmp(input, "lcd")) {
+			int i = strtoul(args, NULL, 0);
+			args = nextToken(args);
+			int j = strtoul(args, NULL, 0);
+			printf("LCD reinit: e_delay %d, r_delay %d\n", i, j);
+			lcd_reinit(i, j);
+		} else if (! strcmp(input, "usleep_function")) {
+			usleep_function = strtol(args, NULL, 0);
+			printf("usleep_function is now %d\n", usleep_function);
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
 			// ikke så nøye her, vi er ferdige anyway
 			fflush(NULL);

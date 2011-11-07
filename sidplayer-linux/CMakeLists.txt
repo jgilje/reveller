@@ -5,6 +5,7 @@ PROJECT(sidplayer)
 ADD_SUBDIRECTORY(../c64emu "${CMAKE_CURRENT_BINARY_DIR}/c64emu")
 
 SET(sidplayer-linux_SOURCES
+    lcd.c
     sidplayer-linux.c
     c64emu-support-common.c
     c64emu-support-gpio.c
@@ -17,5 +18,5 @@ ADD_EXECUTABLE(sidplayer-linux
 
 include_directories(../c64emu)
 
-TARGET_LINK_LIBRARIES(sidplayer-linux c64emu)
+TARGET_LINK_LIBRARIES(sidplayer-linux c64emu rt)
 

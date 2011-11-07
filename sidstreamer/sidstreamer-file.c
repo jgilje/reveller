@@ -4,6 +4,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdint.h>
 
 #include "sidheader.h"
 
@@ -101,7 +102,7 @@ int main(int argc, char **argv) {
 				// Windows har visst _en_ fordel i dette tilfellet (Shiver me Timbers)
 #ifdef WIN32
                 while (! kbhit()) {
-			IRQTrigger();
+					c64_play();
                 }
                 
                 getch();
@@ -122,8 +123,29 @@ int main(int argc, char **argv) {
 				
 				printf("Playing... (any key to stop)...");
 				
+				int32_t skipped_time = 0;
 				while (getc(stdin) < 0) {
-					IRQTrigger();
+					int debug_skip = 0;
+					// uint32_t next = c64_play();
+					int32_t next = c64_play();
+					if (next < 0) {
+						skipped_time -= next;
+						continue;
+					}
+					
+					if (skipped_time != 0) {
+						c64_debug("next: %d, skipped_time mod: %d\n", next, skipped_time);
+						debug_skip = 1;
+					}
+					next += skipped_time;
+					next = next * ((float) sh.hz / 1000000.0f);
+					if (debug_skip) {
+						c64_debug("final next: %d\n", next);
+					}
+					
+					skipped_time = 0;
+					
+					printf("usleep(%d)\n", next);
 				}
 				
 				fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
@@ -139,7 +161,8 @@ int main(int argc, char **argv) {
 			{
 			    int j;
 			    for (j = 0; j < i; j++) {
-				IRQTrigger();
+					int32_t next = c64_play();
+					printf("usleep(%d)\n", next);
 			    }
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {

@@ -1,25 +1,130 @@
-// Endag!  ENDAG!!!
-// står CIA på døra
-
-// i første omgang konsentrerer vi på IRQ funksjonen
-
+// CIA (MOS6526) emulation
+// mainly dealing with the timers
 
 #include "cia.h"
 
+int32_t c64_cia_next_timer(void) {
+	int32_t next = INT32_MAX;
+	uint32_t next_chip, next_timer;
+	int i, j;
+	
+	for (i = 0; i < 2; i++) {
+		for (j = 0; j < 2; j++) {
+			if (ciaTimers[i].enabled[j]) {
+				if (ciaTimers[i].counters[j] < next) {
+					next = ciaTimers[i].counters[j];
+					next_chip = i;
+					next_timer = j;
+				}
+			}
+		}
+	}
+	
+	/*
+	if (next > 0) {
+		c64_debug("c64_cia_next_irq(): from %d-%d at %d\n", next_chip, next_timer, next);
+	}
+	*/
+	
+	if (next == INT32_MAX) {
+		return -1;
+	}
+	return next;
+}
 
-void ciaInit() {
+void c64_cia_update_timers(int32_t next) {
+	int i, j;
+	
+	for (i = 0; i < 2; i++) {
+		for (j = 0; j < 2; j++) {
+			if (ciaTimers[i].enabled[j]) {
+				ciaTimers[i].counters[j] -= next;
+				if (ciaTimers[i].counters[j] == 0) {
+					if (ciaTimers[i].interrupt_enabled[j]) {
+						ciaTimers[i].interrupt_triggered[j] = 1;
+					}
+					ciaTimers[i].counters[j] = ciaTimers[i].latches[j];
+					if (ciaTimers[i].oneshot[j]) {
+						ciaTimers[i].enabled[j] = 0;
+					}
+				}
+			}
+		}
+	}	
+}
+
+uint32_t c64_cia_interrupt(uint32_t chip) {
+	int i;
+	uint32_t ret = 0;
+	
+	for (i = 0; i < 2; i++) {
+		if (ciaTimers[chip].interrupt_triggered[i]) {
+			ciaTimers[chip].interrupt_triggered[i] = 0;
+			ret = 1;
+		}
+	}
+	
+	return ret;
+}
+
+uint32_t c64_cia_nmi(void) {
+	return c64_cia_interrupt(1);
+}
+
+uint32_t c64_cia_irq(void) {
+	return c64_cia_interrupt(0);
+}
+
+void c64_cia_init() {
 	int i;
 	memset(&ciaRegister, 0, sizeof(ciaRegister));
 	memset(&ciaTimers, 0, sizeof(ciaTimers));
 	
 	for (i = 0; i < 2; i++) {
+		ciaTimers[i].interrupt_enabled[0] = 0;
+		ciaTimers[i].interrupt_enabled[1] = 0;
+		ciaTimers[i].interrupt_triggered[0] = 0;
+		ciaTimers[i].interrupt_triggered[1] = 0;
 		ciaTimers[i].counters[0] = 0xffff;
 		ciaTimers[i].counters[1] = 0xffff;
 		ciaTimers[i].latches[0] = 0xffff;
 		ciaTimers[i].latches[1] = 0xffff;
+		ciaTimers[i].enabled[0] = 0;
+		ciaTimers[i].enabled[1] = 0;
+		ciaTimers[i].CR[0] = 0;
+		ciaTimers[i].CR[1] = 0;
 	}
+}
+
+// Write to CIA control register
+void c64_cia_write_cr(unsigned char chip, unsigned char data, unsigned char timer_char) {
+	// TODO does not handle timerB correctly yet
+	unsigned char timer_no = timer_char == 'A' ? 0 : 1;
+	ciaTimers[chip].CR[timer_no] = data;
 	
-	ciaLastInterrupt = 0xffff;
+	if (data & 0x1) {
+		ciaTimers[chip].enabled[timer_no] = 1;
+	} else {
+		ciaTimers[chip].enabled[timer_no] = 0;
+	}
+	if (data & 0x2) {
+		c64_debug("CIA%d-%c: Unsupported CIA Operation, TimerA -> PB6, ignored\n", chip, timer_char);
+	}
+	if (data & 0x4) {
+		c64_debug("CIA%d-%c: Unsupported CIA Operation, TimerA -> Toggle output\n", chip, timer_char);
+	}
+	if (data & 0x8) {
+		ciaTimers[chip].oneshot[timer_no] = 1;
+	} else {
+		ciaTimers[chip].oneshot[timer_no] = 0;
+	}
+	if (data & 0x10) {
+		ciaTimers[chip].CR[timer_no] &= ~0x10;
+		ciaTimers[chip].counters[timer_no] = ciaTimers[chip].latches[timer_no];
+	}
+	if (data & 0x20) {
+		c64_debug("Unsupported CIA Operation, TimerA -> Count ext. events\n");
+	}
 }
 
 void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
@@ -46,16 +151,18 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			
 			    newTiming = sh.hz / (ciaTimers[chip].latches[0] - 2);
 			    if (chip) {
-				if (ciaTimers[chip].enabled[0] == 1)
-				    c64_start_freq_cia_a_nmi();
+					if (ciaTimers[chip].enabled[0] == 1)
+						c64_start_freq_cia_a_nmi();
 				
-				c64_set_freq_cia_a_nmi(newTiming);
+					c64_set_freq_cia_a_nmi(newTiming);
 			    } else {
-				if (ciaTimers[chip].enabled[0] == 1)
-				    c64_start_freq_cia_a_irq();
+					if (ciaTimers[chip].enabled[0] == 1)
+						c64_start_freq_cia_a_irq();
 				
-				c64_set_freq_cia_a_irq(newTiming);
+					c64_set_freq_cia_a_irq(newTiming);
 			    }
+			    
+			    // TODO reload if stopped
 			    
 			    // reload if stopped
 			    //if (! (ciaTimers[chip].CR[0] & 0x1)) {
@@ -77,24 +184,26 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			break;
 		case 0xd:		// ICR
 			if (data & 0x80) {
+				if (data & 0x1) {
+					ciaTimers[chip].interrupt_enabled[0] = 1;
+				}
+				if (data & 0x2) {
+					ciaTimers[chip].interrupt_enabled[1] = 1;
+				}
 				ciaRegister[chip].ICR |= (data & 0x1f);
 			} else {
+				if (data & 0x1) {
+					ciaTimers[chip].interrupt_enabled[0] = 0;
+				}
+				if (data & 0x2) {
+					ciaTimers[chip].interrupt_enabled[1] = 0;
+				}
 				ciaRegister[chip].ICR &= ~data;
 			}
 			break;
 		case 0xe:		// CRA
-			ciaTimers[chip].CR[0] = data;
-			
-			if (data & 0x2) {
-				c64_debug("Unsupported CIA Operation, TimerA -> PB6");
-				exit(0);
-			}
-			
-			if (data & 0x10) {
-				ciaTimers[chip].CR[0] &= ~0x10;
-				ciaTimers[chip].counters[0] = ciaTimers[chip].latches[0];
-			}
-			
+			c64_cia_write_cr(chip, data, 'A');
+			/*
 			if ((data & 0x21) == 0x1) {
 				ciaTimers[chip].enabled[0] = 1;
 				if (chip) {
@@ -109,8 +218,15 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			} else {
 				ciaTimers[chip].enabled[0] = 0;
 			}
+			*/
 			break;
 		case 0xf:		// CRB
+			c64_cia_write_cr(chip, data, 'B');
+			break;
+			/*
+				c64_debug("Unsupported CIA Operation, TimerB is unimplemented\n");
+				exit(0);
+				
 			ciaTimers[chip].CR[1] = data;
 
 			if (data & 0x2) {
@@ -129,6 +245,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 				ciaTimers[chip].enabled[0] = 0;
 			}
 			break;
+			*/
 		default:
 			c64_debug("Unsupported CIA Write (%02x)\n", addr);
 			exit(0);
@@ -157,9 +274,11 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 			{
 				unsigned char ret = ciaRegister[chip].IDR;
 				ciaRegister[chip].IDR = 0;
+				c64_debug("ciaRead(): read from chip %d, addr: 0xd, returning %x\n", chip, ret);
 				return ret;
 			}
 		case 0xe:
+			c64_debug("ciaRead(): read from chip %d, addr: 0xe, returning %x\n", chip, ciaTimers[chip].CR[0]);
 			return ciaTimers[chip].CR[0];
 			break;
 		default:
@@ -167,58 +286,4 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 			exit(0);
 	}
 }
-
-/*
-void ciaCheckTimers(void) {
-	c64_debug("CIA#1: TimerA: %04x(%04x), TimerB: %04x(%04x)\n", ciaTimers[0].counters[0], ciaTimers[0].latches[0], ciaTimers[0].counters[1], ciaTimers[0].latches[1]);
-	c64_debug("CIA#2: TimerA: %04x(%04x), TimerB: %04x(%04x)\n", ciaTimers[1].counters[0], ciaTimers[1].latches[0], ciaTimers[1].counters[1], ciaTimers[1].latches[1]);
-	c64_debug("CIA#1: CRA: %02x, CRB: %02x, ICR: %02x, IDR: %02x\n", ciaTimers[0].CR[0], ciaTimers[0].CR[1], ciaRegister[0].ICR, ciaRegister[0].IDR);
-	c64_debug("CIA#2: CRA: %02x, CRB: %02x, ICR: %02x, IDR: %02x\n", ciaTimers[1].CR[0], ciaTimers[1].CR[1], ciaRegister[1].ICR, ciaRegister[1].IDR);
-	c64_debug("Enabled CIA: %d, %d, %d, %d\n", ciaTimers[0].enabled[0], ciaTimers[0].enabled[1], ciaTimers[1].enabled[0], ciaTimers[1].enabled[1]);
-}
-*/
-
-// oppdaterer alle timere med time, lagrer chip og hvilken timer som timer ut
-// i pekerne
-
-/*
-void ciaUpdateTimers(unsigned short time, unsigned char* chip, unsigned char* timer) {
-	int i, j;
-	// oppdater aktive tellere
-	for (i = 0; i < 2; i++) {
-		for (j = 0; j < 2; j++) {
-			if (ciaTimers[i].enabled[j]) {
-				// sjekk om denne ble 0
-				if (! (ciaTimers[i].counters[j] -= time)) {
-					*chip = i;
-					*timer = j;
-				}
-			}
-		}
-	}
-}
-*/
-
-/*
-void ciaUpdateTimerRegister(unsigned char chip, unsigned char timer) {
-	// sjekk one-shot mode
-	if (ciaTimers[chip].CR[timer] & 0x8) {
-		ciaTimers[chip].CR[timer] &= ~0x1;
-	}
-	
-	// reload timeout
-	ciaTimers[chip].counters[timer] = ciaTimers[chip].latches[timer];
-
-	// sett IDR porten, og sjekk om den aktuelle timer er satt til å generere interrupt
-	ciaRegister[chip].IDR |= (1 << timer);
-	if (ciaRegister[chip].IDR & ciaRegister[chip].ICR) {
-		ciaRegister[chip].IDR |= (1 << 7);
-	}
-
-	// sjekk om timeren g�r for fort (sannsynligvis er det da samples)
-	if (ciaTimers[chip].latches[timer] < CIA_INTERRUPT_THRESHOLD)
-		ciaTimers[chip].enabled[timer] = 0;
-}
-
-*/
 

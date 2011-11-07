@@ -141,6 +141,7 @@ void (*opcodes[256])(void);
 // (eks.: stack overflow)
 unsigned char work;
 unsigned char SIDDriverPage;
+unsigned char c64_current_song;
 
 // signatur for en uimplementert opkode
 void Un_imp(void);
