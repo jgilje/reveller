@@ -238,17 +238,10 @@ void continuosPlay(void) {
 	
 	printf("Playing... (any key to stop)...");
 	
-	int32_t skipped_time = 0;
 	while (getc(stdin) < 0) {
 		clock_gettime(CLOCK_REALTIME, &b);
 		int32_t next = c64_play();
-		if (next < 0) {
-			skipped_time -= next;
-			continue;
-		}
-		next += skipped_time;
 		next = next * ((float) sh.hz / 1000000.0f);
-		skipped_time = 0;
 		clock_gettime(CLOCK_REALTIME, &a);
 		
 		long emulator_time = 0;

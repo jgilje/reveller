@@ -215,30 +215,32 @@ int32_t c64_next_trigger(void) {
 }
 
 int32_t c64_play(void) {
+	int32_t sleep_time = 0;
+	int32_t next;
 	int interrupted = 0;
-	int32_t next = c64_next_trigger();
-
-	c64_cia_update_timers(next);
-	c64_vic_update_timer(next);
-
-	if (c64_cia_nmi()) {
-		interrupted = 1;
-		c64_trigger_nmi();
-	}
-	if (c64_cia_irq()) {
-		interrupted = 1;
-		c64_trigger_irq();
-	}
-	if (c64_vic_irq()) {
-		interrupted = 1;
-		c64_trigger_irq();
+	
+	while (! interrupted) {
+		next = c64_next_trigger();
+		c64_cia_update_timers(next);
+		c64_vic_update_timer(next);
+		
+		if (c64_cia_nmi()) {
+			interrupted = 1;
+			c64_trigger_nmi();
+		}
+		if (c64_cia_irq()) {
+			interrupted = 1;
+			c64_trigger_irq();
+		}
+		if (c64_vic_irq()) {
+			interrupted = 1;
+			c64_trigger_irq();
+		}
+		
+		sleep_time += next;
 	}
 	
-	if (interrupted) {
-		return next;
-	} else {
-		return next * -1;
-	}
+	return sleep_time;
 }
 
 unsigned char getIOPort(unsigned short address) {
