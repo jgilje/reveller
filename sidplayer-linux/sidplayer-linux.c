@@ -13,14 +13,16 @@
 #include "sc2410.h"
 #include "lcd.h"
 
-FILE* inputSidFile;
+FILE *inputSidFile, *sid_kernel_timer;
 int fd_mem = -1;
-void* v_gpio_base = NULL;
+
+s3c2410_registers_t s3c2410_registers;
 
 #define USLEEP_CLK 0
 #define USLEEP_NANOSLEEP 1
 #define USLEEP_CLOCK_NANOSLEEP 2
-int usleep_function = USLEEP_CLK;
+#define USLEEP_SID_KERNEL_DRIVER 3
+int usleep_function = USLEEP_SID_KERNEL_DRIVER;
 
 void* get_addr(uint32_t addr) {
 	void* m = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, addr & ~MAP_MASK);
@@ -41,57 +43,62 @@ void release_addr(void* addr) {
 }
 
 void initGPIO(void) {
-	v_gpio_base = get_addr(GPACON);
-	void* v_gpio_c_conf = v_gpio_base + (GPCCON & MAP_MASK);
-	void* v_gpio_c_data = v_gpio_base + (GPCDAT & MAP_MASK);
-	void* v_gpio_e_conf = v_gpio_base + (GPECON & MAP_MASK);
-	void* v_gpio_g_conf = v_gpio_base + (GPGCON & MAP_MASK);
+	s3c2410_registers.v_gpio_base = get_addr(GPACON);
+	s3c2410_registers.v_gpio_b_conf = s3c2410_registers.v_gpio_base + (GPBCON & MAP_MASK);
+	s3c2410_registers.v_gpio_c_conf = s3c2410_registers.v_gpio_base + (GPCCON & MAP_MASK);
+	s3c2410_registers.v_gpio_c_data = s3c2410_registers.v_gpio_base + (GPCDAT & MAP_MASK);
+	s3c2410_registers.v_gpio_e_conf = s3c2410_registers.v_gpio_base + (GPECON & MAP_MASK);
+	s3c2410_registers.v_gpio_e_data = s3c2410_registers.v_gpio_base + (GPEDAT & MAP_MASK);
+	s3c2410_registers.v_gpio_g_conf = s3c2410_registers.v_gpio_base + (GPGCON & MAP_MASK);
+	s3c2410_registers.v_gpio_g_data = s3c2410_registers.v_gpio_base + (GPGDAT & MAP_MASK);
 	
 	// gpio_c: pin 0,1 as input (read clk), rest as outputs
 	// gpio_c_(8-15) is the data bus
-	*(REG v_gpio_c_conf) = 0x55555550;
-	*(REG v_gpio_c_data) = CS_ALL;		// all CS pins to high
+	*(REG s3c2410_registers.v_gpio_c_conf) = 0x55555550;
+	*(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;		// all CS pins to high
 	
 	// gpio e 11-15 as outputs (problems reading from 14-15, so they are unused)
 	// using gpio_e_(11,12,13) for SID addressing
-	*(REG v_gpio_e_conf) = 0x55400000;
+	*(REG s3c2410_registers.v_gpio_e_conf) = 0x55400000;
 	
 	// all gpio g as outputs
 	// using gpio_g_(2,3) for SID addressing
-	*(REG v_gpio_g_conf) = 0x55555555;
+	*(REG s3c2410_registers.v_gpio_g_conf) = 0x55555555;
 }
 
 // 1.023MHz (PAL)
 // 0.985MHz (NTSC)
 void initPWM(void) {
-	void* gpio_b_conf = get_addr(GPBCON);
-	void* v_gpio_b_conf = gpio_b_conf + (GPBCON & MAP_MASK);
-	
-	void* tcfg0 = get_addr(TCFG0);
-	void* v_tcon   = tcfg0 +   (TCON & MAP_MASK);
-	void* v_tcntb0 = tcfg0 + (TCNTB0 & MAP_MASK);
-	void* v_tcmpb0 = tcfg0 + (TCMPB0 & MAP_MASK);
+	s3c2410_registers.t_base = get_addr(TCFG0);
+	s3c2410_registers.v_tcfg1  = s3c2410_registers.t_base +  (TCFG1 & MAP_MASK);
+	s3c2410_registers.v_tcon   = s3c2410_registers.t_base +   (TCON & MAP_MASK);
+	s3c2410_registers.v_tcntb0 = s3c2410_registers.t_base + (TCNTB0 & MAP_MASK);
+	s3c2410_registers.v_tcmpb0 = s3c2410_registers.t_base + (TCMPB0 & MAP_MASK);
+	s3c2410_registers.v_tcntb1 = s3c2410_registers.t_base + (TCNTB1 & MAP_MASK);
 	
 	// tclk0 out
-	uint32_t res = *(REG v_gpio_b_conf);
+	uint32_t res = *(REG s3c2410_registers.v_gpio_b_conf);
 	uint32_t w = res;
 	w |= 0x2;
-	*(REG v_gpio_b_conf) = w;
+	*(REG s3c2410_registers.v_gpio_b_conf) = w;
+	
+	// timer1 prescaler=>1/16, timer1 will now run at 3.125MHz
+	w = *(REG s3c2410_registers.v_tcfg1);
+	w &= ~0xf0;
+	w |= 0x30;
+	*(REG s3c2410_registers.v_tcfg1) = w;
 	
 	// counter and compare to 24 (0x18) & 12 (0xC)
 	// from listening 26-13 SOUNDS correct
-	*(REG v_tcntb0) = 25;
-	*(REG v_tcmpb0) = 13;
+	*(REG s3c2410_registers.v_tcntb0) = 25;
+	*(REG s3c2410_registers.v_tcmpb0) = 13;
 	
 	// enable timer0
-	res = *(REG v_tcon);
+	res = *(REG s3c2410_registers.v_tcon);
 	w = res & 0xffffff00;
-	*(REG v_tcon) = w | 0xa;
+	*(REG s3c2410_registers.v_tcon) = w | 0xa;
 	usleep(1000);
-	*(REG v_tcon) = w | 0x9;
-	
-	release_addr(gpio_b_conf);
-	release_addr(tcfg0);
+	*(REG s3c2410_registers.v_tcon) = w | 0x9;
 }
 
 void setPWM(uint8_t counter, uint8_t compare) {
@@ -123,6 +130,7 @@ char* nextToken(char* in) {
 	return NULL;
 }
 
+/*
 void usleep_sid_clk(uint32_t cycles) {
 	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
 	int i;
@@ -172,6 +180,7 @@ void usleep_burn(uint32_t cycles) {
 		d += (now.tv_nsec - start.tv_nsec);
 	}
 }
+*/
 
 void print_song(void) {
 	char songname[21];
@@ -192,6 +201,20 @@ void print_song(void) {
 	lcd_puts(copyright);
 	lcd_gotoxy(0, 3);
 	lcd_puts(songsubsong);
+}
+
+void usleep_sid_kernel_timer(uint32_t usec) {
+	char buf[1];
+	// enable timer1
+	uint32_t res = *(REG s3c2410_registers.v_tcon);
+	uint32_t w = res & 0xfffff0ff;
+	
+	uint32_t count = (usec * 3125) / 1000;
+	*(REG s3c2410_registers.v_tcntb1) = count;
+	*(REG s3c2410_registers.v_tcon) = w | 0x200;	// timer1: one-shot, inverter-off, update tcntb1, stopped
+	*(REG s3c2410_registers.v_tcon) = w | 0x100;	// clear update-tcntb1, start
+	
+	fread(buf, 1, 1, sid_kernel_timer);
 }
 
 #define SID_HZ_PAL_CONVERSION (1000000/985248)
@@ -240,13 +263,18 @@ void continuosPlay(void) {
 		
 		if (n < 0) n = 1;
 		
+		/*
 		if (usleep_function == USLEEP_CLK) {
 			usleep_sid_clk(n);
 		} else if (usleep_function == USLEEP_NANOSLEEP) {
 			usleep_nanosleep(n);
 		} else if (usleep_function == USLEEP_CLOCK_NANOSLEEP) {
 			usleep_clock_nanosleep(n);
+		} else if (usleep_function == USLEEP_SID_KERNEL_DRIVER) {
+			usleep_sid_kernel_timer(n);
 		}
+		*/
+		usleep_sid_kernel_timer(n);
 	}
 	
 	fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
@@ -277,9 +305,15 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 	
+	sid_kernel_timer = fopen("/dev/sid_timer", "r");
+	if (sid_kernel_timer == NULL) {
+		printf("Could not get /dev/sid_timer\n");
+		return -1;
+	}
+	
 	printWelcome();
-	initPWM();
 	initGPIO();
+	initPWM();
 	lcd_init();
 
 	// sjekk opp argv[1]

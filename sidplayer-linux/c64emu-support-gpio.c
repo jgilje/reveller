@@ -5,9 +5,6 @@
 
 #include "sc2410.h"
 
-extern FILE* inputSidFile;
-extern void* v_gpio_base;
-
 void c64_sid_block_start(void) {
 }
 
@@ -15,10 +12,6 @@ void c64_sid_block_end(void) {
 }
 
 void c64_sid_write(uint8_t reg, uint8_t data) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
-	void* v_gpe_data = v_gpio_base + (GPEDAT & MAP_MASK);
-	void* v_gpg_data = v_gpio_base + (GPGDAT & MAP_MASK);
-	
 	uint32_t gpc_data = (data << DATA_BUS_SHIFT);	// sid data
 	gpc_data |= CS_ALL;
 	
@@ -27,19 +20,19 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	uint32_t gpg_data = (reg >> 1);
 	gpg_data &= 0xc;
 	
-	*(REG v_gpe_data) = gpe_data;
-	*(REG v_gpg_data) = gpg_data;
+	*(REG s3c2410_registers.v_gpio_e_data) = gpe_data;
+	*(REG s3c2410_registers.v_gpio_g_data) = gpg_data;
 	
-	while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+	while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);			// wait for low
 	gpc_data &= ~CS_SID;	// sid cs
-	*(REG v_gpc_data) = gpc_data;
+	*(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
 	
-	while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
-	while (*(REG v_gpc_data) & CS_CLK);			// wait for low
+	while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));		// wait for high
+	while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);			// wait for low
 	
-	*(REG v_gpc_data) = CS_ALL;
-	*(REG v_gpe_data) = 0;
-	*(REG v_gpg_data) = 0;
+	*(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
+	*(REG s3c2410_registers.v_gpio_e_data) = 0;
+	*(REG s3c2410_registers.v_gpio_g_data) = 0;
 }
 
 void c64_set_freq_vic(uint32_t hz) {

@@ -14,43 +14,38 @@
 #include "lcd.h"
 #include "sc2410.h"
 
-extern void* v_gpio_base;
-
 uint32_t lcd_e_delay_t = 400;
 uint32_t lcd_r_delay_t = 500;
 
 void lcd_e_delay(void) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
 	int i;
 	
 	for (i = 0; i < lcd_e_delay_t; i++) {
-		while (!(*(REG v_gpc_data) & CS_CLK));
-		while (*(REG v_gpc_data) & CS_CLK);
+		while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));
+		while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);
 	}
 }
 
 void lcd_delay(uint32_t t) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
 	int i;
 	
 	for (i = 0; i < lcd_r_delay_t; i++) {
-		while (!(*(REG v_gpc_data) & CS_CLK));
-		while (*(REG v_gpc_data) & CS_CLK);
+		while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));
+		while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);
 	}
 }
 
 void lcd_write_raw(uint32_t data) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
 	uint32_t gpc_data = (data << DATA_BUS_SHIFT) | CS_ALL;
 	// printf("lcd_write_raw(0x%x) => 0x%x\n", data, gpc_data);
 	
-	*(REG v_gpc_data) = gpc_data;
+	*(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
 	lcd_e_delay();
-	*(REG v_gpc_data) = gpc_data | CS_LCD;
+	*(REG s3c2410_registers.v_gpio_c_data) = gpc_data | CS_LCD;
 	lcd_e_delay();
-	*(REG v_gpc_data) = gpc_data;
+	*(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
 	lcd_e_delay();
-	*(REG v_gpc_data) = CS_ALL;
+	*(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
 	lcd_e_delay();
 }
 
@@ -58,7 +53,6 @@ uint8_t lcd_waitbusy(void) {
 }
 
 static void lcd_write(uint8_t data, uint8_t rs) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
     uint32_t gpc_data = 0;
     uint32_t rs_reg = 0;
     
@@ -78,24 +72,24 @@ static void lcd_write(uint8_t data, uint8_t rs) {
 	
     /* output high nibble first */
     gpc_data = ((data >> 4) << DATA_BUS_SHIFT) | CS_ALL | rs_reg;
-    *(REG v_gpc_data) = gpc_data;
+    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
-    *(REG v_gpc_data) = gpc_data | CS_LCD;
+    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data | CS_LCD;
     lcd_e_delay();
-    *(REG v_gpc_data) = gpc_data;
+    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
-    *(REG v_gpc_data) = CS_ALL;
+    *(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
     lcd_e_delay();
     
     /* output low nibble */
     gpc_data = ((data & 0xf) << DATA_BUS_SHIFT) | CS_ALL | rs_reg;
-    *(REG v_gpc_data) = gpc_data;
+    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
-    *(REG v_gpc_data) = gpc_data | CS_LCD;
+    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data | CS_LCD;
     lcd_e_delay();
-    *(REG v_gpc_data) = gpc_data;
+    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
-    *(REG v_gpc_data) = CS_ALL;
+    *(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
     lcd_e_delay();
 }
 
@@ -139,8 +133,6 @@ void lcd_clear(void) {
 }
 
 void lcd_init(void) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
-	
     /*
      *  Initialize LCD to 4 bit I/O mode
      */
