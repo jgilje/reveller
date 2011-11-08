@@ -7,10 +7,6 @@
 
 #include "vic.h"
 
-void vicInit(void) {
-	memset(&vicReg, 0, sizeof(vicRegister));
-}
-
 void vicWrite(unsigned char addr, unsigned char data) {
 	switch (addr) {
 		case 0x19:			// Interrupt Register
@@ -59,6 +55,15 @@ void vicNextInterrupt(void) {
 	}
 }
 */
+
+void c64_vic_init(void) {
+	memset(&vicReg, 0, sizeof(vicRegister));
+	
+	c64_vic_timer.latch = 0;
+	c64_vic_timer.counter = 0;
+	c64_vic_timer.enabled = 0;
+	c64_vic_timer.interrupt = 0;
+}
 
 int32_t c64_vic_next_timer(void) {
 	if (c64_vic_timer.enabled) {

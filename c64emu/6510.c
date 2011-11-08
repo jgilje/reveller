@@ -314,6 +314,7 @@ void initSong() {
 
 void setSubSong(unsigned char song) {
 	c64_cia_init();
+	c64_vic_init();
 	initSong();
 
 	storeMemRAMShort(0xfffa, 0x43, 0xfe);

@@ -20,8 +20,12 @@ typedef struct c64_vic_timer_t {
 } c64_vic_timer_t;
 c64_vic_timer_t c64_vic_timer;
 
-void vicInit(void);
 void vicWrite(unsigned char addr, unsigned char data);
 unsigned char vicRead(unsigned char addr);
+
+void c64_vic_init(void);
+int32_t c64_vic_next_timer(void);
+void c64_vic_update_timer(int32_t next);
+uint32_t c64_vic_irq(void);
 
 #endif
