@@ -204,6 +204,7 @@ void print_song(void) {
 }
 
 void usleep_sid_kernel_timer(uint32_t usec) {
+	/*
 	char buf[1];
 	// enable timer1
 	uint32_t res = *(REG s3c2410_registers.v_tcon);
@@ -215,6 +216,9 @@ void usleep_sid_kernel_timer(uint32_t usec) {
 	*(REG s3c2410_registers.v_tcon) = w | 0x100;	// clear update-tcntb1, start
 	
 	fread(buf, 1, 1, sid_kernel_timer);
+	*/
+	
+	ioctl(fileno(sid_kernel_timer), usec);
 }
 
 #define SID_HZ_PAL_CONVERSION (1000000/985248)
