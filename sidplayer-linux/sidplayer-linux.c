@@ -203,7 +203,7 @@ void print_song(void) {
 	lcd_puts(songsubsong);
 }
 
-void usleep_sid_kernel_timer(uint32_t usec) {
+void usleep_sid_kernel_timer(int32_t usec) {
 	/*
 	char buf[1];
 	// enable timer1
@@ -217,6 +217,13 @@ void usleep_sid_kernel_timer(uint32_t usec) {
 	
 	fread(buf, 1, 1, sid_kernel_timer);
 	*/
+	if (usec < 0) {
+		return;
+	}
+	if (usec > 20971) {
+		printf("sidplayer: usec was %d, limiting to 20950\n", usec);
+		usec = 20950;
+	}
 	
 	ioctl(fileno(sid_kernel_timer), usec);
 }
@@ -248,17 +255,15 @@ void continuosPlay(void) {
 		next = next * ((float) sh.hz / 1000000.0f);
 		clock_gettime(CLOCK_REALTIME, &a);
 		
-		long emulator_time = 0;
+		int64_t emulator_time = 0;
 		if (a.tv_sec != b.tv_sec) {
 			emulator_time += 1000000000;
 		}
 		emulator_time += (b.tv_nsec - a.tv_nsec);
 		emulator_time /= 1000;
 		
-		int n = next + emulator_time;
+		int32_t n = next + emulator_time;
 		// printf("%d = %d(%d) + %d + %d\n", n, sh.hz/next, next, usleep_bias, emulator_time);
-		
-		if (n < 0) n = 1;
 		
 		/*
 		if (usleep_function == USLEEP_CLK) {

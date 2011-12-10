@@ -51,18 +51,25 @@ static ssize_t sid_chardev_read(struct file *filp, char *buf, size_t count, loff
 static long sid_chardev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 	unsigned long tcon = __raw_readl(S3C2410_TCON);
 	unsigned long count = (cmd * 3125) / 1000;
-	unsigned long timeout = msecs_to_jiffies(100);
+	unsigned long timeout;
+	
+	if (count > 65535) {
+		printk("<1>sid_timer: warn.: asked for %lu => imm. return\n", count);
+		return 0;
+	}
 	
 	tcon &= 0xfffff0ff;
 	__raw_writel(count, S3C2410_TCNTB(1));
 	__raw_writel(tcon | 0x200, S3C2410_TCON);	// timer1: one-shot, inverter-off, update tcntb1, stopped
 	__raw_writel(tcon | 0x100, S3C2410_TCON);	// clear update-tcntb1, start
 	
+	timeout = msecs_to_jiffies(100);
+	sid_timer_irq_triggered = 0;
+	// printk("<1>sid_timer: c:%lu, t:%lu", count, timeout);
 	timeout = wait_event_timeout(sid_timer_wq, sid_timer_irq_triggered == 1, timeout);
 	if (timeout == 0) {
 		printk("<1>sid_timer: timeout waiting for interrupt\n");
 	}
-	sid_timer_irq_triggered = 0;
 	
 	return 0;
 }

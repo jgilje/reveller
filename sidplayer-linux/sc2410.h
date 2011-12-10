@@ -23,6 +23,8 @@
 #define GPEDAT 0x56000044
 #define GPGDAT 0x56000064
 
+#define GPCPULLUP 0x56000028
+
 // PWM
 #define  TCFG0 0x51000000
 #define  TCFG1 0x51000004 
@@ -44,6 +46,8 @@ typedef struct s3c2410_registers_t {
 	void* v_gpio_c_data;
 	void* v_gpio_e_data;
 	void* v_gpio_g_data;
+	
+	void* v_gpio_c_pullup;
 	
 	void* t_base;
 	void* v_tcfg1;

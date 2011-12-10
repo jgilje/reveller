@@ -14,25 +14,31 @@
 #include "lcd.h"
 #include "sc2410.h"
 
-uint32_t lcd_e_delay_t = 400;
-uint32_t lcd_r_delay_t = 500;
+uint32_t lcd_e_delay_t = 200; // 400
+uint32_t lcd_r_delay_t = 500; // 500
 
 void lcd_e_delay(void) {
 	int i;
 	
+	usleep_sid_kernel_timer(lcd_e_delay_t);
+	/*
 	for (i = 0; i < lcd_e_delay_t; i++) {
 		while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));
 		while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);
 	}
+	*/
 }
 
 void lcd_delay(uint32_t t) {
 	int i;
 	
+	usleep_sid_kernel_timer(lcd_r_delay_t);
+	/*
 	for (i = 0; i < lcd_r_delay_t; i++) {
 		while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));
 		while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);
 	}
+	*/
 }
 
 void lcd_write_raw(uint32_t data) {
@@ -47,9 +53,6 @@ void lcd_write_raw(uint32_t data) {
 	lcd_e_delay();
 	*(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
 	lcd_e_delay();
-}
-
-uint8_t lcd_waitbusy(void) {
 }
 
 static void lcd_write(uint8_t data, uint8_t rs) {
@@ -72,25 +75,34 @@ static void lcd_write(uint8_t data, uint8_t rs) {
 	
     /* output high nibble first */
     gpc_data = ((data >> 4) << DATA_BUS_SHIFT) | CS_ALL | rs_reg;
-    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
-    lcd_e_delay();
+    //*(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
+    //lcd_e_delay();
     *(REG s3c2410_registers.v_gpio_c_data) = gpc_data | CS_LCD;
     lcd_e_delay();
     *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
+    if (! rs) {
+        usleep_sid_kernel_timer(5000);
+    }
+    /*
     *(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
     lcd_e_delay();
+    */
     
     /* output low nibble */
     gpc_data = ((data & 0xf) << DATA_BUS_SHIFT) | CS_ALL | rs_reg;
-    *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
-    lcd_e_delay();
+    //*(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
+    //lcd_e_delay();
     *(REG s3c2410_registers.v_gpio_c_data) = gpc_data | CS_LCD;
     lcd_e_delay();
     *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
+    // lcd_e_delay();
+    if (! rs) {
+        usleep_sid_kernel_timer(5000);
+    }
+    
     *(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
-    lcd_e_delay();
 }
 
 void lcd_command(uint8_t cmd) {
@@ -110,7 +122,6 @@ void lcd_gotoxy(uint8_t x, uint8_t y) {
 }
 
 void lcd_putc(char c) {
-    lcd_waitbusy();
     lcd_write(c, 1);
 }
 
@@ -130,6 +141,19 @@ void lcd_reinit(uint32_t e_delay_t, uint32_t r_delay_t) {
 
 void lcd_clear(void) {
     lcd_command(LCD_DISP_CLEAR);
+}
+
+void lcd_print_lines(char** line_v, int lines) {
+	int i;
+	
+	lcd_clear();
+	for (i = 0; i < lines; i++) {
+		char line[21];
+		snprintf(line, 21, "%s", line_v[i]);
+		lcd_gotoxy(0, i);
+		lcd_puts(line);
+		// printf("%s\n", line);
+	}
 }
 
 void lcd_init(void) {
@@ -162,7 +186,15 @@ void lcd_init(void) {
     lcd_command(LCD_DISP_ON);  				/* display/cursor control       */
     lcd_command(LCD_MOVE_CURSOR_HOME);
     
+    /*
     lcd_gotoxy(0, 0);  
 	lcd_puts("Hello, SID!");
+	*/
+	/*
+	char* l0 = "Hello, SID!Hello, SID!Hello, SID!Hello, SID!Hello, SID!";
+	char* l[4]; l[0] = l0; l[1] = l0; l[2] = l0; l[3] = l0;
+	lcd_print_lines(l, 4);
+	*/
 }
+
 
