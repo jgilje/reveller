@@ -257,20 +257,22 @@ int main(int argc, char **argv) {
 		menu_run();
 		
 		if (inputSidFile != NULL) {
-			clock_gettime(CLOCK_REALTIME, &b);
+			// clock_gettime(CLOCK_REALTIME, &b);
 			int32_t next = c64_play();
 			next = next * ((float) sh.hz / 1000000.0f);
-			clock_gettime(CLOCK_REALTIME, &a);
-		
+			// clock_gettime(CLOCK_REALTIME, &a);
+			
+			/*
 			int64_t emulator_time = 0;
 			if (a.tv_sec != b.tv_sec) {
 				emulator_time += 1000000000;
 			}
 			emulator_time += (b.tv_nsec - a.tv_nsec);
 			emulator_time /= 1000;
-		
-			int32_t n = next + emulator_time;
-			usleep_sid_kernel_timer(n);
+			*/
+			
+			// int32_t n = next + emulator_time;
+			usleep_sid_kernel_timer(next);
 		} else {
 			usleep(1000);
 		}
