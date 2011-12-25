@@ -123,29 +123,16 @@ int main(int argc, char **argv) {
 				
 				printf("Playing... (any key to stop)...");
 				
-				int32_t skipped_time = 0;
 				while (getc(stdin) < 0) {
 					int debug_skip = 0;
 					// uint32_t next = c64_play();
 					int32_t next = c64_play();
-					if (next < 0) {
-						skipped_time -= next;
-						continue;
-					}
-					
-					if (skipped_time != 0) {
-						c64_debug("next: %d, skipped_time mod: %d\n", next, skipped_time);
-						debug_skip = 1;
-					}
-					next += skipped_time;
 					next = next * ((float) sh.hz / 1000000.0f);
 					if (debug_skip) {
 						c64_debug("final next: %d\n", next);
 					}
 					
-					skipped_time = 0;
-					
-					printf("usleep(%d)\n", next);
+					// printf("usleep(%d)\n", next);
 				}
 				
 				fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
