@@ -7,7 +7,7 @@ void LDA_(void) {
     reg.a = data;
     evalNZ(reg.a);
 #ifdef DEBUG
-    rprintf("LDA   [%04x]", effAddr);
+    c64_debug("LDA   [%04x]", effAddr);
 #endif
 }
 
@@ -16,7 +16,7 @@ void LDA_imm(void) {	// 0xA9
     reg.a = data;
     evalNZ(reg.a);
 #ifdef DEBUG
-    rprintf("LDA_imm");
+    c64_debug("LDA_imm");
 #endif
 }
 
@@ -60,7 +60,7 @@ void LDX_(void) {
     loadMem(effAddr);
     reg.x = data;
 #ifdef DEBUG
-    rprintf("LDX");
+    c64_debug("LDX");
 #endif
     evalNZ(reg.x);
 }
@@ -69,7 +69,7 @@ void LDX_imm(void) {	// 0xA2
     memImm();
 	reg.x = data;
 #ifdef DEBUG
-    rprintf("LDX_imm");
+    c64_debug("LDX_imm");
 #endif
     evalNZ(reg.x);
 }
@@ -100,7 +100,7 @@ void LDY_(void) {
     reg.y = data;
     evalNZ(reg.y);
 #ifdef DEBUG
-    rprintf("LDY");
+    c64_debug("LDY");
 #endif
 }
 
@@ -109,7 +109,7 @@ void LDY_imm(void) {	// 0xA0
     reg.y = data;
     evalNZ(reg.y);
 #ifdef DEBUG
-    rprintf("LDY_imm");
+    c64_debug("LDY_imm");
 #endif
 }
 
@@ -137,7 +137,7 @@ void LDY_zpx(void) {	// 0xB4
 void STA_abs(void) {	// 0x8D
     memAbsoluteAddr();
 #ifdef DEBUG
-    rprintf("STAa  [%04x]", effAddr);
+    c64_debug("STAa  [%04x]", effAddr);
 #endif    
     storeMem(reg.a);
 }
@@ -145,7 +145,7 @@ void STA_abs(void) {	// 0x8D
 void STA_absx(void) {	// 0x9D
     memAbsoluteAddrX();
 #ifdef DEBUG
-    rprintf("STAax [%04x]", effAddr);
+    c64_debug("STAax [%04x]", effAddr);
 #endif    
     storeMem(reg.a);
 }
@@ -153,7 +153,7 @@ void STA_absx(void) {	// 0x9D
 void STA_absy(void) {	// 0x99
     memAbsoluteAddrY();
 #ifdef DEBUG
-    rprintf("STAay [%04x]", effAddr);
+    c64_debug("STAay [%04x]", effAddr);
 #endif    
     storeMem(reg.a);
 }
@@ -161,7 +161,7 @@ void STA_absy(void) {	// 0x99
 void STA_zp(void) {		// 0x85
     memZero();
 #ifdef DEBUG
-    rprintf("STAz  [%04x]", effAddr);
+    c64_debug("STAz  [%04x]", effAddr);
 #endif
     storeMem(reg.a);
 }
@@ -169,7 +169,7 @@ void STA_zp(void) {		// 0x85
 void STA_zpx(void) {	// 0x95
     memZeroX();
 #ifdef DEBUG
-    rprintf("STAzx [%04x]", effAddr);
+    c64_debug("STAzx [%04x]", effAddr);
 #endif
     storeMem(reg.a);
 }
@@ -177,7 +177,7 @@ void STA_zpx(void) {	// 0x95
 void STA_izx(void) {	// 0x81
     memIndirectZeroX();
 #ifdef DEBUG
-    rprintf("STAix [%04x]", effAddr);
+    c64_debug("STAix [%04x]", effAddr);
 #endif
     storeMem(reg.a);
 }
@@ -185,7 +185,7 @@ void STA_izx(void) {	// 0x81
 void STA_izy(void) {	// 0x91
     memIndirectZeroY();
 #ifdef DEBUG
-    rprintf("STAiy [%04x]", effAddr);
+    c64_debug("STAiy [%04x]", effAddr);
 #endif
     storeMem(reg.a);
 }
@@ -194,7 +194,7 @@ void STA_izy(void) {	// 0x91
 void STX_abs(void) {	// 0x8E
     memAbsoluteAddr();
 #ifdef DEBUG
-    rprintf("STXa");
+    c64_debug("STXa");
 #endif
     storeMem(reg.x);
 }
@@ -202,7 +202,7 @@ void STX_abs(void) {	// 0x8E
 void STX_zp(void) {		// 0x86
     memZero();
 #ifdef DEBUG
-    rprintf("STXz");
+    c64_debug("STXz");
 #endif    
     storeMem(reg.x);
 }
@@ -210,7 +210,7 @@ void STX_zp(void) {		// 0x86
 void STX_zpy(void) {	// 0x96
     memZeroY();
 #ifdef DEBUG
-    rprintf("STXzy");
+    c64_debug("STXzy");
 #endif    
     storeMem(reg.x);
 }
@@ -219,7 +219,7 @@ void STX_zpy(void) {	// 0x96
 void STY_abs(void) {	// 0x8C
     memAbsoluteAddr();
 #ifdef DEBUG
-    rprintf("STYa");
+    c64_debug("STYa");
 #endif    
     storeMem(reg.y);
 }
@@ -227,7 +227,7 @@ void STY_abs(void) {	// 0x8C
 void STY_zp(void) {		// 0x84
     memZero();
 #ifdef DEBUG
-    rprintf("STYz");
+    c64_debug("STYz");
 #endif    
     storeMem(reg.y);
 }
@@ -235,7 +235,7 @@ void STY_zp(void) {		// 0x84
 void STY_zpx(void) {	// 0x94
     memZeroX();
 #ifdef DEBUG
-    rprintf("STYzx");
+    c64_debug("STYzx");
 #endif    
     storeMem(reg.y);
 }
@@ -245,7 +245,7 @@ void TAX_(void) {		// 0xAA
     reg.x = reg.a;
     evalNZ(reg.x);
 #ifdef DEBUG
-    rprintf("        TAX");
+    c64_debug("        TAX");
 #endif
     
 }
@@ -254,7 +254,7 @@ void TXA_(void) {		// 0x8A
     reg.a = reg.x;
     evalNZ(reg.a);
 #ifdef DEBUG
-    rprintf("        TXA");
+    c64_debug("        TXA");
 #endif
     
 }
@@ -263,7 +263,7 @@ void TAY_(void) {		// 0xA8
     reg.y = reg.a;
     evalNZ(reg.y);
 #ifdef DEBUG
-    rprintf("        TAY");
+    c64_debug("        TAY");
 #endif
     
 }
@@ -272,7 +272,7 @@ void TYA_(void) {		// 0x98
     reg.a = reg.y;
     evalNZ(reg.a);
 #ifdef DEBUG
-    rprintf("        TYA");
+    c64_debug("        TYA");
 #endif
     
 }
@@ -280,7 +280,7 @@ void TYA_(void) {		// 0x98
 void TXS_(void) {		// 0x9A
 	reg.s = reg.x;
 #ifdef DEBUG
-    rprintf("        TXS");
+    c64_debug("        TXS");
 #endif    
 }
 
@@ -288,7 +288,7 @@ void TSX_(void) {		// 0xBA
     reg.x = reg.s;
     evalNZ(reg.x);
 #ifdef DEBUG
-    rprintf("        TSX");
+    c64_debug("        TSX");
 #endif    
 }
 
@@ -296,7 +296,7 @@ void TSX_(void) {		// 0xBA
 void PushStack(unsigned char d) {
 	if (reg.s == 0x00) {
 #ifdef DEBUG
-//		rprintf(" Stack Overflow! ");
+//		c64_debug(" Stack Overflow! ");
 #endif
 		work = 0;
 		return;
@@ -310,7 +310,7 @@ void PushStack(unsigned char d) {
 void PullStack(void) {
     if (reg.s == 0xff) {
 #ifdef DEBUG
-//		rprintf(" Stack Overflow! ");
+//		c64_debug(" Stack Overflow! ");
 #endif
 		work = 0;
 		return;
@@ -324,7 +324,7 @@ void PullStack(void) {
 void PHA_(void) {		// 0x48
 	PushStack(reg.a);
 #ifdef DEBUG
-    rprintf("        PHA");
+    c64_debug("        PHA");
 #endif    
 }
 
@@ -333,14 +333,14 @@ void PLA_(void) {		// 0x48
     reg.a = data;
     evalNZ(reg.a);
 #ifdef DEBUG
-    rprintf("        PLA");
+    c64_debug("        PLA");
 #endif    
 }
 
 void PHP_(void) {		// 0x08
 	PushStack(reg.p);
 #ifdef DEBUG
-    rprintf("        PHP");
+    c64_debug("        PHP");
 #endif    
 }
 
@@ -348,7 +348,7 @@ void PLP_(void) {		// 0x28
 	PullStack();
     reg.p = data;
 #ifdef DEBUG
-    rprintf("        PLP");
+    c64_debug("        PLP");
 #endif    
 }
 

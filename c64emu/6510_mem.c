@@ -129,8 +129,7 @@ void storeMem(unsigned char s_data) {
 			case 0xd6:
 			case 0xd7:		// jupp!  4 mirrors av SID
 #ifdef DEBUG
-				c64_debug("\nSID Write: %04x, %02x (%d)", effAddr, s_data, sid_writes);
-				sid_writes++;
+				c64_debug("\nSID Write: %04x, %02x", effAddr, s_data);
 				// if (sid_writes > 100) {dumpMem(); exit(0);}
 #endif
 				c64_sid_write(offset & 0x1f, s_data);
@@ -244,10 +243,10 @@ void loadMem(unsigned short addr) {
 						data = 0;
 						break;
 					case 0xdc:
-						//data = ciaRead(0, offset);
+						data = ciaRead(0, offset);
 						break;
 					case 0xdd:
-						//data = ciaRead(1, offset);
+						data = ciaRead(1, offset);
 						break;
 					case 0xd4:
 						// data = LES FRA SID (offset)

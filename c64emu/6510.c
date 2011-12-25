@@ -44,7 +44,7 @@ void PrintOpcodeStats(void) {
 }
 
 void Un_imp(void) {
-    c64_debug("\nCall to unimplemented function %d at %d\n", data, reg.pc);
+    c64_debug("\nCall to unimplemented function %x at %d\n", data, reg.pc);
 	PrintOpcodeStats();
 	dumpMem();
 	exit(1);
@@ -115,7 +115,7 @@ void interpretMain(void) {
 		fetchOP();
 #ifdef DEBUG
 		c64_debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
-		c64_debug("%x %x %x %x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
+		c64_debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
 		c64_debug("%x %x ", *(pages[0]), *(pages[0] + 1));
 		
 		int i;
@@ -123,7 +123,7 @@ void interpretMain(void) {
 			if (reg.p & (1 << i)) c64_debug("1"); else c64_debug("0");
 		}
 		
-		c64_debug("    %x    %02x", cycleCounter, data);
+		c64_debug(" %02x", data);
 #endif
 
 		opcodes[data]();
@@ -314,9 +314,17 @@ void initSong() {
 	resetMem();
 }
 
+void c64_sid_init(void) {
+	int i;
+	for (i = 0; i <= 28; i++) {
+		c64_sid_write(i, 0);
+	}
+}
+
 void setSubSong(unsigned char song) {
 	c64_cia_init();
 	c64_vic_init();
+	c64_sid_init();
 	initSong();
 
 	storeMemRAMShort(0xfffa, 0x43, 0xfe);

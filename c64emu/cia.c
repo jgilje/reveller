@@ -42,6 +42,7 @@ void c64_cia_update_timers(int32_t next) {
 				if (ciaTimers[i].counters[j] == 0) {
 					if (ciaTimers[i].interrupt_enabled[j]) {
 						ciaTimers[i].interrupt_triggered[j] = 1;
+						ciaRegister[i].IDR |= (1 << j);
 					}
 					ciaTimers[i].counters[j] = ciaTimers[i].latches[j];
 					if (ciaTimers[i].oneshot[j]) {
@@ -143,31 +144,12 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			ciaTimers[chip].latches[0] |= data;
 			break;
 		case 0x5:		// Timer A High
-			{
-			    int newTiming;
-
-			    ciaTimers[chip].latches[0] &= 0x00ff;
-			    ciaTimers[chip].latches[0] |= (data << 8);
-			
-			    newTiming = sh.hz / (ciaTimers[chip].latches[0] - 2);
-			    if (chip) {
-					if (ciaTimers[chip].enabled[0] == 1)
-						c64_start_freq_cia_a_nmi();
-				
-					c64_set_freq_cia_a_nmi(newTiming);
-			    } else {
-					if (ciaTimers[chip].enabled[0] == 1)
-						c64_start_freq_cia_a_irq();
-				
-					c64_set_freq_cia_a_irq(newTiming);
-			    }
-			    
-			    // TODO reload if stopped
-			    
-			    // reload if stopped
-			    //if (! (ciaTimers[chip].CR[0] & 0x1)) {
-				//ciaTimers[chip].counters[0] = ciaTimers[chip].latches[0];
-			    //}
+		    ciaTimers[chip].latches[0] &= 0x00ff;
+		    ciaTimers[chip].latches[0] |= (data << 8);
+		    
+		    // reload timer if stopped
+			if (! (ciaTimers[chip].CR[0] & 0x1)) {
+				ciaTimers[chip].counters[0] = ciaTimers[chip].latches[0];
 			}
 			break;
 		case 0x6:		// Timer B Low
@@ -177,6 +159,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 		case 0x7:		// Timer B High
 			ciaTimers[chip].latches[1] &= 0x00ff;
 			ciaTimers[chip].latches[1] |= (data << 8);
+			
 			// reload timer if stopped
 			if (! (ciaTimers[chip].CR[1] & 0x1)) {
 			    ciaTimers[chip].counters[1] = ciaTimers[chip].latches[1];
@@ -203,49 +186,10 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			break;
 		case 0xe:		// CRA
 			c64_cia_write_cr(chip, data, 'A');
-			/*
-			if ((data & 0x21) == 0x1) {
-				ciaTimers[chip].enabled[0] = 1;
-				if (chip) {
-				    //int newTiming;
-
-				    //newTiming = sh.hz / (ciaTimers[chip].latches[0] - 2);
-				    //c64_set_freq_cia_a_nmi(newTiming);
-				    c64_start_freq_cia_a_nmi();
-				} else {
-				    c64_start_freq_cia_a_irq();
-				}
-			} else {
-				ciaTimers[chip].enabled[0] = 0;
-			}
-			*/
 			break;
 		case 0xf:		// CRB
 			c64_cia_write_cr(chip, data, 'B');
 			break;
-			/*
-				c64_debug("Unsupported CIA Operation, TimerB is unimplemented\n");
-				exit(0);
-				
-			ciaTimers[chip].CR[1] = data;
-
-			if (data & 0x2) {
-				c64_debug("Unsupported CIA Operation, TimerB -> PB7");
-				exit(0);
-			}
-			
-			if (data & 0x10) {
-				ciaTimers[chip].CR[1] &= ~0x10;
-				ciaTimers[chip].counters[1] = ciaTimers[chip].latches[1];
-			}
-
-			if ((data & 0x61) == 0x1) {
-				ciaTimers[chip].enabled[0] = 1;
-			} else {
-				ciaTimers[chip].enabled[0] = 0;
-			}
-			break;
-			*/
 		default:
 			c64_debug("Unsupported CIA Write (%02x)\n", addr);
 			exit(0);
@@ -253,11 +197,24 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 }
 
 unsigned char ciaRead(unsigned char chip, unsigned char addr) {
+	c64_debug(" (CIA read from chip %d %x) ", chip, addr);
 	switch (addr) {
 		case 0x0:		// PDRa
-			return (ciaRegister[chip].PDRa | ~ciaRegister[chip].DDRa);
+			if (! chip) {
+				return 0xff;
+			}
+			return 0xd0;
 			break;
 		case 0x1:		// PDRb
+			if (! chip) {	
+				return 0xff;
+			}
+			
+			c64_debug("CIA#2 PDRb is not emulated\n");
+			exit(0);
+			break;
+			
+			/*
 			{
 				unsigned char data = (ciaRegister[chip].PDRb | ~ciaRegister[chip].DDRb);
 				
@@ -267,12 +224,23 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 					exit(0);
 				}
 				
-				return data;                                                                                                                                                                                                                                                                          
+				printf("CIA RET READa (%x %x): %x\n", ciaRegister[chip].PDRb, ciaRegister[chip].DDRb, data);
+				return data;
 				break;
 			}
-		case 0xd:		// ICR
+			*/
+		case 0x4:		// timerA low
+			return ciaTimers[chip].counters[0] & 0xff;
+			break;
+		case 0x5:		// timerA high
+			return (ciaTimers[chip].counters[0] >> 8) & 0xff;
+			break;
+		case 0xd:		// IDR
 			{
 				unsigned char ret = ciaRegister[chip].IDR;
+				if (ret) {
+					ret |= 0x80;
+				}
 				ciaRegister[chip].IDR = 0;
 				c64_debug("ciaRead(): read from chip %d, addr: 0xd, returning %x\n", chip, ret);
 				return ret;
