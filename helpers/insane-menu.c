@@ -264,7 +264,7 @@ static void menu_sid_handle(int c) {
 			menu_data.state = DIRECTORY;
 			break;
 		case RIGHT:
-			menu_data.redraw = 0;
+			lcd_init();
 			break;
 		case UP:
 			{
