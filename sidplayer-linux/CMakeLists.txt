@@ -30,6 +30,8 @@ ADD_EXECUTABLE(sidplayer-hammer-gpio-linux
 
 include_directories(../c64emu ../helpers)
 
+set(CMAKE_C_FLAGS "-Wall")
+
 TARGET_LINK_LIBRARIES(sidplayer-linux c64emu rt)
 TARGET_LINK_LIBRARIES(sidplayer-hammer-gpio-linux c64emu rt)
 

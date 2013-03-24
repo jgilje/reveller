@@ -27,6 +27,8 @@ ADD_EXECUTABLE(sidstreamer-serial
 
 include_directories(../c64emu)
 
+set(CMAKE_C_FLAGS "-Wall -Wextra")
+
 TARGET_LINK_LIBRARIES(sidstreamer-file c64emu)
 TARGET_LINK_LIBRARIES(sidstreamer-serial c64emu)
 
