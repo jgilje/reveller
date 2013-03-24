@@ -197,7 +197,9 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 }
 
 unsigned char ciaRead(unsigned char chip, unsigned char addr) {
+#ifdef DEBUG
 	c64_debug(" (CIA read from chip %d %x) ", chip, addr);
+#endif
 	switch (addr) {
 		case 0x0:		// PDRa
 			if (! chip) {
@@ -242,11 +244,15 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 					ret |= 0x80;
 				}
 				ciaRegister[chip].IDR = 0;
+#ifdef DEBUG
 				c64_debug("ciaRead(): read from chip %d, addr: 0xd, returning %x\n", chip, ret);
+#endif
 				return ret;
 			}
 		case 0xe:
+#ifdef DEBUG
 			c64_debug("ciaRead(): read from chip %d, addr: 0xe, returning %x\n", chip, ciaTimers[chip].CR[0]);
+#endif
 			return ciaTimers[chip].CR[0];
 			break;
 		default:
