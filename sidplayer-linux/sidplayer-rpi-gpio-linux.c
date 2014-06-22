@@ -1,0 +1,203 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+
+#include "6510.h"
+
+#include "bcm2835.h"
+
+FILE *inputSidFile = NULL, *sid_kernel_timer = NULL;
+int fd_mem = -1;
+
+#define USLEEP_CLK 0
+#define USLEEP_NANOSLEEP 1
+#define USLEEP_CLOCK_NANOSLEEP 2
+#define USLEEP_SID_KERNEL_DRIVER 3
+int usleep_function = USLEEP_SID_KERNEL_DRIVER;
+
+void* get_addr(uint32_t addr) {
+	void* m = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, addr & ~MAP_MASK);
+	if(m == (void *) -1) {
+		printf("Failed to map addr.: %x\n", addr);
+		exit(-1);
+	}
+	
+	return m;
+}
+
+void release_addr(void* addr) {
+	int r = munmap(addr, MAP_SIZE);
+	if (r != 0) {
+		printf("Failed to unmap addr.: %p\n", addr);
+		exit(-1);
+	}
+}
+
+void initGPIO(void) {
+	bcm2835_registers.gpio_base = get_addr(GPIO_BASE);
+
+	/*
+	0x1 as output on pins 0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 17, 22, 23, 24, 25
+	0x2 as function 5 on pin 18
+	*/
+	bcm2835_registers.gpio_fsel0 = bcm2835_registers.gpio_base;
+	bcm2835_registers.gpio_fsel1 = bcm2835_registers.gpio_base + 1;
+	bcm2835_registers.gpio_fsel2 = bcm2835_registers.gpio_base + 2;
+	
+	uint32_t fsel;
+	
+	// function selection register 0, GPIO 0-9
+	fsel = *bcm2835_registers.gpio_fsel0;
+	// clear all except 5 and 6
+	fsel &= 0x1f8000;
+	//  enable input on 0, 1, 2, 3, 4, 7, 8, 9
+	*bcm2835_registers.gpio_fsel0 = fsel;
+	// enable output on 0, 1, 2, 3, 4, 7, 8, 9
+	fsel |= 0x9201249;
+	*bcm2835_registers.gpio_fsel0 = fsel;
+	
+	// function selection register 1, GPIO 10-19
+	fsel = *bcm2835_registers.gpio_fsel1;
+	// clear all except 12, 13, 16 and 19
+	fsel &= 0x381c0fc0;
+	//  enable input on 10, 11, 14, 15, 17
+	*bcm2835_registers.gpio_fsel1 = fsel;
+	// enable output on 10, 11, 14, 15, 17
+	// alt.fun. 5 on 18
+	fsel |= 0x2209009;
+	*bcm2835_registers.gpio_fsel1 = fsel;
+	
+	// function selection register 2, GPIO 20-29
+	fsel = *bcm2835_registers.gpio_fsel2;
+	// clear 22-25
+	fsel &= 0x3ffc003f;
+	//  enable input on 10, 11, 14, 15, 17
+	*bcm2835_registers.gpio_fsel2 = fsel;
+	// enable output on 10, 11, 14, 15, 17
+	// alt.fun. 5 on 18
+	fsel |= 0x9240;
+	*bcm2835_registers.gpio_fsel2 = fsel;
+	
+	bcm2835_registers.gpio_output_set0 = bcm2835_registers.gpio_base + 7; // 0x1C;
+	bcm2835_registers.gpio_output_set1 = bcm2835_registers.gpio_base + 8; // 0x20;
+	bcm2835_registers.gpio_output_clear0 = bcm2835_registers.gpio_base + 10; // 0x28;
+	bcm2835_registers.gpio_output_clear1 = bcm2835_registers.gpio_base + 11; // 0x2C;
+}
+
+// 1.023MHz (PAL)
+// 0.985MHz (NTSC)
+void initPWM(void) {
+	unsigned int pwm_pwd = (0x5A << 24);
+	bcm2835_registers.pwm_base = get_addr(PWM_BASE);
+	bcm2835_registers.pwm_rng1 = bcm2835_registers.pwm_base + 4;
+	bcm2835_registers.pwm_dat1 = bcm2835_registers.pwm_base + 5;
+	
+	bcm2835_registers.clock_base = get_addr(CLOCK_BASE);
+	bcm2835_registers.clock_pwm_cntl = bcm2835_registers.clock_base + 40;
+	bcm2835_registers.clock_pwm_div = bcm2835_registers.clock_base + 41;
+	
+	// Stop PWM clock
+	*bcm2835_registers.clock_pwm_cntl = pwm_pwd | 0x01;
+	usleep(110);
+	
+	// Wait for the clock to be not busy
+	while ((*(bcm2835_registers.clock_pwm_cntl) & 0x80) != 0) {
+		usleep(1);
+	}
+
+	// set the clock divider and enable PWM clock
+	*bcm2835_registers.clock_pwm_div = pwm_pwd | (2 << 12);
+	*bcm2835_registers.clock_pwm_cntl = pwm_pwd | 0x11;
+
+	*bcm2835_registers.pwm_base = 0x80 | 1;
+	*bcm2835_registers.pwm_rng1 = 9;
+	*bcm2835_registers.pwm_dat1 = 4;
+}
+
+void printWelcome() {
+	printf("SID Companiet - 6510 Emulator\n");
+	printf("\tLinux Hosted. Dev 16\n");
+	PrintOpcodeStats();
+}
+
+char* nextToken(char* in) {
+	int i;
+	for (i = 0; i < strlen(in); i++) {
+		if (in[i] == ' ') {
+			in[i] = 0x0;
+			return(&in[i + 1]);
+		}
+	}
+	return NULL;
+}
+
+#define SID_HZ_PAL_CONVERSION (1000000/985248)
+
+#include <sched.h>
+void set_realtime(void) {
+	struct sched_param param;
+	param.sched_priority = 20;
+	if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+		printf("Failed to get RealTime priority");
+	}
+}
+
+// SangSpilling foregår ved å sette registerene A (X, Y) før en kaller opp interpreteren
+int main(int argc, char **argv) {
+	char input[256];
+	char command[8];
+
+	if((fd_mem = open("/dev/mem", O_RDWR | O_SYNC)) == -1) {
+		printf("Could not get /dev/mem\n");
+		return -1;
+	}
+	
+	set_realtime();
+	printWelcome();
+	initGPIO();
+	initPWM();
+	printf("Peripheral setup complete\n");
+
+	// sjekk opp argv[1]
+	if (argv[1]) {
+		inputSidFile = fopen(argv[1], "rb");
+		if (inputSidFile == 0) {
+			printf("ERROR: File %s not found\n", argv[1]);
+			exit(1);
+		}
+		fseek(inputSidFile, 0, SEEK_END);
+		printf("Inputfile is %ld bytes\n", ftell(inputSidFile));
+		
+		setSubSong(0);
+		printf("Loaded song %d of %d subsongs\n", sh.startSong, sh.songs);
+	}
+
+	struct timespec b, a;
+	while(1) {
+		if (inputSidFile != NULL) {
+			// clock_gettime(CLOCK_REALTIME, &b);
+			int32_t next = c64_play();
+			next = next * ((float) sh.hz / 1000000.0f);
+			// clock_gettime(CLOCK_REALTIME, &a);
+			
+			/*
+			int64_t emulator_time = 0;
+			if (a.tv_sec != b.tv_sec) {
+				emulator_time += 1000000000;
+			}
+			emulator_time += (b.tv_nsec - a.tv_nsec);
+			emulator_time /= 1000;
+			*/
+			
+			// int32_t n = next + emulator_time;
+			usleep(next);
+		} else {
+			usleep(1000);
+		}
+	}
+}
