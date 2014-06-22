@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/mman.h>
 
 #include "6510.h"
