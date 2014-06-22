@@ -150,6 +150,8 @@ void IRQTrigger(void);
 void NMITrigger(void);
 void initSong();
 void setSubSong(unsigned char);
+void PrintOpcodeStats(void);
+int32_t c64_play(void);
 
 // Definer reg.p sine flag, (giljen bare roter når han skal trikse med dem)
 #define FLAG_N 0x80
