@@ -42,6 +42,7 @@
 #define LCD_FUNCTION_DEFAULT    LCD_FUNCTION_4BIT_2LINES 
 
 void lcd_init(void);
+void lcd_reinit(uint32_t e_delay_t, uint32_t r_delay_t);
 
 #endif
 
