@@ -74,12 +74,11 @@ void initGPIO(void) {
 	
 	// function selection register 2, GPIO 20-29
 	fsel = *bcm2835_registers.gpio_fsel2;
-	// clear 22-25
-	fsel &= 0x3ffc003f;
-	//  enable input on 10, 11, 14, 15, 17
+	// clear 21, 27, 22-25
+	fsel &= 0x3f1c0007;
+	//  enable input on 21, 22, 23, 24, 25, 27
 	*bcm2835_registers.gpio_fsel2 = fsel;
-	// enable output on 10, 11, 14, 15, 17
-	// alt.fun. 5 on 18
+	// enable output on 22, 23, 24, 25
 	fsel |= 0x9240;
 	*bcm2835_registers.gpio_fsel2 = fsel;
 	
@@ -87,6 +86,17 @@ void initGPIO(void) {
 	bcm2835_registers.gpio_output_set1 = bcm2835_registers.gpio_base + 8; // 0x20;
 	bcm2835_registers.gpio_output_clear0 = bcm2835_registers.gpio_base + 10; // 0x28;
 	bcm2835_registers.gpio_output_clear1 = bcm2835_registers.gpio_base + 11; // 0x2C;
+	bcm2835_registers.gpio_level0 = bcm2835_registers.gpio_base + 13; // 0x34;
+	
+	/*
+	volatile uint32_t *g1, *g2;
+	g1 = bcm2835_registers.gpio_base + 19;
+	g2 = bcm2835_registers.gpio_base + 20;
+	printf("GPREN0: %x, GPREN1: %x\n", *g1, *g2);
+	printf("GPFEN0: %x, GPFEN1: %x\n", *(bcm2835_registers.gpio_base + 22), *(bcm2835_registers.gpio_base + 23));
+	printf("GPHEN0: %x, GPHEN1: %x\n", *(bcm2835_registers.gpio_base + 25), *(bcm2835_registers.gpio_base + 26));
+	printf("GPLEN0: %x, GPLEN1: %x\n", *(bcm2835_registers.gpio_base + 28), *(bcm2835_registers.gpio_base + 29));
+	*/
 }
 
 // 1.023MHz (PAL)

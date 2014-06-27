@@ -6,6 +6,19 @@
 
 #include "bcm2835.h"
 
+#define CAL_FACTOR ( 100 )
+void delay (uint32_t interval) {
+	int i;
+	uint32_t iterations = interval / CAL_FACTOR;
+	for(i = 0; i < iterations; ++i) {
+		__asm__ volatile (
+			"nop\n\t"
+			"nop\n\t"
+			:::
+		);
+	}
+}
+
 void c64_sid_block_start(void) {
 }
 
@@ -32,9 +45,11 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	uint32_t clear_pins = 0;
 	clear_pins |= (1 << 17);	// SID read/Write
 	clear_pins |= (1 << 4);		// SID CS
-	*bcm2835_registers.gpio_output_clear0 = clear_pins;
 	
-	usleep(1);
+	while ((*bcm2835_registers.gpio_level0) & (1 << 18));	// wait for low
+	*bcm2835_registers.gpio_output_clear0 = clear_pins;
+	while (!((*bcm2835_registers.gpio_level0) & (1 << 18)));	// wait for high
+	while ((*bcm2835_registers.gpio_level0) & (1 << 18));	// wait for low
 	
 	clear_pins = 0x03C0CF8F;	// Clear 0-3, 7-11, 14-15, 22-25
 	set_pins  = (1 << 17);		// SID Read/write

@@ -10,6 +10,9 @@
     GPIO17    RW
     GPIO18    CLK
     GPIO22-25 D4-D7
+    
+    GPIO21 ReadCLK (v1)
+    GPIO27 ReadCLK (v2)
 */
 
 #define REG (volatile uint32_t *)
@@ -33,6 +36,7 @@ typedef struct bcm2835_registers {
     volatile uint32_t* gpio_output_set1;
     volatile uint32_t* gpio_output_clear0;
     volatile uint32_t* gpio_output_clear1;
+    volatile uint32_t* gpio_level0;
 
     volatile uint32_t* pwm_base;
     volatile uint32_t* pwm_rng1;
