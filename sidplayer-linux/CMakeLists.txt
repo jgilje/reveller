@@ -25,6 +25,7 @@ SET(sidplayer-rpi-gpio-linux_SOURCES
     sidplayer-rpi-gpio-linux.c
     c64emu-support-common.c
     c64emu-support-gpio-rpi.c
+    console-interface.c
     ../helpers/endian-conversion.c
 )
 

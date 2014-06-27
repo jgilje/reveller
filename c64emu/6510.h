@@ -152,6 +152,7 @@ void initSong();
 void setSubSong(unsigned char);
 void PrintOpcodeStats(void);
 int32_t c64_play(void);
+void interpret(int i, unsigned short addr);
 
 // Definer reg.p sine flag, (giljen bare roter når han skal trikse med dem)
 #define FLAG_N 0x80

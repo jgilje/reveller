@@ -6,17 +6,8 @@
 
 #include "bcm2835.h"
 
-#define CAL_FACTOR ( 100 )
-void delay (uint32_t interval) {
-	int i;
-	uint32_t iterations = interval / CAL_FACTOR;
-	for(i = 0; i < iterations; ++i) {
-		__asm__ volatile (
-			"nop\n\t"
-			"nop\n\t"
-			:::
-		);
-	}
+void platform_usleep(int32_t us) {
+    usleep(us);
 }
 
 void c64_sid_block_start(void) {

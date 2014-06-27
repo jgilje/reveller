@@ -8,8 +8,8 @@
 #include <sys/mman.h>
 
 #include "6510.h"
-
 #include "bcm2835.h"
+#include "console-interface.h"
 
 FILE *inputSidFile = NULL, *sid_kernel_timer = NULL;
 int fd_mem = -1;
@@ -99,8 +99,8 @@ void initGPIO(void) {
 	*/
 }
 
-// 1.023MHz (PAL)
-// 0.985MHz (NTSC)
+// 1.023MHz (NTSC)
+// 0.985MHz (PAL)
 void initPWM(void) {
 	unsigned int pwm_pwd = (0x5A << 24);
 	bcm2835_registers.pwm_base = get_addr(PWM_BASE);
@@ -125,25 +125,16 @@ void initPWM(void) {
 	*bcm2835_registers.clock_pwm_cntl = pwm_pwd | 0x11;
 
 	*bcm2835_registers.pwm_base = 0x80 | 1;
-	*bcm2835_registers.pwm_rng1 = 9;
-	*bcm2835_registers.pwm_dat1 = 4;
+	
+	// 10/5 sounds PAL, 9/4 is about NTSC
+	*bcm2835_registers.pwm_rng1 = 10;
+	*bcm2835_registers.pwm_dat1 = 5;
 }
 
 void printWelcome() {
 	printf("SID Companiet - 6510 Emulator\n");
-	printf("\tLinux Hosted. Dev 16\n");
+	printf("\tLinux Hosted for Raspberry Pi\n");
 	PrintOpcodeStats();
-}
-
-char* nextToken(char* in) {
-	int i;
-	for (i = 0; i < strlen(in); i++) {
-		if (in[i] == ' ') {
-			in[i] = 0x0;
-			return(&in[i + 1]);
-		}
-	}
-	return NULL;
 }
 
 #define SID_HZ_PAL_CONVERSION (1000000/985248)
@@ -187,27 +178,5 @@ int main(int argc, char **argv) {
 		printf("Loaded song %d of %d subsongs\n", sh.startSong, sh.songs);
 	}
 
-	struct timespec b, a;
-	while(1) {
-		if (inputSidFile != NULL) {
-			// clock_gettime(CLOCK_REALTIME, &b);
-			int32_t next = c64_play();
-			next = next * ((float) sh.hz / 1000000.0f);
-			// clock_gettime(CLOCK_REALTIME, &a);
-			
-			/*
-			int64_t emulator_time = 0;
-			if (a.tv_sec != b.tv_sec) {
-				emulator_time += 1000000000;
-			}
-			emulator_time += (b.tv_nsec - a.tv_nsec);
-			emulator_time /= 1000;
-			*/
-			
-			// int32_t n = next + emulator_time;
-			usleep(next);
-		} else {
-			usleep(1000);
-		}
-	}
+	console_interface();
 }
