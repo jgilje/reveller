@@ -74,11 +74,11 @@ void initGPIO(void) {
 	
 	// function selection register 2, GPIO 20-29
 	fsel = *bcm2835_registers.gpio_fsel2;
-	// clear 21, 27, 22-25
-	fsel &= 0x3f1c0007;
-	//  enable input on 21, 22, 23, 24, 25, 27
+	// clear 22-25
+	fsel &= 0x3ffc003f;
+	//  enable input on 22-25
 	*bcm2835_registers.gpio_fsel2 = fsel;
-	// enable output on 22, 23, 24, 25
+	// enable output on 22-25
 	fsel |= 0x9240;
 	*bcm2835_registers.gpio_fsel2 = fsel;
 	
@@ -150,9 +150,6 @@ void set_realtime(void) {
 
 // SangSpilling foregår ved å sette registerene A (X, Y) før en kaller opp interpreteren
 int main(int argc, char **argv) {
-	char input[256];
-	char command[8];
-
 	if((fd_mem = open("/dev/mem", O_RDWR | O_SYNC)) == -1) {
 		printf("Could not get /dev/mem\n");
 		return -1;
@@ -179,4 +176,5 @@ int main(int argc, char **argv) {
 	}
 
 	console_interface();
+	return 0;
 }
