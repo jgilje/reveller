@@ -121,14 +121,14 @@ void initPWM(void) {
 	}
 
 	// set the clock divider and enable PWM clock
-	*bcm2835_registers.clock_pwm_div = pwm_pwd | (2 << 12);
-	*bcm2835_registers.clock_pwm_cntl = pwm_pwd | 0x11;
-
-	*bcm2835_registers.pwm_base = 0x80 | 1;
+	// hardcoded to PAL freqs. We get a clock on PWM of PLLD (500MHz) / 254 / 2= 0.984MHz,
+	*bcm2835_registers.clock_pwm_div = pwm_pwd | (254 << 12);
+	*bcm2835_registers.clock_pwm_cntl = pwm_pwd | 0x16;
 	
-	// 10/5 sounds PAL, 9/4 is about NTSC
-	*bcm2835_registers.pwm_rng1 = 10;
-	*bcm2835_registers.pwm_dat1 = 5;
+	*bcm2835_registers.pwm_base = 0x80 | 1;
+
+	*bcm2835_registers.pwm_rng1 = 2;
+	*bcm2835_registers.pwm_dat1 = 1;
 }
 
 void printWelcome() {
