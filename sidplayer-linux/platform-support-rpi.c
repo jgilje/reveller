@@ -6,7 +6,7 @@
 
 #include "bcm2835.h"
 
-void platform_usleep(int32_t us) {
+void platform_usleep(u_int32_t us) {
     usleep(us);
 }
 

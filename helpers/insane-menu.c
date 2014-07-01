@@ -1,3 +1,10 @@
+/*
+ * The "insane" name comes from a late night of coding, there's really
+ * nothing insane about it.
+ *
+ * It has hard dependencies on the hammer-standalone version
+ */
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -8,6 +15,8 @@
 
 #include "6510.h"
 #include "sidheader.h"
+
+#include "../sidplayer-linux/lcd-hammer.h"
 
 #define MENU_LINES 4
 #define MENU_BUF_SIZE 1024

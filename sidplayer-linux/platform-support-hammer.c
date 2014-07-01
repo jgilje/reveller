@@ -2,8 +2,23 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 
 #include "sc2410.h"
+
+extern FILE *sid_kernel_timer;
+
+void platform_usleep(uint32_t usec) {
+    if (usec < 0) {
+        return;
+    }
+    if (usec > 20971) {
+        printf("sidplayer: usec was %d, limiting to 20950\n", usec);
+        usec = 20950;
+    }
+
+    ioctl(fileno(sid_kernel_timer), usec);
+}
 
 void c64_sid_block_start(void) {
 }

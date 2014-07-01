@@ -7,12 +7,13 @@
 #include <fcntl.h>
 #include <time.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 
 #include "6510.h"
 #include "sidheader.h"
 
 #include "sc2410.h"
-#include "lcd.h"
+#include "lcd-hammer.h"
 
 FILE *inputSidFile, *sid_kernel_timer;
 int fd_mem = -1;
@@ -38,7 +39,7 @@ void* get_addr(uint32_t addr) {
 void release_addr(void* addr) {
 	int r = munmap(addr, MAP_SIZE);
 	if (r != 0) {
-		printf("Failed to unmap addr.: %x\n", addr);
+        printf("Failed to unmap addr.: %p\n", addr);
 		exit(-1);
 	}
 }
@@ -297,9 +298,7 @@ void set_realtime(void) {
 // SangSpilling foregår ved å sette registerene A (X, Y) før en kaller opp interpreteren
 int main(int argc, char **argv) {
 	char input[256];
-	char command[8];
 	char *args;
-	int i = 0;
 	int song = 0;
 	int interactive = 0;
 
@@ -361,7 +360,6 @@ int main(int argc, char **argv) {
 			setSubSong(0);
 		} else if (! strcmp(input, "play") || ! strcmp(input, "p")) {
 			int i;
-			unsigned short addr;
 			if (! inputSidFile) {
 				printf("No SID is loaded\n");
 				continue;

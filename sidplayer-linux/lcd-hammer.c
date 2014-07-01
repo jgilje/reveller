@@ -11,34 +11,20 @@
 
 #include <stdio.h>
 
-#include "lcd.h"
+#include "lcd-hammer.h"
 #include "sc2410.h"
+
+#include "platform-support.h"
 
 uint32_t lcd_e_delay_t = 200; // 400
 uint32_t lcd_r_delay_t = 500; // 500
 
 void lcd_e_delay(void) {
-	int i;
-	
-	usleep_sid_kernel_timer(lcd_e_delay_t);
-	/*
-	for (i = 0; i < lcd_e_delay_t; i++) {
-		while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));
-		while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);
-	}
-	*/
+    platform_usleep(lcd_e_delay_t);
 }
 
 void lcd_delay(uint32_t t) {
-	int i;
-	
-	usleep_sid_kernel_timer(lcd_r_delay_t);
-	/*
-	for (i = 0; i < lcd_r_delay_t; i++) {
-		while (!(*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK));
-		while (*(REG s3c2410_registers.v_gpio_c_data) & CS_CLK);
-	}
-	*/
+    platform_usleep(lcd_r_delay_t);
 }
 
 void lcd_write_raw(uint32_t data) {
@@ -82,7 +68,7 @@ static void lcd_write(uint8_t data, uint8_t rs) {
     *(REG s3c2410_registers.v_gpio_c_data) = gpc_data;
     lcd_e_delay();
     if (! rs) {
-        usleep_sid_kernel_timer(5000);
+        platform_usleep(5000);
     }
     /*
     *(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;
@@ -99,7 +85,7 @@ static void lcd_write(uint8_t data, uint8_t rs) {
     lcd_e_delay();
     // lcd_e_delay();
     if (! rs) {
-        usleep_sid_kernel_timer(5000);
+        platform_usleep(5000);
     }
     
     *(REG s3c2410_registers.v_gpio_c_data) = CS_ALL;

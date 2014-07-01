@@ -1,3 +1,9 @@
+/*
+ * This version of the sidplayer is a complete standalone version
+ * reading input from pushbuttons on the databus, and outputs info
+ * using a lcd-display also connected to the databus.
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,12 +12,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 
 #include "6510.h"
 #include "insane-menu.h"
 
 #include "sc2410.h"
-#include "lcd.h"
+#include "lcd-hammer.h"
+#include "platform-support.h"
 
 FILE *inputSidFile = NULL, *sid_kernel_timer = NULL;
 int fd_mem = -1;
@@ -37,7 +45,7 @@ void* get_addr(uint32_t addr) {
 void release_addr(void* addr) {
 	int r = munmap(addr, MAP_SIZE);
 	if (r != 0) {
-		printf("Failed to unmap addr.: %x\n", addr);
+        printf("Failed to unmap addr.: %p\n", addr);
 		exit(-1);
 	}
 }
@@ -132,18 +140,6 @@ char* nextToken(char* in) {
 	return NULL;
 }
 
-void usleep_sid_kernel_timer(int32_t usec) {
-	if (usec < 0) {
-		return;
-	}
-	if (usec > 20971) {
-		printf("sidplayer: usec was %d, limiting to 20950\n", usec);
-		usec = 20950;
-	}
-	
-	ioctl(fileno(sid_kernel_timer), usec);
-}
-
 #define SID_HZ_PAL_CONVERSION (1000000/985248)
 
 #include <sched.h>
@@ -213,13 +209,6 @@ void menu_callback_set_file(char* file) {
 
 // SangSpilling foregår ved å sette registerene A (X, Y) før en kaller opp interpreteren
 int main(int argc, char **argv) {
-	char input[256];
-	char command[8];
-	char *args;
-	int i = 0;
-	int song = 0;
-	int interactive = 0;
-
 	if((fd_mem = open("/dev/mem", O_RDWR | O_SYNC)) == -1) {
 		printf("Could not get /dev/mem\n");
 		return -1;
@@ -252,27 +241,13 @@ int main(int argc, char **argv) {
 		lcd_init();
 	}
 	
-	struct timespec b, a;
 	while(1) {
 		menu_run();
 		
 		if (inputSidFile != NULL) {
-			// clock_gettime(CLOCK_REALTIME, &b);
 			int32_t next = c64_play();
 			next = next * ((float) sh.hz / 1000000.0f);
-			// clock_gettime(CLOCK_REALTIME, &a);
-			
-			/*
-			int64_t emulator_time = 0;
-			if (a.tv_sec != b.tv_sec) {
-				emulator_time += 1000000000;
-			}
-			emulator_time += (b.tv_nsec - a.tv_nsec);
-			emulator_time /= 1000;
-			*/
-			
-			// int32_t n = next + emulator_time;
-			usleep_sid_kernel_timer(next);
+            platform_usleep(next);
 		} else {
 			usleep(1000);
 		}

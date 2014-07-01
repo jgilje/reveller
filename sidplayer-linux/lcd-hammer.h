@@ -42,6 +42,10 @@
 #define LCD_FUNCTION_DEFAULT    LCD_FUNCTION_4BIT_2LINES 
 
 void lcd_init(void);
+void lcd_clear(void);
+void lcd_puts(const char *s);
+void lcd_print_lines(char** line_v, int lines);
+void lcd_gotoxy(uint8_t x, uint8_t y);
 void lcd_reinit(uint32_t e_delay_t, uint32_t r_delay_t);
 
 #endif
