@@ -10,10 +10,9 @@
 #include <sys/ioctl.h>
 
 #include "6510.h"
-#include "sidheader.h"
-
 #include "sc2410.h"
 #include "lcd-hammer.h"
+#include "console-interface.h"
 
 FILE *inputSidFile, *sid_kernel_timer;
 int fd_mem = -1;
@@ -121,17 +120,6 @@ void printWelcome() {
 	PrintOpcodeStats();
 }
 
-char* nextToken(char* in) {
-	int i;
-	for (i = 0; i < strlen(in); i++) {
-		if (in[i] == ' ') {
-			in[i] = 0x0;
-			return(&in[i + 1]);
-		}
-	}
-	return NULL;
-}
-
 /*
 void usleep_sid_clk(uint32_t cycles) {
 	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
@@ -230,62 +218,6 @@ void usleep_sid_kernel_timer(int32_t usec) {
 	ioctl(fileno(sid_kernel_timer), usec);
 }
 
-#define SID_HZ_PAL_CONVERSION (1000000/985248)
-void continuosPlay(void) {
-	print_song();
-	
-	struct timespec b, a;
-	struct termios currentTerm;
-	struct termios originalTerm;
-	int originalFcntl;
-	
-	tcgetattr(STDIN_FILENO, &currentTerm);
-	originalTerm = currentTerm;
-	
-	currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
-	currentTerm.c_cc[VMIN] = 1;
-	currentTerm.c_cc[VTIME] = 0;
-	tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
-	originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
-	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
-	
-	printf("Playing... (any key to stop)...");
-	
-	while (getc(stdin) < 0) {
-		clock_gettime(CLOCK_REALTIME, &b);
-		int32_t next = c64_play();
-		next = next * ((float) sh.hz / 1000000.0f);
-		clock_gettime(CLOCK_REALTIME, &a);
-		
-		int64_t emulator_time = 0;
-		if (a.tv_sec != b.tv_sec) {
-			emulator_time += 1000000000;
-		}
-		emulator_time += (b.tv_nsec - a.tv_nsec);
-		emulator_time /= 1000;
-		
-		int32_t n = next + emulator_time;
-		// printf("%d = %d(%d) + %d + %d\n", n, sh.hz/next, next, usleep_bias, emulator_time);
-		
-		/*
-		if (usleep_function == USLEEP_CLK) {
-			usleep_sid_clk(n);
-		} else if (usleep_function == USLEEP_NANOSLEEP) {
-			usleep_nanosleep(n);
-		} else if (usleep_function == USLEEP_CLOCK_NANOSLEEP) {
-			usleep_clock_nanosleep(n);
-		} else if (usleep_function == USLEEP_SID_KERNEL_DRIVER) {
-			usleep_sid_kernel_timer(n);
-		}
-		*/
-		usleep_sid_kernel_timer(n);
-	}
-	
-	fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
-	printf("\n");
-}
-
 #include <sched.h>
 void set_realtime(void) {
 	struct sched_param param;
@@ -297,11 +229,6 @@ void set_realtime(void) {
 
 // SangSpilling foregår ved å sette registerene A (X, Y) før en kaller opp interpreteren
 int main(int argc, char **argv) {
-	char input[256];
-	char *args;
-	int song = 0;
-	int interactive = 0;
-
 	if((fd_mem = open("/dev/mem", O_RDWR | O_SYNC)) == -1) {
 		printf("Could not get /dev/mem\n");
 		return -1;
@@ -332,103 +259,6 @@ int main(int argc, char **argv) {
 		printf("Loaded song %d of %d subsongs\n", sh.startSong, sh.songs);
 	}
 	
-	while(1) {
-		printf("6510> ");
-		input[0] = 0x0;
-		fgets(input, 256, stdin);
-		
-		if (input[0] == 0x0) { printf("\n"); exit(0); }
-		input[strlen(input) - 1] = 0x0;
-		
-		args = nextToken(input);
-		
-		if (! strcmp(input, "help") || ! strcmp(input, "h")) {
-			printf("\n6510 Commands\n"
-				   "(h)elp\n"
-				   "(p)lay [iterations]\n"
-				   "(s)ong <subgsong>\n"
-				   "(l)oad <file>\n"
-				   "(d)umpmem\n"
-				   "(q)uit\n"
-				   );
-		} else if (! strcmp(input, "load") || ! strcmp(input, "l")) {
-			inputSidFile = fopen(args, "rb");
-			if (inputSidFile == 0) {
-				printf("ERROR: File %s not found\n", args);
-			}
-			
-			setSubSong(0);
-		} else if (! strcmp(input, "play") || ! strcmp(input, "p")) {
-			int i;
-			if (! inputSidFile) {
-				printf("No SID is loaded\n");
-				continue;
-			}
-
-			if (args) {
-				i = strtoul(args, NULL, 0);
-				if (i < 0) {
-					printf("Invalid song\n");
-					continue;
-				}
-			} else {
-				continuosPlay();
-				continue;
-			}
-
-			// PLAY
-			printf("Starting PlayAddr %d times (warning, no sleep)\n", i);
-			{
-			    int j;
-			    for (j = 0; j < i; j++) {
-					c64_play();
-					usleep(1000000 / 55);
-			    }
-			}
-		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
-			int i;
-			if (! inputSidFile) {
-				printf("No SID is loaded\n");
-				continue;
-			}
-
-			if (args) {
-				i = strtoul(args, NULL, 0);
-				if (i < 0) {
-					printf("Invalid song\n");
-					continue;
-				}
-
-				song = i;
-				setSubSong(song);
-				printf("Song is now %d\n", song);
-				continuosPlay();
-			}
-		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
-			dumpMem();
-		} else if (! strcmp(input, "pwm")) {
-			int i = strtoul(args, NULL, 0);
-			args = nextToken(args);
-			int j = strtoul(args, NULL, 0);
-			printf("Set PWM counter 0x%x - compare 0x%x\n", i, j);
-			setPWM(i, j);
-		} else if (! strcmp(input, "lcd")) {
-			int i = strtoul(args, NULL, 0);
-			args = nextToken(args);
-			int j = strtoul(args, NULL, 0);
-			printf("LCD reinit: e_delay %d, r_delay %d\n", i, j);
-			lcd_reinit(i, j);
-		} else if (! strcmp(input, "usleep_function")) {
-			usleep_function = strtol(args, NULL, 0);
-			printf("usleep_function is now %d\n", usleep_function);
-		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
-			// ikke så nøye her, vi er ferdige anyway
-			fflush(NULL);
-			printf("Bye\n");
-			exit(0);
-		} else if (interactive && inputSidFile) {
-			printf("Starting PlayAddr 1 time\n");
-			interpret(1, sh.playAddress);
-		}
-	}
+    console_interface();
+    return 0;
 }

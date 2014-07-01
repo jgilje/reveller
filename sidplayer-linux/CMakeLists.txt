@@ -7,6 +7,7 @@ ADD_SUBDIRECTORY(../c64emu "${CMAKE_CURRENT_BINARY_DIR}/c64emu")
 SET(sidplayer-hammer_SOURCES
     sidplayer-hammer.c
     lcd-hammer.c
+    console-interface.c
     c64emu-support-common.c
     platform-support-hammer.c
     ../helpers/endian-conversion.c
