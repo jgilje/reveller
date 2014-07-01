@@ -8,6 +8,7 @@
 #include <time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <sched.h>
 
 #include "6510.h"
 #include "sc2410.h"
@@ -120,58 +121,6 @@ void printWelcome() {
 	PrintOpcodeStats();
 }
 
-/*
-void usleep_sid_clk(uint32_t cycles) {
-	void* v_gpc_data = v_gpio_base + (GPCDAT & MAP_MASK);
-	int i;
-	
-	for (i = 0; i < cycles; i++) {
-		while (*(REG v_gpc_data) & CS_CLK);			// wait for low
-		while (!(*(REG v_gpc_data) & CS_CLK));		// wait for high
-	}
-}
-
-void usleep_nanosleep(uint32_t cycles) {
-	struct timespec time;
-	
-	time.tv_sec = 0;
-	time.tv_nsec = cycles*1000;
-	
-	if (nanosleep(&time, NULL) != 0) {
-		printf("clock_nanosleep() failed\n");
-	}
-}
-
-void usleep_clock_nanosleep(uint32_t cycles) {
-	struct timespec time;
-	
-	time.tv_sec = 0;
-	time.tv_nsec = cycles*1000;
-	
-	if (clock_nanosleep(CLOCK_REALTIME, 0, &time, NULL) != 0) {
-		printf("clock_nanosleep() failed\n");
-	}
-}
-
-#define NS_IN_S 1000000000
-void usleep_burn(uint32_t cycles) {
-	struct timespec now, start;
-	int d = 0;
-	int cycles_ns = cycles*1000;
-	
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
-	
-	while (d < cycles_ns) {
-		d = 0;
-		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &now);
-		if (now.tv_sec != start.tv_sec) {
-			d += NS_IN_S;
-		}
-		d += (now.tv_nsec - start.tv_nsec);
-	}
-}
-*/
-
 void print_song(void) {
 	char songname[21];
 	char songauthor[21];
@@ -193,32 +142,6 @@ void print_song(void) {
 	lcd_puts(songsubsong);
 }
 
-void usleep_sid_kernel_timer(int32_t usec) {
-	/*
-	char buf[1];
-	// enable timer1
-	uint32_t res = *(REG s3c2410_registers.v_tcon);
-	uint32_t w = res & 0xfffff0ff;
-	
-	uint32_t count = (usec * 3125) / 1000;
-	*(REG s3c2410_registers.v_tcntb1) = count;
-	*(REG s3c2410_registers.v_tcon) = w | 0x200;	// timer1: one-shot, inverter-off, update tcntb1, stopped
-	*(REG s3c2410_registers.v_tcon) = w | 0x100;	// clear update-tcntb1, start
-	
-	fread(buf, 1, 1, sid_kernel_timer);
-	*/
-	if (usec < 0) {
-		return;
-	}
-	if (usec > 20971) {
-		printf("sidplayer: usec was %d, limiting to 20950\n", usec);
-		usec = 20950;
-	}
-	
-	ioctl(fileno(sid_kernel_timer), usec);
-}
-
-#include <sched.h>
 void set_realtime(void) {
 	struct sched_param param;
 	param.sched_priority = 20;
