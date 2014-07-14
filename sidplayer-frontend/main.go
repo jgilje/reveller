@@ -27,6 +27,9 @@ func broadCaster() {
 }
 
 func main() {
+	flag.StringVar(&Sidplayer.Command, "player", "sidplayer", "command for the sidplayer")
+	flag.Parse()
+
 	go Sidplayer.run()
 
 	go h.run()

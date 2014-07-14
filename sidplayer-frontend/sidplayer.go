@@ -17,6 +17,8 @@ type sidplayer struct {
 	help chan bool
 	song chan int8
 
+	Command string
+
 	currentFile  string
 	currentSong  int8
 	currentState string
@@ -45,7 +47,7 @@ func (s *sidplayer) stopPlayback() {
 }
 
 func (s *sidplayer) run() {
-	cmd := exec.Command("/home/pi/src/sidplayer/sidplayer-linux/build/sidplayer-rpi")
+	cmd := exec.Command(s.Command)
 	// cmd := exec.Command("stdbuf", "-oL", "-e0", "/home/jgilje/src/sidplayer/sidplayer-linux/build/sidplayer-dummy")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
