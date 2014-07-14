@@ -24,6 +24,7 @@ void continuosPlay(void) {
 	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 	
 	printf("Playing... (any key to stop)...");
+	fflush(stdout);
 	
 	while (getc(stdin) < 0) {
 		int32_t next = c64_play();
@@ -34,6 +35,7 @@ void continuosPlay(void) {
 	fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
 	printf("\n");
+	fflush(stdout);
 }
 
 char* nextToken(char* in) {
@@ -136,5 +138,7 @@ void console_interface(void) {
 			printf("Starting PlayAddr 1 time\n");
 			interpret(1, sh.playAddress);
 		}
+
+		fflush(stdout);
 	}
 }

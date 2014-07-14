@@ -1,0 +1,114 @@
+package main
+
+import (
+	"code.google.com/p/go.net/websocket"
+	"encoding/json"
+	"log"
+	"strconv"
+)
+
+type connection struct {
+	// The websocket connection.
+	ws *websocket.Conn
+
+	// Buffered channel of outbound messages.
+	send chan string
+}
+
+type SidAction struct {
+	Action   string `json:"action"`
+	Argument string `json:"argument"`
+}
+
+type ReplyMessage struct {
+	MsgType string `json:"type"`
+	Data    string `json:"data"`
+}
+
+type lsReply struct {
+	Directiories []string `json:"directories"`
+	SidFiles     []string `json:"sidfiles"`
+}
+
+type StateReply struct {
+	File  string `json:"file"`
+	State string `json:"state"`
+	Song  int8   `json:"song"`
+}
+
+func (c *connection) reader() {
+	for {
+		/*
+			var message string
+			err := websocket.Message.Receive(c.ws, &message)
+			if err != nil {
+				break
+			}
+
+
+			h.broadcast <- message
+		*/
+
+		var action SidAction
+		err := websocket.JSON.Receive(c.ws, &action)
+		if err != nil {
+			log.Println(err)
+			break
+		}
+
+		switch action.Action {
+		case "ls":
+			var lsreply lsReply
+			dirs, sids := Readpath(action.Argument)
+			lsreply.Directiories = dirs
+			lsreply.SidFiles = sids
+			msg, _ := json.Marshal(lsreply)
+			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
+			websocket.JSON.Send(c.ws, reply)
+		case "load":
+			file, err := SidPath(action.Argument)
+			if err != nil {
+				websocket.JSON.Send(c.ws, "err")
+				break
+			}
+			Sidplayer.load <- file
+		case "song":
+			song, err := strconv.ParseInt(action.Argument, 0, 8)
+			if err != nil {
+				websocket.JSON.Send(c.ws, err)
+				break
+			}
+			Sidplayer.song <- int8(song)
+		case "stop":
+			Sidplayer.stop <- true
+		case "play":
+			Sidplayer.play <- true
+		case "state":
+			s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong}
+			msg, _ := json.Marshal(s)
+			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
+			websocket.JSON.Send(c.ws, reply)
+		default:
+			websocket.JSON.Send(c.ws, "unknown action")
+		}
+	}
+	c.ws.Close()
+}
+
+func (c *connection) writer() {
+	for message := range c.send {
+		err := websocket.Message.Send(c.ws, message)
+		if err != nil {
+			break
+		}
+	}
+	c.ws.Close()
+}
+
+func wsHandler(ws *websocket.Conn) {
+	c := &connection{send: make(chan string, 256), ws: ws}
+	h.register <- c
+	defer func() { h.unregister <- c }()
+	go c.writer()
+	c.reader()
+}
