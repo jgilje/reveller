@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sched.h>
 
 #include "6510.h"
 #include "bcm2835.h"
@@ -13,12 +14,6 @@
 
 FILE *inputSidFile = NULL, *sid_kernel_timer = NULL;
 int fd_mem = -1;
-
-#define USLEEP_CLK 0
-#define USLEEP_NANOSLEEP 1
-#define USLEEP_CLOCK_NANOSLEEP 2
-#define USLEEP_SID_KERNEL_DRIVER 3
-int usleep_function = USLEEP_SID_KERNEL_DRIVER;
 
 void* get_addr(uint32_t addr) {
 	void* m = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, addr & ~MAP_MASK);
@@ -137,9 +132,6 @@ void printWelcome() {
 	PrintOpcodeStats();
 }
 
-#define SID_HZ_PAL_CONVERSION (1000000/985248)
-
-#include <sched.h>
 void set_realtime(void) {
 	struct sched_param param;
 	param.sched_priority = 20;
