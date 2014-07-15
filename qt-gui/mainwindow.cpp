@@ -6,51 +6,100 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "siditem.h"
+#include "connectdialog.h"
 
 #include <QLabel>
+#include <QSettings>
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(bool &ok, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    _webSocket(QString("http://192.168.0.200:8080"))
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    connect(&_webSocket, &QWebSocket::connected, this, &MainWindow::onConnected);
-    connect(&_webSocket, &QWebSocket::disconnected, this, &MainWindow::onDisconnected);
-
-    _webSocket.open(QUrl("ws://192.168.0.200:8080/ws"));
-
-    model = new SidItemModel;
-    ui->columnView->setModel(model);
-    connect(model, &SidItemModel::fetchItem, this, &MainWindow::onFetchItem);
 
     QLabel *label = new QLabel;
     ui->columnView->setPreviewWidget(label);
 
-    connect(ui->columnView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::onSelectionChanged);
-    connect(ui->columnView, &QColumnView::updatePreviewWidget, this, &MainWindow::onUpdatePreview);
+    QSettings settings;
+    QString url = settings.value("url").toString();
+    if (url.isEmpty()) {
+        url = runConnectionDialog();
+        if (url.isEmpty()) {
+            ok = false;
+            return;
+        }
+        wsConnect(url);
+    } else {
+        wsConnect(url);
+    }
+
+    ok = true;
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
+QString MainWindow::runConnectionDialog() {
+    ConnectDialog d;
+    int r = d.exec();
+    if (r == 0) {
+        return "";
+    }
+
+    return d.url();
+}
+
+void MainWindow::wsConnect(const QString &address) {
+    if (_webSocket != NULL) {
+        delete _webSocket;
+    }
+
+    QUrl url(address);
+    QUrl wsUrl(url);
+    wsUrl.setScheme("ws");
+    wsUrl.setPath("/ws");
+
+    _webSocket = new QWebSocket(address);
+    connect(_webSocket, &QWebSocket::connected, this, &MainWindow::onConnected);
+    connect(_webSocket, &QWebSocket::disconnected, this, &MainWindow::onDisconnected);
+    connect(_webSocket, &QWebSocket::stateChanged, this, &MainWindow::onWebSocketStateChange);
+
+    _webSocket->open(wsUrl);
+}
+
+void MainWindow::onWebSocketStateChange(QAbstractSocket::SocketState state) {
+    qDebug() << state;
+}
+
 void MainWindow::onConnected() {
-    connect(&_webSocket, &QWebSocket::textMessageReceived, this, &MainWindow::onTextMessageReceived);
+    QSettings settings;
+    settings.setValue("url", _webSocket->origin());
+
+    connect(_webSocket, &QWebSocket::textMessageReceived, this, &MainWindow::onTextMessageReceived);
+
+    model = new SidItemModel();
+    connect(model, &SidItemModel::fetchItem, this, &MainWindow::onFetchItem);
+    ui->columnView->setModel(model);
+
+    connect(ui->columnView, &QColumnView::updatePreviewWidget, this, &MainWindow::onUpdatePreview);
+    connect(ui->columnView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::onSelectionChanged);
 
     QJsonObject json;
     json["action"] = "state";
-    _webSocket.sendTextMessage(QJsonDocument(json).toJson());
-
-    json["action"] = "ls";
-    _webSocket.sendTextMessage(QJsonDocument(json).toJson());
+    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 }
 
 void MainWindow::onDisconnected() {
     qDebug() << "WebSocket disconnected";
-    _webSocket.close();
+    _webSocket->close();
+
+    QString url = runConnectionDialog();
+    if (url.isEmpty()) {
+        qApp->exit(1);
+    }
+
+    wsConnect(url);
 }
 
 void MainWindow::onTextMessageReceived(QString message) {
@@ -111,23 +160,21 @@ void MainWindow::onFetchItem(SidItem *item) {
     QJsonObject json;
     json["action"] = "ls";
     json["argument"] = item->path();
-    _webSocket.sendTextMessage(QJsonDocument(json).toJson());
+    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 }
 
 void MainWindow::onUpdatePreview(const QModelIndex &index) {
     SidItem *item = model->itemFromModelIndex(index);
     ui->columnView->previewWidget()->setProperty("text", item->name());
 
-    /*
     QJsonObject json;
     json["action"] = "load";
     json["argument"] = item->path();
-    _webSocket.sendTextMessage(QJsonDocument(json).toJson());
+    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 
     json["action"] = "song";
     json["argument"] = "0";
-    _webSocket.sendTextMessage(QJsonDocument(json).toJson());
-    */
+    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 }
 
 void MainWindow::onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) {

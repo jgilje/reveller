@@ -5,13 +5,13 @@
 
 class SidItem {
 public:
-    SidItem(const QString& name, SidItem *parent = 0);
-    ~SidItem();
-
     enum Type {
         DIRECTORY,
         SIDFILE
     };
+
+    SidItem(const QString& name, Type type, SidItem *parent = 0);
+    ~SidItem();
 
     void appendDirectory(const QString& dir);
     void appendSidFile(const QString& sidfile);

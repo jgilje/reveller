@@ -15,10 +15,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     siditemmodel.cpp \
-    siditem.cpp
+    siditem.cpp \
+    connectdialog.cpp
 
 HEADERS  += mainwindow.h \
     siditemmodel.h \
-    siditem.h
+    siditem.h \
+    connectdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    connectdialog.ui

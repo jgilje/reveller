@@ -3,11 +3,18 @@
 
 #include <QtWebSockets/QtWebSockets>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
+    QCoreApplication::setOrganizationName("Carbonium Development");
+    QCoreApplication::setOrganizationDomain("jgilje.net");
+    QCoreApplication::setApplicationName("SID Player");
 
+    bool ok;
+    MainWindow w(ok);
+    if (! ok) {
+        return 1;
+    }
+
+    w.show();
     return a.exec();
 }

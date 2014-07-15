@@ -2,11 +2,12 @@
 
 #include <QDebug>
 
-SidItem::SidItem(const QString& name, SidItem *parent) :
+SidItem::SidItem(const QString& name, Type type, SidItem *parent) :
     _loaded(false),
     _loading(false)
 {
     _parent = parent;
+    _type = type;
     _name = name;
 }
 
@@ -42,15 +43,13 @@ SidItem *SidItem::parent() {
 }
 
 void SidItem::appendDirectory(const QString &dir) {
-    SidItem* item = new SidItem(dir, this);
-    item->_type = DIRECTORY;
+    SidItem* item = new SidItem(dir, DIRECTORY, this);
     item->_loaded = false;
     appendChild(item);
 }
 
 void SidItem::appendSidFile(const QString &sidfile) {
-    SidItem* item = new SidItem(sidfile, this);
-    item->_type = SIDFILE;
+    SidItem* item = new SidItem(sidfile, SIDFILE, this);
     item->_loaded = true;
     appendChild(item);
 }

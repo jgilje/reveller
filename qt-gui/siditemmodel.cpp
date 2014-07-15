@@ -7,7 +7,7 @@
 SidItemModel::SidItemModel(QObject *parent) :
     QAbstractItemModel(parent)
 {
-    rootItem = new SidItem("ROOT");
+    rootItem = new SidItem("ROOT", SidItem::DIRECTORY);
 }
 
 SidItemModel::~SidItemModel() {

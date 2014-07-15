@@ -17,14 +17,16 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(bool &ok, QWidget *parent = 0);
     ~MainWindow();
 
 private:
     Ui::MainWindow *ui;
-    QWebSocket _webSocket;
+    QWebSocket *_webSocket;
     SidItemModel *model;
 
+    QString runConnectionDialog();
+    void wsConnect(const QString& address);
     void handleLs(const QJsonArray& directories, const QJsonArray& sidfiles);
     void handleLoad(const QString& data);
     void handleState(const QJsonObject& data);
@@ -36,6 +38,7 @@ private slots:
     void onTextMessageReceived(QString msg);
     void onUpdatePreview(const QModelIndex &index);
     void onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected);
+    void onWebSocketStateChange(QAbstractSocket::SocketState state);
 };
 
 #endif // MAINWINDOW_H
