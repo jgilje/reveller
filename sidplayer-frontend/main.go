@@ -28,6 +28,7 @@ func broadCaster() {
 
 func main() {
 	flag.StringVar(&Sidplayer.Command, "player", "sidplayer", "command for the sidplayer")
+	flag.StringVar(&Browser.RootPath, "rootpath", "C64Music", "rootpath for sid files")
 	flag.Parse()
 
 	go Sidplayer.run()

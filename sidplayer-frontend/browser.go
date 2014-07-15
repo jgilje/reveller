@@ -9,24 +9,22 @@ import (
 	"strings"
 )
 
-var rootpath string = "/net/xerxes/storage/C64Music"
 var walkerFinished = make(chan bool)
 
 type browser struct {
+	RootPath string
 }
+
+var Browser = browser{}
 
 func walker(path string, info os.FileInfo, err error) error {
 	log.Println(path)
 	return nil
 }
 
-func notUsed() {
-	filepath.Walk("/net/xerxes/storage/C64Music", walker)
-}
-
 func SidPath(path string) (string, error) {
-	file := filepath.Join(rootpath, path)
-	if !strings.HasPrefix(file, rootpath) {
+	file := filepath.Join(Browser.RootPath, path)
+	if !strings.HasPrefix(file, Browser.RootPath) {
 		log.Println("Trying to escape rootpath")
 		return "", errors.New("Trying to escape rootpath")
 	}
@@ -46,15 +44,16 @@ func SidPath(path string) (string, error) {
 }
 
 func Readpath(path string) (subdirs []string, sidfiles []string) {
-	dir := filepath.Join(rootpath, path)
-	if !strings.HasPrefix(dir, rootpath) {
-		log.Fatal("Trying to escape rootpath")
+	dir := filepath.Join(Browser.RootPath, path)
+	if !strings.HasPrefix(dir, Browser.RootPath) {
+		log.Println("Trying to escape rootpath")
 		return
 	}
 
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 
 	dirs := []string{}

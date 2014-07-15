@@ -111,7 +111,7 @@ func (s *sidplayer) run() {
 				log.Fatal(err)
 			}
 
-			Sidplayer.currentFile = strings.TrimPrefix(file, rootpath+"/")
+			Sidplayer.currentFile = strings.TrimPrefix(file, Browser.RootPath+"/")
 
 			msg, _ := json.Marshal(ReplyMessage{MsgType: "load", Data: Sidplayer.currentFile})
 			h.broadcast <- string(msg)
