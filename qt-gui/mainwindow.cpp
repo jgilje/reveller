@@ -12,25 +12,23 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    _webSocket(QString("http://192.168.0.149:8080"))
+    _webSocket(QString("http://192.168.0.200:8080"))
 {
     ui->setupUi(this);
 
     connect(&_webSocket, &QWebSocket::connected, this, &MainWindow::onConnected);
     connect(&_webSocket, &QWebSocket::disconnected, this, &MainWindow::onDisconnected);
 
-    _webSocket.open(QUrl("ws://192.168.0.149:8080/ws"));
+    _webSocket.open(QUrl("ws://192.168.0.200:8080/ws"));
 
     model = new SidItemModel;
     ui->columnView->setModel(model);
+    connect(model, &SidItemModel::fetchItem, this, &MainWindow::onFetchItem);
 
     QLabel *label = new QLabel;
     ui->columnView->setPreviewWidget(label);
 
-    /*
-    connect(ui->columnView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onNavigation);
-    */
-    connect(model, &SidItemModel::fetchItem, this, &MainWindow::onFetchItem);
+    connect(ui->columnView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::onSelectionChanged);
     connect(ui->columnView, &QColumnView::updatePreviewWidget, this, &MainWindow::onUpdatePreview);
 }
 
@@ -120,6 +118,7 @@ void MainWindow::onUpdatePreview(const QModelIndex &index) {
     SidItem *item = model->itemFromModelIndex(index);
     ui->columnView->previewWidget()->setProperty("text", item->name());
 
+    /*
     QJsonObject json;
     json["action"] = "load";
     json["argument"] = item->path();
@@ -128,4 +127,15 @@ void MainWindow::onUpdatePreview(const QModelIndex &index) {
     json["action"] = "song";
     json["argument"] = "0";
     _webSocket.sendTextMessage(QJsonDocument(json).toJson());
+    */
+}
+
+void MainWindow::onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) {
+    Q_UNUSED(selected)
+    Q_UNUSED(deselected)
+
+    /* Prevents annoying select-all => select actual behaviour when clicking a sid file */
+    if (ui->columnView->selectionModel()->selectedIndexes().size() > 0) {
+        ui->columnView->selectionModel()->select(ui->columnView->selectionModel()->selectedIndexes().last(), QItemSelectionModel::SelectCurrent);
+    }
 }

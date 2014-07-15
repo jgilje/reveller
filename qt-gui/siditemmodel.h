@@ -20,15 +20,18 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
     bool hasChildren ( const QModelIndex & parent = QModelIndex() ) const;
-    bool canFetchMore(const QModelIndex &parent) const;
-    void fetchMore(const QModelIndex &parent);
 
     SidItem *itemFromModelIndex(const QModelIndex &index) const;
     void directoryData(const QModelIndex& modelIndex, const QStringList& directories, const QStringList& sidfiles);
+
 signals:
     void fetchItem(SidItem *item);
 
 public slots:
+
+protected:
+    bool canFetchMore(const QModelIndex &parent) const;
+    void fetchMore(const QModelIndex &parent);
 
 private:
     void setupModelData(const QStringList &lines, SidItem *parent);

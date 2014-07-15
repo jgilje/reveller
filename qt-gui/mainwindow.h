@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QtWebSockets/QWebSocket>
 
+#include <QItemSelection>
+
 #include "siditemmodel.h"
 
 namespace Ui {
@@ -33,6 +35,7 @@ private slots:
     void onFetchItem(SidItem *item);
     void onTextMessageReceived(QString msg);
     void onUpdatePreview(const QModelIndex &index);
+    void onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected);
 };
 
 #endif // MAINWINDOW_H

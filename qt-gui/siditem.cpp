@@ -1,5 +1,7 @@
 #include "siditem.h"
 
+#include <QDebug>
+
 SidItem::SidItem(const QString& name, SidItem *parent) :
     _loaded(false),
     _loading(false)

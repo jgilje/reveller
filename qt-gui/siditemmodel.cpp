@@ -14,16 +14,17 @@ SidItemModel::~SidItemModel() {
 }
 
 QModelIndex SidItemModel::index(int row, int column, const QModelIndex &parent) const {
-    if (!hasIndex(row, column, parent))
+    if (!hasIndex(row, column, parent)) {
         return QModelIndex();
+    }
 
     SidItem *parentItem = itemFromModelIndex(parent);
     SidItem *childItem = parentItem->child(row);
     if (childItem) {
         return createIndex(row, column, childItem);
-    }
-    else
+    } else {
         return QModelIndex();
+    }
 }
 
 QModelIndex SidItemModel::parent(const QModelIndex &index) const {
@@ -40,32 +41,17 @@ QModelIndex SidItemModel::parent(const QModelIndex &index) const {
 }
 
 int SidItemModel::rowCount(const QModelIndex &parent) const {
-    SidItem *parentItem;
-    if (parent.column() > 0){
+    if (parent.column() > 0) {
         return 0;
     }
 
-    parentItem = itemFromModelIndex(parent);
+    SidItem *parentItem = itemFromModelIndex(parent);
     return parentItem->childCount();
 }
 
 int SidItemModel::columnCount(const QModelIndex &parent) const {
-    SidItem *parentItem = itemFromModelIndex(parent);
-    switch (parentItem->type()) {
-    case SidItem::DIRECTORY:
-        return 1;
-    case SidItem::SIDFILE:
-        return 0;
-    }
-
-    // return parentItem->childCount();
-
-    /*
-    if (parent.isValid())
-        return static_cast<SidItem*>(parent.internalPointer())->columnCount();
-    else
-        return rootItem->columnCount();
-    */
+    Q_UNUSED(parent)
+    return 1;
 }
 
 QVariant SidItemModel::data(const QModelIndex &index, int role) const {
@@ -99,24 +85,11 @@ Qt::ItemFlags SidItemModel::flags(const QModelIndex &index) const {
     if (!index.isValid())
         return 0;
 
-    SidItem* item = itemFromModelIndex(index);
-
-    switch (item->type()) {
-    case SidItem::DIRECTORY:
-        return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-    case SidItem::SIDFILE:
-        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
-    }
-
-    return 0;
+    return QAbstractItemModel::flags(index);
 }
 
 QVariant SidItemModel::headerData(int section, Qt::Orientation orientation, int role) const {
-    /*
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
-        return rootItem->data(section);
-    */
-
+    Q_UNUSED(role)
     return QVariant(QString("HeaderData %1, %2").arg(section).arg(orientation));
 }
 
