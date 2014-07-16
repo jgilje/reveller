@@ -7,6 +7,7 @@
 #include <QItemSelection>
 
 #include "siditemmodel.h"
+#include "sidheader.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,7 +24,8 @@ public:
 private:
     Ui::MainWindow *ui;
     QWebSocket *_webSocket;
-    SidItemModel *model;
+    SidItemModel *_model;
+    SidHeader header;
 
     QString runConnectionDialog();
     void wsConnect(const QString& address);

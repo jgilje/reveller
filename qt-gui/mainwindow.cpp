@@ -7,18 +7,21 @@
 #include "ui_mainwindow.h"
 #include "siditem.h"
 #include "connectdialog.h"
+#include "sidinfo.h"
 
 #include <QLabel>
 #include <QSettings>
 
 MainWindow::MainWindow(bool &ok, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    _webSocket(NULL),
+    _model(NULL)
 {
     ui->setupUi(this);
 
-    QLabel *label = new QLabel;
-    ui->columnView->setPreviewWidget(label);
+    SidInfo *info = new SidInfo;
+    ui->columnView->setPreviewWidget(info);
 
     QSettings settings;
     QString url = settings.value("url").toString();
@@ -78,9 +81,9 @@ void MainWindow::onConnected() {
 
     connect(_webSocket, &QWebSocket::textMessageReceived, this, &MainWindow::onTextMessageReceived);
 
-    model = new SidItemModel();
-    connect(model, &SidItemModel::fetchItem, this, &MainWindow::onFetchItem);
-    ui->columnView->setModel(model);
+    _model = new SidItemModel();
+    connect(_model, &SidItemModel::fetchItem, this, &MainWindow::onFetchItem);
+    ui->columnView->setModel(_model);
 
     connect(ui->columnView, &QColumnView::updatePreviewWidget, this, &MainWindow::onUpdatePreview);
     connect(ui->columnView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::onSelectionChanged);
@@ -111,14 +114,19 @@ void MainWindow::onTextMessageReceived(QString message) {
     QJsonDocument dataDocument = QJsonDocument::fromJson(data.toUtf8());
     QJsonObject dataObj = dataDocument.object();
 
-    if (type == QString("state")) {
+    if (type == QStringLiteral("state")) {
         handleState(dataObj);
-    } else if (type == QString("ls")) {
+    } else if (type == QStringLiteral("ls")) {
         handleLs(dataObj.value("directories").toArray(), dataObj.value("sidfiles").toArray());
-    } else if (type == QString("load")) {
+    } else if (type == QStringLiteral("load")) {
         handleLoad(data);
-    } else if (type == QString("stateChange")) {
+    } else if (type == QStringLiteral("stateChange")) {
         handleStateChange(data);
+    } else if (type == QStringLiteral("sidHeader")) {
+        header = SidHeader::parse(dataObj);
+        SidInfo *info = qobject_cast<SidInfo*>(ui->columnView->previewWidget());
+        info->name(header.name);
+        info->authorAndRelease(QString("%1 - %2").arg(header.author).arg(header.released));
     } else {
         qDebug() << message;
     }
@@ -141,7 +149,7 @@ void MainWindow::handleLs(const QJsonArray &jsonDirectories, const QJsonArray &j
         sidfiles.append(value.toString());
     }
 
-    model->directoryData(ui->columnView->selectionModel()->currentIndex(), directories, sidfiles);
+    _model->directoryData(ui->columnView->selectionModel()->currentIndex(), directories, sidfiles);
 }
 
 void MainWindow::handleLoad(const QString &data) {
@@ -164,8 +172,7 @@ void MainWindow::onFetchItem(SidItem *item) {
 }
 
 void MainWindow::onUpdatePreview(const QModelIndex &index) {
-    SidItem *item = model->itemFromModelIndex(index);
-    ui->columnView->previewWidget()->setProperty("text", item->name());
+    SidItem *item = _model->itemFromModelIndex(index);
 
     QJsonObject json;
     json["action"] = "load";

@@ -16,12 +16,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     siditemmodel.cpp \
     siditem.cpp \
-    connectdialog.cpp
+    connectdialog.cpp \
+    sidheader.cpp \
+    sidinfo.cpp
 
 HEADERS  += mainwindow.h \
     siditemmodel.h \
     siditem.h \
-    connectdialog.h
+    connectdialog.h \
+    sidheader.h \
+    sidinfo.h
 
 FORMS    += mainwindow.ui \
-    connectdialog.ui
+    connectdialog.ui \
+    sidinfo.ui
