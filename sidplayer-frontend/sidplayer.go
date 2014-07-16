@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./sid"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -101,19 +102,33 @@ func (s *sidplayer) run() {
 		case file := <-s.load:
 			fmt.Printf("sidplayer() loading %q\n", file)
 
+			sidheader, err := sid.Parse(file)
+			if err != nil {
+				log.Println("sidplayer() failed to parse file")
+				return
+			}
+
 			if Sidplayer.currentState == "play" {
 				s.stopPlayback()
 			}
 
 			load := fmt.Sprintf("l %s\n", file)
-			_, err := io.WriteString(stdin, load)
+			_, err = io.WriteString(stdin, load)
 			if err != nil {
 				log.Fatal(err)
 			}
+			/*
+				if _, werr := io.WriteString(stdin, load); werr != nil {
+					log.Fatal(werr)
+				}
+			*/
 
 			Sidplayer.currentFile = strings.TrimPrefix(file, Browser.RootPath+"/")
 
 			msg, _ := json.Marshal(ReplyMessage{MsgType: "load", Data: Sidplayer.currentFile})
+			h.broadcast <- string(msg)
+			msg, _ = json.Marshal(sidheader)
+			msg, _ = json.Marshal(ReplyMessage{MsgType: "sidHeader", Data: string(msg)})
 			h.broadcast <- string(msg)
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
