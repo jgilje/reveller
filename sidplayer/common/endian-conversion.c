@@ -10,8 +10,17 @@ void read_bigEndian_short(short *dest, unsigned char* source) {
     *dest |= source[1];
 }
 
+void read_bigEndian_ushort(unsigned short *dest, unsigned char* source) {
+    *dest = (source[0] << 8);
+    *dest |= source[1];
+}
+
 void read_littleEndian_short(short *dest, unsigned char* source) {
     *dest = * (short*) source;
+}
+
+void read_littleEndian_ushort(unsigned short *dest, unsigned char* source) {
+    *dest = * (unsigned short*) source;
 }
 #endif
 

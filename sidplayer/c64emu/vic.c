@@ -6,6 +6,7 @@
 // - Ved PAL er denne 50Hz, ved NTSC er denne 60Hz
 
 #include "vic.h"
+#include "platform-support.h"
 
 void vicWrite(unsigned char addr, unsigned char data) {
 	switch (addr) {

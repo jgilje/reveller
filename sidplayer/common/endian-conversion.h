@@ -23,6 +23,8 @@
 
 void read_bigEndian_int(int* dest, unsigned char* source);
 void read_bigEndian_short(short* dest, unsigned char* source);
+void read_bigEndian_ushort(unsigned short* dest, unsigned char* source);
 void read_littleEndian_short(short* dest, unsigned char* source);
+void read_littleEndian_ushort(unsigned short* dest, unsigned char* source);
 
 #endif

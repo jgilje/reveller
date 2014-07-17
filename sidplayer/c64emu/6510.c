@@ -1,6 +1,7 @@
 #include "6510.h"
 #include <unistd.h>
 #include <stdint.h>
+#include "platform-support.h"
 
 unsigned char instruction[3];	// vi leser maksimalt inn 3 byte
 FILE* file;

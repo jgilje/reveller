@@ -1,6 +1,7 @@
 #include "6510_mem.h"
+#include "platform-support.h"
 
-// Minnehåndtering
+// Memory management
 void createMem(unsigned char page) {
     if (pages[page]) {
 		return;
@@ -27,7 +28,7 @@ void initMem() {
     int i, pageStart;
     size_t readBytes;
 
-    // sjekk om vi allerede har gŒende et minne
+    // free any allocated pages
     for (i = 0x0; i < 0x100; i++) {
 		if (pages[i] != 0x0) {
 #ifdef DEBUG
@@ -130,7 +131,6 @@ void storeMem(unsigned char s_data) {
 			case 0xd7:		// jupp!  4 mirrors av SID
 #ifdef DEBUG
 				c64_debug("\nSID Write: %04x, %02x", effAddr, s_data);
-				// if (sid_writes > 100) {dumpMem(); exit(0);}
 #endif
 				c64_sid_write(offset & 0x1f, s_data);
 				break;
@@ -142,7 +142,6 @@ void storeMem(unsigned char s_data) {
 				c64_debug("\nVIC Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
 				vicWrite(offset & 0x3f, s_data);
-				//exit(0);
 				break;
 			case 0xdc:		// CIA 1
 #ifdef DEBUG
@@ -172,7 +171,7 @@ void storeMem(unsigned char s_data) {
 	}
 }
 
-// denne er lik loadMem(), men er beregna på å hente fra PC
+// fetches data for the current value in PC
 void fetchOP(void) {
     unsigned char page = reg.pc >> 8;
     unsigned char offset = reg.pc;
@@ -235,7 +234,7 @@ void loadMem(unsigned short addr) {
 			loadMemRAM(page, offset);
 			break;
 		case 0xd:
-			// test på IO space, deretter CHAR
+			// text IO space, then CHAR
 			if (data & 0x1 || data & 0x2)
 			{
 				switch (page) {
@@ -312,8 +311,7 @@ void dumpMem() {
 */
 }
 
-// Her følger funksjoner for å hente ut data fra minnet, slik det skjer i 6510
-
+// memory fetch modes
 void memImm() {
 	effAddr = ++reg.pc;
 	fetchOP();

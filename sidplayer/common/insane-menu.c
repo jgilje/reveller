@@ -16,7 +16,7 @@
 #include "6510.h"
 #include "sidheader.h"
 
-#include "../sidplayer-linux/lcd-hammer.h"
+#include "../lcd-hammer.h"
 
 #define MENU_LINES 4
 #define MENU_BUF_SIZE 1024

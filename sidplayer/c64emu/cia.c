@@ -2,10 +2,11 @@
 // mainly dealing with the timers
 
 #include "cia.h"
+#include "platform-support.h"
 
 int32_t c64_cia_next_timer(void) {
 	int32_t next = INT32_MAX;
-	uint32_t next_chip, next_timer;
+	// uint32_t next_chip, next_timer;
 	int i, j;
 	
 	for (i = 0; i < 2; i++) {
@@ -13,8 +14,10 @@ int32_t c64_cia_next_timer(void) {
 			if (ciaTimers[i].enabled[j]) {
 				if (ciaTimers[i].counters[j] < next) {
 					next = ciaTimers[i].counters[j];
+					/*
 					next_chip = i;
 					next_timer = j;
+					*/
 				}
 			}
 		}

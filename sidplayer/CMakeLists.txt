@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(sidplayer)
 
-ADD_SUBDIRECTORY(../c64emu "${CMAKE_CURRENT_BINARY_DIR}/c64emu")
+ADD_SUBDIRECTORY(c64emu) # "${CMAKE_CURRENT_BINARY_DIR}/c64emu")
 
 SET(sidplayer-hammer_SOURCES
     sidplayer-hammer.c
@@ -10,7 +10,7 @@ SET(sidplayer-hammer_SOURCES
     console-interface.c
     c64emu-support-common.c
     platform-support-hammer.c
-    ../helpers/endian-conversion.c
+    common/endian-conversion.c
 )
 
 SET(sidplayer-hammer-standalone_SOURCES
@@ -18,8 +18,8 @@ SET(sidplayer-hammer-standalone_SOURCES
     lcd-hammer.c
     c64emu-support-common.c
     platform-support-hammer.c
-    ../helpers/endian-conversion.c
-    ../helpers/insane-menu.c
+    common/endian-conversion.c
+    common/insane-menu.c
 )
 
 SET(sidplayer-rpi_SOURCES
@@ -27,7 +27,7 @@ SET(sidplayer-rpi_SOURCES
     c64emu-support-common.c
     platform-support-rpi.c
     console-interface.c
-    ../helpers/endian-conversion.c
+    common/endian-conversion.c
 )
 
 SET(sidplayer-dummy_SOURCES
@@ -35,7 +35,7 @@ SET(sidplayer-dummy_SOURCES
     c64emu-support-common.c
     platform-support-dummy.c
     console-interface.c
-    ../helpers/endian-conversion.c
+    common/endian-conversion.c
 )
 
 ADD_EXECUTABLE(sidplayer-hammer
@@ -51,7 +51,7 @@ ADD_EXECUTABLE(sidplayer-dummy
     ${sidplayer-dummy_SOURCES}
 )
 
-include_directories(../c64emu ../helpers)
+include_directories(c64emu common)
 
 set(CMAKE_C_FLAGS "-Wall")
 

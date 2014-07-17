@@ -3,6 +3,8 @@
 #include <stdlib.h>
 
 #include "sidheader.h"
+#include "platform-support.h"
+#include "endian-conversion.h"
 
 int parseHeader() {
     unsigned char buffer[128];
@@ -25,9 +27,9 @@ int parseHeader() {
 
     read_bigEndian_short(&sh.version, &buffer[0x4]);
     read_bigEndian_short(&sh.dataOffset, &buffer[0x6]);
-    read_bigEndian_short(&sh.loadAddress, &buffer[0x8]);
-    read_bigEndian_short(&sh.initAddress, &buffer[0xa]);
-    read_bigEndian_short(&sh.playAddress, &buffer[0xc]);
+    read_bigEndian_ushort(&sh.loadAddress, &buffer[0x8]);
+    read_bigEndian_ushort(&sh.initAddress, &buffer[0xa]);
+    read_bigEndian_ushort(&sh.playAddress, &buffer[0xc]);
     read_bigEndian_short(&sh.songs, &buffer[0xe]);
     read_bigEndian_short(&sh.startSong, &buffer[0x10]);
 
@@ -44,7 +46,7 @@ int parseHeader() {
 		    
     // sjekk om data ligger lagret i originalt format
     if (sh.loadAddress == 0x0) {
-	read_littleEndian_short(&sh.loadAddress, &buffer[sh.dataOffset]);
+	read_littleEndian_ushort(&sh.loadAddress, &buffer[sh.dataOffset]);
 	sh.dataOffset += 2;
 	// c64_debug("\t (LoadAddress is: %x (first two bytes in dataOffset))\n", sh.loadAddress);
     }
