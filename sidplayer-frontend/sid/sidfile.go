@@ -100,6 +100,26 @@ type SidFile struct {
 	Hz int
 }
 
+/*
+ * http://stackoverflow.com/a/13511463
+ * - The values in Unicode and Latin-1 are identical (Latin-1 can be
+ *   considered the 0x00 - 0xFF subset of Unicode). (...) What might confuse
+ *   is the UTF-8 encoding where only 0x00 - 0x7F are encoded in the same way
+ *   as Latin-1, using a single byte.
+ *
+ * The school-way of doing this would be to use go-charset
+ * import "code.google.com/p/go-charset/charset"
+ * http://godoc.org/code.google.com/p/go-charset/charset
+ */
+func toUtf8(iso8859_1_buf []byte) string {
+	buf := make([]rune, len(iso8859_1_buf))
+	for i, b := range iso8859_1_buf {
+		buf[i] = rune(b)
+	}
+
+	return strings.Trim(string(buf), string(0x0))
+}
+
 func Parse(filename string) (SidFile, error) {
 	s := SidFile{}
 
@@ -143,9 +163,9 @@ func Parse(filename string) (SidFile, error) {
 		}
 	}
 
-	s.Name = strings.Trim(string(file[0x16:0x35]), string(0x0))
-	s.Author = strings.Trim(string(file[0x36:0x55]), string(0x0))
-	s.Released = strings.Trim(string(file[0x56:0x75]), string(0x0))
+	s.Name = toUtf8(file[0x16:0x35])
+	s.Author = toUtf8(file[0x36:0x55])
+	s.Released = toUtf8(file[0x56:0x75])
 
 	if s.LoadAddress == 0 {
 		bytes.Seek(int64(s.DataOffset), 0)
@@ -214,3 +234,10 @@ func Parse(filename string) (SidFile, error) {
 
 	return s, nil
 }
+
+/*
+func main() {
+	s, _ := Parse("/storage/C64Music/MUSICIANS/Z/Zabutom/Boten_Anna.sid")
+	fmt.Printf("%#v\n", s)
+}
+*/
