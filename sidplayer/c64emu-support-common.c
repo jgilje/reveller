@@ -12,6 +12,8 @@ void platform_debug(char *msg, ...) {
     va_start(argp, msg);
     vfprintf(stdout, msg, argp);
     va_end(argp);
+    
+    fflush(stdout);
 }
 
 void platform_abort(char *msg, ...) {
@@ -20,6 +22,9 @@ void platform_abort(char *msg, ...) {
     va_start(argp, msg);
     vfprintf(stderr, msg, argp);
     va_end(argp);
+    
+    fflush(stdout);
+    fflush(stderr);
     
     exit(1);
 }
