@@ -16,7 +16,8 @@ public:
     ~SidInfo();
 
     void name(const QString& name);
-    void authorAndRelease(const QString& authorAndRelease);
+    void author(const QString& author);
+    void released(const QString& released);
 private:
     Ui::SidInfo *ui;
 };

@@ -16,6 +16,7 @@ public:
     ~ConnectDialog();
 
     QString url();
+    void url(const QString& url);
 private:
     Ui::ConnectDialog *ui;
 };

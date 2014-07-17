@@ -9,6 +9,7 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type sidplayer struct {
@@ -24,7 +25,9 @@ type sidplayer struct {
 	currentSong  int8
 	currentState string
 
-	stdin io.WriteCloser
+	stdin  io.WriteCloser
+	reader *bufio.Reader
+	stderr io.ReadCloser
 }
 
 var Sidplayer = sidplayer{
@@ -35,65 +38,83 @@ var Sidplayer = sidplayer{
 	song: make(chan int8),
 }
 
-func (s *sidplayer) stopPlayback() {
+func (s *sidplayer) stopPlayback() error {
 	_, err := io.WriteString(s.stdin, "\n")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	Sidplayer.currentState = "stop"
 
 	msg, _ := json.Marshal(ReplyMessage{MsgType: "stateChange", Data: "stop"})
 	h.broadcast <- string(msg)
+
+	return nil
 }
 
-func (s *sidplayer) run() {
+func (s *sidplayer) startCmd() {
 	cmd := exec.Command(s.Command)
-	// cmd := exec.Command("stdbuf", "-oL", "-e0", "/home/jgilje/src/sidplayer/sidplayer-linux/build/sidplayer-dummy")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
 	s.stdin = stdin
 
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.stderr = stderr
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
-	reader := bufio.NewReader(stdout)
+	s.reader = bufio.NewReader(stdout)
 
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	/*
-		go func() {
-			_, err := io.WriteString(stdin, "d\n")
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-		done := make(chan bool)
-		go func() {
-			for {
-				line, err := reader.ReadString('\n')
-				if err != nil {
-					log.Println(err)
-					done <- true
-				}
-				log.Println(line)
-			}
-		}()
-	*/
-	Sidplayer.currentState = "stop"
+	s.currentFile = ""
+	s.currentState = "stop"
+	s.currentSong = 0
+
+	broadCastState()
+}
+
+func (s *sidplayer) run() {
+	s.startCmd()
 
 	go func() {
 		for {
-			line, err := reader.ReadString('\n')
-			if err != nil && err != io.EOF {
-				log.Fatal(err)
+			line, err := s.reader.ReadString('\n')
+			if err != nil {
+				log.Println("stdout closed", err)
+				return
 			}
-			fmt.Printf("sidplayer() ReadString %q\n", line)
+
+			if len(line) > 0 {
+				fmt.Printf("sidplayer() ReadString %q\n", line)
+			}
+		}
+	}()
+
+	go func() {
+		buf := make([]byte, 1024)
+		for {
+			_, err := s.stderr.Read(buf)
+			if err != nil {
+				log.Println("sidplayer crashed, respawning in 3 secs")
+				errormsg := strings.Trim(string(buf), string(0x0))
+
+				msg, _ := json.Marshal(ReplyMessage{MsgType: "crash", Data: errormsg})
+				h.broadcast <- string(msg)
+
+				time.Sleep(3 * time.Second)
+				go s.run()
+				return
+			}
 		}
 	}()
 
@@ -105,23 +126,21 @@ func (s *sidplayer) run() {
 			sidheader, err := sid.Parse(file)
 			if err != nil {
 				log.Println("sidplayer() failed to parse file")
-				return
+				break
 			}
 
 			if Sidplayer.currentState == "play" {
-				s.stopPlayback()
+				if s.stopPlayback() != nil {
+					return
+				}
 			}
 
 			load := fmt.Sprintf("l %s\n", file)
-			_, err = io.WriteString(stdin, load)
+			_, err = io.WriteString(s.stdin, load)
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Fatal error from writing coming up! (load)")
+				return
 			}
-			/*
-				if _, werr := io.WriteString(stdin, load); werr != nil {
-					log.Fatal(werr)
-				}
-			*/
 
 			Sidplayer.currentFile = strings.TrimPrefix(file, Browser.RootPath+"/")
 
@@ -133,9 +152,10 @@ func (s *sidplayer) run() {
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
 			load := fmt.Sprintf("s %d\n", songno)
-			_, err := io.WriteString(stdin, load)
+			_, err := io.WriteString(s.stdin, load)
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Fatal error from reading coming up! (song)")
+				return
 			}
 
 			Sidplayer.currentSong = songno
@@ -144,11 +164,14 @@ func (s *sidplayer) run() {
 			msg, _ := json.Marshal(ReplyMessage{MsgType: "stateChange", Data: "play"})
 			h.broadcast <- string(msg)
 		case <-s.stop:
-			s.stopPlayback()
+			if s.stopPlayback() != nil {
+				return
+			}
 		case <-s.play:
-			_, err := io.WriteString(stdin, "p\n")
+			_, err := io.WriteString(s.stdin, "p\n")
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Fatal error from reading coming up! (play)")
+				return
 			}
 
 			Sidplayer.currentState = "play"
@@ -156,7 +179,7 @@ func (s *sidplayer) run() {
 			msg, _ := json.Marshal(ReplyMessage{MsgType: "stateChange", Data: "play"})
 			h.broadcast <- string(msg)
 		case <-s.help:
-			io.WriteString(stdin, "h\n")
+			io.WriteString(s.stdin, "h\n")
 		}
 	}
 }

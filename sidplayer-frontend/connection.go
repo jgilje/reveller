@@ -36,6 +36,14 @@ type StateReply struct {
 	Song  int8   `json:"song"`
 }
 
+func broadCastState() {
+	s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong}
+	msg, _ := json.Marshal(s)
+	reply := ReplyMessage{MsgType: "state", Data: string(msg)}
+	msg, _ = json.Marshal(reply)
+	h.broadcast <- string(msg)
+}
+
 func (c *connection) reader() {
 	for {
 		/*

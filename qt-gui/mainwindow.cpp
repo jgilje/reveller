@@ -9,8 +9,8 @@
 #include "connectdialog.h"
 #include "sidinfo.h"
 
-#include <QLabel>
 #include <QSettings>
+#include <QMessageBox>
 
 MainWindow::MainWindow(bool &ok, QWidget *parent) :
     QMainWindow(parent),
@@ -44,7 +44,9 @@ MainWindow::~MainWindow() {
 }
 
 QString MainWindow::runConnectionDialog() {
+    QSettings settings;
     ConnectDialog d;
+    d.url(settings.value("url").toString());
     int r = d.exec();
     if (r == 0) {
         return "";
@@ -126,7 +128,10 @@ void MainWindow::onTextMessageReceived(QString message) {
         header = SidHeader::parse(dataObj);
         SidInfo *info = qobject_cast<SidInfo*>(ui->columnView->previewWidget());
         info->name(header.name);
-        info->authorAndRelease(QString("%1 - %2").arg(header.author).arg(header.released));
+        info->author(header.author);
+        info->released(header.released);
+    } else if (type == QStringLiteral("crash")) {
+        QMessageBox::warning(this, "Crash!", QString("The SIDPlayer crashed with the following error \"%1\"").arg(data.trimmed()));
     } else {
         qDebug() << message;
     }

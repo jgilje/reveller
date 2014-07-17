@@ -17,6 +17,10 @@ void SidInfo::name(const QString& name) {
     ui->labelName->setText(name);
 }
 
-void SidInfo::authorAndRelease(const QString& authorAndRelease) {
-    ui->labelAuthorAndRelease->setText(authorAndRelease);
+void SidInfo::author(const QString& author) {
+    ui->labelAuthor->setText(author);
+}
+
+void SidInfo::released(const QString& released) {
+    ui->labelReleased->setText(released);
 }

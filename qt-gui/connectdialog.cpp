@@ -15,3 +15,7 @@ ConnectDialog::~ConnectDialog() {
 QString ConnectDialog::url() {
     return ui->lineUrl->text();
 }
+
+void ConnectDialog::url(const QString& url) {
+    ui->lineUrl->setText(url);
+}
