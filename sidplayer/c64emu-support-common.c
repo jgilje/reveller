@@ -6,12 +6,22 @@
 extern FILE* inputSidFile;
 extern FILE* outfile;
 
-void c64_debug(char *msg, ...) {
+void platform_debug(char *msg, ...) {
     va_list argp;
     
     va_start(argp, msg);
     vfprintf(stdout, msg, argp);
     va_end(argp);
+}
+
+void platform_abort(char *msg, ...) {
+    va_list argp;
+    
+    va_start(argp, msg);
+    vfprintf(stderr, msg, argp);
+    va_end(argp);
+    
+    exit(1);
 }
 
 size_t c64_read_source(uint32_t offset, uint32_t length, uint8_t *dest) {

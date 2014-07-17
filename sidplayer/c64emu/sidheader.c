@@ -48,21 +48,21 @@ int parseHeader() {
     if (sh.loadAddress == 0x0) {
 	read_littleEndian_ushort(&sh.loadAddress, &buffer[sh.dataOffset]);
 	sh.dataOffset += 2;
-	// c64_debug("\t (LoadAddress is: %x (first two bytes in dataOffset))\n", sh.loadAddress);
+	// platform_debug("\t (LoadAddress is: %x (first two bytes in dataOffset))\n", sh.loadAddress);
     }
 
     //rprintf("Format: %s\n", sh.type);
     //rprintf("Version: %d\n", (int) sh.version);
     //rprintf("DataOffset: %d\n", (int) sh.dataOffset);
 
-    c64_debug("LoadAddress: %x\n", (int) sh.loadAddress);
-    c64_debug("InitAddress: %x", sh.initAddress);
+    platform_debug("LoadAddress: %x\n", (int) sh.loadAddress);
+    platform_debug("InitAddress: %x", sh.initAddress);
 
     if (sh.initAddress == 0x0) {
-	c64_debug(" (Equals LoadAddress)");
+	platform_debug(" (Equals LoadAddress)");
 	sh.initAddress = sh.loadAddress;
     }
-    c64_debug("\n");
+    platform_debug("\n");
 
     //rprintf("PlayAddress: %d", sh.playAddress);
 
@@ -94,18 +94,18 @@ int parseHeader() {
 		//rprintf("PSIDv2 Flags: %d\n", sh.flags);
 
 		if (sh.flags != 0) {
-			if (sh.flags & (1 << 0)) c64_debug("sidheader: Compute! MUS data\n");
-			   else c64_debug("\tUses internal player (gooooood!)\n");
-			if (sh.flags & (1 << 1) && !strcmp(sh.type, "RSID")) c64_debug("sidheader: RSID C64 Basic Flag\n");
-			   else if (sh.flags & (1 << 1) && !strcmp(sh.type, "PSID")) c64_debug("sidheader: PlaySID Specific\n");
-			   else c64_debug ("sidheader: C64 Compatible\n");
-			if (sh.flags & (1 << 3)) { c64_debug("sidheader: SID is OK in NTSC mode\n"); sh.hz = 1022727; }
-			if (sh.flags & (1 << 2)) { c64_debug("sidheader: SID is OK in PAL mode\n"); sh.hz = 985248; }
-			if (sh.flags & (1 << 4)) c64_debug("sidheader: SID is OK on MOS6581\n");
-			if (sh.flags & (1 << 5)) c64_debug("sidheader: SID is OK on MOS8580\n");
+			if (sh.flags & (1 << 0)) platform_debug("sidheader: Compute! MUS data\n");
+			   else platform_debug("\tUses internal player (gooooood!)\n");
+			if (sh.flags & (1 << 1) && !strcmp(sh.type, "RSID")) platform_debug("sidheader: RSID C64 Basic Flag\n");
+			   else if (sh.flags & (1 << 1) && !strcmp(sh.type, "PSID")) platform_debug("sidheader: PlaySID Specific\n");
+			   else platform_debug ("sidheader: C64 Compatible\n");
+			if (sh.flags & (1 << 3)) { platform_debug("sidheader: SID is OK in NTSC mode\n"); sh.hz = 1022727; }
+			if (sh.flags & (1 << 2)) { platform_debug("sidheader: SID is OK in PAL mode\n"); sh.hz = 985248; }
+			if (sh.flags & (1 << 4)) platform_debug("sidheader: SID is OK on MOS6581\n");
+			if (sh.flags & (1 << 5)) platform_debug("sidheader: SID is OK on MOS8580\n");
 		}
-		c64_debug("startPage: %d\n", sh.startPage);
-		c64_debug("pageLength: %d\n", sh.pageLength);
+		platform_debug("startPage: %d\n", sh.startPage);
+		platform_debug("pageLength: %d\n", sh.pageLength);
 
     }
     

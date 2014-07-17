@@ -40,15 +40,15 @@ void PrintOpcodeStats(void) {
 		if (opcodes[x] == &Un_imp) unimplemented++;
 		else implemented++;
     }
-	
-    c64_debug("Implemented OpCodes: %d of 256 (unimplemented %d)\n", implemented, unimplemented);
+
+    platform_debug("Implemented OpCodes: %d of 256 (unimplemented %d)\n", implemented, unimplemented);
 }
 
 void Un_imp(void) {
-    c64_debug("\nCall to unimplemented function %x at %d\n", data, reg.pc);
-	PrintOpcodeStats();
-	dumpMem();
-	exit(1);
+    PrintOpcodeStats();
+    dumpMem();
+
+    platform_abort("\nCall to unimplemented function %x at %d\n", data, reg.pc);
 }
 
 
@@ -115,23 +115,23 @@ void interpretMain(void) {
 	while (work) {
 		fetchOP();
 #ifdef DEBUG
-		c64_debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
-		c64_debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
-		c64_debug("%x %x ", *(pages[0]), *(pages[0] + 1));
+		platform_debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
+		platform_debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
+		platform_debug("%x %x ", *(pages[0]), *(pages[0] + 1));
 		
 		int i;
 		for (i = 7; i >= 0; i--) {
-			if (reg.p & (1 << i)) c64_debug("1"); else c64_debug("0");
+			if (reg.p & (1 << i)) platform_debug("1"); else platform_debug("0");
 		}
 		
-		c64_debug(" %02x", data);
+		platform_debug(" %02x", data);
 #endif
 
 		opcodes[data]();
 		reg.pc++;
 
 #ifdef DEBUG
-		c64_debug("\n\n");
+		platform_debug("\n\n");
 #endif
 	}
 }
@@ -169,9 +169,9 @@ void c64_trigger_irq(void) {
 	reg.p |= FLAG_I;
 	setPC(addr);
 #ifdef DEBUG
-	c64_debug("\n****************************************************\n");
-	c64_debug("IRQ Vector@%04x\n", addr);
-	c64_debug("****************************************************\n");
+	platform_debug("\n****************************************************\n");
+	platform_debug("IRQ Vector@%04x\n", addr);
+	platform_debug("****************************************************\n");
 #endif
 
 	interpretMain();
@@ -184,9 +184,9 @@ void c64_trigger_nmi() {
 	setPC(addr);
 
 #ifdef DEBUG
-	c64_debug("\n****************************************************\n");
-	c64_debug("NMI Vector@%04x\n", addr);
-	c64_debug("****************************************************\n");
+	platform_debug("\n****************************************************\n");
+	platform_debug("NMI Vector@%04x\n", addr);
+	platform_debug("****************************************************\n");
 #endif
 
 	interpretMain();
@@ -211,7 +211,7 @@ int32_t c64_next_trigger(void) {
 		return vic_next;
 	}
 	
-	c64_debug("c64_next_trigger(): no IRQ?\n");
+	platform_debug("c64_next_trigger(): no IRQ?\n");
 	return 20000;
 }
 
@@ -274,14 +274,13 @@ void installSIDDriver(void) {
 	}
 	
 	if (freePage == 0) {
-		c64_debug("Failed to retrieve a free page for SID Driver\n");
-		exit(1);
+		platform_abort("Failed to retrieve a free page for SID Driver\n");
 	}
 	
 	IOPort = getIOPort(sh.playAddress);
 
 #ifdef DEBUG
-	c64_debug("Installing SID Driver in free page %x\n", freePage);
+	platform_debug("Installing SID Driver in free page %x\n", freePage);
 #endif
 	address = freePage << 8;
 	
@@ -332,7 +331,7 @@ void setSubSong(unsigned char song) {
 	storeMemRAMShort(0xfffe, 0x48, 0xff);
 
 	if (! strcmp(sh.type, "RSID")) {
-		c64_debug("c64_setSubSong(): running KERNAL init\n");
+		platform_debug("c64_setSubSong(): running KERNAL init\n");
 		interpret(1, 0xff84);
 	}
 	// TODO remove if not needed
@@ -355,11 +354,11 @@ void setSubSong(unsigned char song) {
 		
 		// sett opp CIA#1
 		if (sh.speed & (1 << c64_current_song)) {
-			c64_debug("CIA#1 timer enabled from sh.speed\n");
+			platform_debug("CIA#1 timer enabled from sh.speed\n");
 			ciaWrite(0, 0xd, 0x81);
 			ciaWrite(0, 0xe, 0x1);	// enable CIA#1TimerA
 		} else {
-			c64_debug("c64_setSubSong(): VIC Timer\n");
+			platform_debug("c64_setSubSong(): VIC Timer\n");
 			vicWrite(0x1a, 0x1);	// enable VIC Interrupts
 		}
 	}

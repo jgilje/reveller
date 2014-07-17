@@ -23,15 +23,14 @@ void vicWrite(unsigned char addr, unsigned char data) {
 				c64_vic_timer.counter = c64_vic_timer.latch;
 				c64_vic_timer.enabled = 1;
 			} else {
-				c64_debug("Program Disabled VIC interrupts, and so should you!\n");
+				platform_debug("WARNING: Program Disabled VIC interrupts, and so should you!\n");
 			}
 			break;
 		case 0x11:			// kontrollregister
 		case 0x12:			// raster counter
 			break;
 		default:
-			c64_debug("Unsupported VIC Write (%02x: %02x)\n", addr, data);
-			exit(0);
+			platform_abort("Unsupported VIC Write (%02x: %02x)\n", addr, data);
 	}
 }
 
@@ -44,8 +43,7 @@ unsigned char vicRead(unsigned char addr) {
 //			return (vicReg.icr | 0xf0);
 //			break;
 		default:
-			c64_debug("Unsupported VIC Read (%02x)\n", addr);
-			exit(0);
+			platform_abort("Unsupported VIC Read (%02x)\n", addr);
 	}
 }
 

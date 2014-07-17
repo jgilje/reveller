@@ -9,13 +9,13 @@ void createMem(unsigned char page) {
 
     unsigned char *offset = (unsigned char*) malloc(sizeof(unsigned char[256]));
     if (offset == 0) {
-		c64_debug("ERROR: Memory Allocation failed!\n");
+	platform_abort("ERROR: Memory Allocation failed!\n");
     }
     
     memset(offset, 0, 256);
     pages[page] = offset;
 #ifdef DEBUG
-    c64_debug(" (Page %02x created)\n", page, offset);
+    platform_debug(" (Page %02x created)\n", page, offset);
 #endif
 }
 
@@ -32,7 +32,7 @@ void initMem() {
     for (i = 0x0; i < 0x100; i++) {
 		if (pages[i] != 0x0) {
 #ifdef DEBUG
-			c64_debug("\tFreeing page %02x (pointing at %p)\n", i, pages[i]);
+			platform_debug("\tFreeing page %02x (pointing at %p)\n", i, pages[i]);
 #endif
 			free(pages[i]);
 		}
@@ -130,7 +130,7 @@ void storeMem(unsigned char s_data) {
 			case 0xd6:
 			case 0xd7:		// jupp!  4 mirrors av SID
 #ifdef DEBUG
-				c64_debug("\nSID Write: %04x, %02x", effAddr, s_data);
+				platform_debug("\nSID Write: %04x, %02x", effAddr, s_data);
 #endif
 				c64_sid_write(offset & 0x1f, s_data);
 				break;
@@ -139,19 +139,19 @@ void storeMem(unsigned char s_data) {
 			case 0xd2:
 			case 0xd3:
 #ifdef DEBUG
-				c64_debug("\nVIC Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
+				platform_debug("\nVIC Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
 				vicWrite(offset & 0x3f, s_data);
 				break;
 			case 0xdc:		// CIA 1
 #ifdef DEBUG
-				c64_debug("\nCIA#1 Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
+				platform_debug("\nCIA#1 Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
 				ciaWrite(0, offset & 0xf, s_data);
 				break;
 			case 0xdd:		// CIA 2
 #ifdef DEBUG
-				c64_debug("\nCIA#2 Write: %x, %x", offset, s_data);
+				platform_debug("\nCIA#2 Write: %x, %x", offset, s_data);
 #endif
 				ciaWrite(1, offset & 0xf, s_data);
 				break;
@@ -196,7 +196,7 @@ void fetchOP(void) {
 // henter ut data fra ei minneadresse
 void loadMemRAM(unsigned char page, unsigned char offset) {
 	if (! pages[page]) {
-		c64_debug("Advarsel ved %x (op: %x): henter inn fra PAGE som ikke er oppretta (%x %x, 0x0 returnert)\n", reg.pc, data, page, offset);
+		platform_debug("WARNING: at %x (op: %x): fetch from uninitialized PAGE (%x %x, returning 0x0)\n", reg.pc, data, page, offset);
 		createMem(page);
 		data = 0x0;
 		return;
@@ -224,7 +224,7 @@ void loadMem(unsigned short addr) {
 			if ((data & 0x1) && (data & 0x2))		// iflg. programmeringsguiden swappes basic rom ut hvis kernal swappes ut
 			{
 				//data = basic[((page - 0xa0) << 8 | offset)];
-				c64_debug("Advarsel, loadMem fra BASIC ROM\n");
+				platform_debug("WARNING:, loadMem from BASIC ROM, returning 0x0\n");
 				data = 0x0;
 				return;
 			} else
@@ -251,12 +251,13 @@ void loadMem(unsigned short addr) {
 						// data = LES FRA SID (offset)
 						break;
 					default:
-						c64_debug("ERROR: Unsupported LOAD from IO (%04x)\n", addr);
+						platform_debug("WARNING: Unsupported LOAD from IO (%04x), returning RAM\n", addr);
 						loadMemRAM(page, offset);
 						break;
 				}
 			} else if (data & 0x4) {
-				c64_debug("ERROR: loadMem fra CHAR (og dette er ikke implementert enda!)\n");
+				platform_debug("WARNING: loadMem from CHAR, returning 0x0\n");
+				data = 0;
 			} else {
 				loadMemRAM(page, offset);
 			}
@@ -272,7 +273,7 @@ void loadMem(unsigned short addr) {
 			//sleep(3);
 			break;
 		default:
-			c64_debug("Yarr!  loadMemReal, her skal du bare ikke havne...\n");
+			platform_debug("Yarr!  loadMemReal, her skal du bare ikke havne...\n");
 	}
 }
 
@@ -280,33 +281,33 @@ void dumpMem() {
 	int i, j;
 	
 	for (i = 0; i < 0x100; i++) {
-		c64_debug("PAGE %x\n", i);
+		platform_debug("PAGE %x\n", i);
 		
 		if (pages[i]) {
-			c64_debug("00: %x ", (*(pages[i])));
+			platform_debug("00: %x ", (*(pages[i])));
 			for (j = 1; j < 0x100; j++) {
 				if ((j % 0x10) == 0) {
-					c64_debug("\n%x: ", j);
+					platform_debug("\n%x: ", j);
 				}
-				c64_debug("%02x ", (*(pages[i] + j)));
+				platform_debug("%02x ", (*(pages[i] + j)));
 			}
 		}
-		c64_debug("\n");
+		platform_debug("\n");
 	}
-	c64_debug("\n");
+	platform_debug("\n");
 
 /*  - for KERNAL dump
 	for (i = 0; i < 0x20; i++) {
-		c64_debug("KERNAL %x\n", (i + 0xe0 ));
+		platform_debug("KERNAL %x\n", (i + 0xe0 ));
 		
-		c64_debug("00: %x ", kernal[i << 8]);
+		platform_debug("00: %x ", kernal[i << 8]);
 		for (j = 1; j < 0x100; j++) {
 			if ((j % 0x10) == 0) {
-				c64_debug("\n%x: ", j);
+				platform_debug("\n%x: ", j);
 			}
-			c64_debug("%x ", kernal[(i << 8) | j]);
+			platform_debug("%x ", kernal[(i << 8) | j]);
 		}
-		c64_debug("\n");
+		platform_debug("\n");
 	}
 */
 }
@@ -316,7 +317,7 @@ void memImm() {
 	effAddr = ++reg.pc;
 	fetchOP();
 #ifdef DEBUG
-    c64_debug(" %02x     ", data);
+    platform_debug(" %02x     ", data);
 #endif
 }
 
@@ -334,7 +335,7 @@ void memAbsoluteAddr() {
     effAddr = (page << 8) + offset;
     
 #ifdef DEBUG
-    c64_debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
+    platform_debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
 #endif
 }
 
@@ -349,7 +350,7 @@ void memAbsoluteAddrX() {
     
     effAddr = (page << 8) + offset + reg.x;
 #ifdef DEBUG
-    c64_debug(" %02x %02x  ", offset, page);
+    platform_debug(" %02x %02x  ", offset, page);
 #endif
 }
 
@@ -364,7 +365,7 @@ void memAbsoluteAddrY() {
     
     effAddr = (page << 8) + offset + reg.y;
 #ifdef DEBUG
-    c64_debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
+    platform_debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
 #endif
 }
 
@@ -376,7 +377,7 @@ void memZero() {
     
     effAddr = (0x00 << 8) + offset;
 #ifdef DEBUG
-    c64_debug(" %02x     ", effAddr & 0xff);
+    platform_debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
@@ -388,7 +389,7 @@ void memZeroX() {
     
     effAddr = (0x00 << 8) + offset;
 #ifdef DEBUG
-    c64_debug(" %02x     ", effAddr & 0xff);
+    platform_debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
@@ -400,7 +401,7 @@ void memZeroY() {
     
     effAddr = (0x00 << 8) + offset;
 #ifdef DEBUG
-    c64_debug(" %02x     ", effAddr & 0xff);
+    platform_debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
@@ -424,7 +425,7 @@ void memIndirectZeroX() {
     effAddr = (page << 8) + offset;
     
 #ifdef DEBUG
-    c64_debug(" %02x     ", effAddr & 0xff);
+    platform_debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
@@ -438,7 +439,7 @@ void memIndirectZeroY() {
     temp = data;
 
 #ifdef DEBUG
-    c64_debug(" %02x     ", data);
+    platform_debug(" %02x     ", data);
 #endif
 
     // hent ut adresse fra ZP

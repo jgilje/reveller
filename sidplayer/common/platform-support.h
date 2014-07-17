@@ -6,7 +6,8 @@
 /*
   These functions must be implemented to support a new platform
 */
-void c64_debug(char *msg, ...);
+void platform_debug(char *msg, ...);
+void platform_abort(char *msg, ...);
 
 void platform_usleep(uint32_t us);
 size_t c64_read_source(uint32_t offset, uint32_t length, uint8_t *dest);
