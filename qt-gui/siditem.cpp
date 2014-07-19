@@ -23,6 +23,16 @@ SidItem *SidItem::child(int row) {
     return childItems.value(row);
 }
 
+SidItem *SidItem::child(const QString& name) {
+    foreach (SidItem* item, childItems) {
+        if (item->name() == name) {
+            return item;
+        }
+    }
+
+    return NULL;
+}
+
 int SidItem::childCount() const {
     return childItems.count();
 }
@@ -63,7 +73,12 @@ QString SidItem::path() const {
         return "";
     }
 
-    return _parent->path() + "/" + _name;
+    QString p = _parent->path();
+    if (p.isEmpty()) {
+        return _name;
+    } else {
+        return _parent->path() + "/" + _name;
+    }
 }
 
 SidItem::Type SidItem::type() const {

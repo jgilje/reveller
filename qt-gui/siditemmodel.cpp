@@ -93,7 +93,9 @@ QVariant SidItemModel::headerData(int section, Qt::Orientation orientation, int 
     return QVariant(QString("HeaderData %1, %2").arg(section).arg(orientation));
 }
 
-void SidItemModel::directoryData(const QModelIndex& modelIndex, const QStringList &directories, const QStringList &sidfiles) {
+void SidItemModel::directoryData(const QString& path, const QStringList &directories, const QStringList &sidfiles) {
+    QModelIndex modelIndex = fromPath(path);
+
     beginInsertRows(modelIndex, 0, directories.size() + sidfiles.size());
     SidItem *parentItem = itemFromModelIndex(modelIndex);
 
@@ -137,4 +139,35 @@ bool SidItemModel::hasChildren(const QModelIndex &parent) const {
     }
 
     return false;
+}
+
+SidItem* SidItemModel::root() {
+    return rootItem;
+}
+
+QModelIndex SidItemModel::fromPath(const QString &path) {
+    if (path.isEmpty()) {
+        return QModelIndex();
+    }
+
+    int pathIndex = 0;
+    QStringList pathItems = path.split("/");
+    QModelIndex parent;
+    SidItem* item = rootItem;
+
+    for (int i = 0; i < pathItems.size(); i++) {
+        item = item->child(pathItems[pathIndex]);
+        if (item == NULL) {
+            return QModelIndex();
+        }
+
+        parent = index(item->row(), 0, parent);
+        if (! parent.isValid()) {
+            return QModelIndex();
+        }
+
+        pathIndex++;
+    }
+
+    return parent;
 }

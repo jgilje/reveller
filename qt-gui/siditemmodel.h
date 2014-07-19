@@ -11,6 +11,9 @@ public:
     explicit SidItemModel(QObject *parent = 0);
     ~SidItemModel();
 
+    QModelIndex fromPath(const QString& path);
+    SidItem *root();
+
     QVariant data(const QModelIndex &index, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
@@ -22,7 +25,7 @@ public:
     bool hasChildren ( const QModelIndex & parent = QModelIndex() ) const;
 
     SidItem *itemFromModelIndex(const QModelIndex &index) const;
-    void directoryData(const QModelIndex& modelIndex, const QStringList& directories, const QStringList& sidfiles);
+    void directoryData(const QString& path, const QStringList& directories, const QStringList& sidfiles);
 
 signals:
     void fetchItem(SidItem *item);

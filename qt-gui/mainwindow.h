@@ -26,15 +26,21 @@ private:
     QWebSocket *_webSocket;
     SidItemModel *_model;
     SidHeader header;
+    QStringList selectPath;
 
     QString runConnectionDialog();
+    void fetchPath(const QString& path);
+    void resolveSelectPath();
+    void updateNavbar(const QString& file);
     void wsConnect(const QString& address);
-    void handleLs(const QJsonArray& directories, const QJsonArray& sidfiles);
+
+    void handleLs(const QString& path, const QJsonArray& directories, const QJsonArray& sidfiles);
     void handleLoad(const QString& data);
     void handleState(const QJsonObject& data);
     void handleStateChange(const QString& data);
 private slots:
     void onConnected();
+    void onNavigation(const QString & link);
     void onDisconnected();
     void onFetchItem(SidItem *item);
     void onTextMessageReceived(QString msg);

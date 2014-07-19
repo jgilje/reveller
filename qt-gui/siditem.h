@@ -25,6 +25,7 @@ public:
     void setLoading();
 
     SidItem *child(int row);
+    SidItem *child(const QString& name);
     int childCount() const;
     int columnCount() const;
     int row() const;

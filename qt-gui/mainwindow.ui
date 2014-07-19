@@ -29,6 +29,9 @@
          <property name="text">
           <string/>
          </property>
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
+         </property>
         </widget>
        </item>
        <item row="0" column="0">
@@ -85,7 +88,7 @@
      <x>0</x>
      <y>0</y>
      <width>724</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

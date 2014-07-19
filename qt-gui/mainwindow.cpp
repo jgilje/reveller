@@ -36,6 +36,7 @@ MainWindow::MainWindow(bool &ok, QWidget *parent) :
         wsConnect(url);
     }
 
+    connect(ui->labelCurrentSong, &QLabel::linkActivated, this, &MainWindow::onNavigation);
     ok = true;
 }
 
@@ -117,9 +118,13 @@ void MainWindow::onTextMessageReceived(QString message) {
     QJsonObject dataObj = dataDocument.object();
 
     if (type == QStringLiteral("state")) {
+        if (! ui->centralWidget->isEnabled()) {
+            ui->centralWidget->setEnabled(true);
+        }
+
         handleState(dataObj);
     } else if (type == QStringLiteral("ls")) {
-        handleLs(dataObj.value("directories").toArray(), dataObj.value("sidfiles").toArray());
+        handleLs(dataObj.value("path").toString(), dataObj.value("directories").toArray(), dataObj.value("sidfiles").toArray());
     } else if (type == QStringLiteral("load")) {
         handleLoad(data);
     } else if (type == QStringLiteral("stateChange")) {
@@ -131,19 +136,30 @@ void MainWindow::onTextMessageReceived(QString message) {
         info->author(header.author);
         info->released(header.released);
     } else if (type == QStringLiteral("crash")) {
+        ui->centralWidget->setEnabled(false);
         QMessageBox::warning(this, "Crash!", QString("The SIDPlayer crashed with the following error \"%1\"").arg(data.trimmed()));
     } else {
         qDebug() << message;
     }
 }
 
+void MainWindow::updateNavbar(const QString& file) {
+    QString path;
+    QStringList filepath = file.split("/");
+    QStringList nav;
+    foreach (const QString& file, filepath) {
+        nav.append(QString("<a href='%1%2'>%2</a>").arg(path).arg(file));
+        path.append(file + "/");
+    }
+    ui->labelCurrentSong->setText(nav.join(" / "));
+}
+
 void MainWindow::handleState(const QJsonObject &data) {
-    // TODO - song is not exposed yet
-    ui->labelCurrentSong->setText(data["file"].toString());
+    updateNavbar(data["file"].toString());
     ui->labelCurrentState->setText(data["state"].toString() == "play" ? "playing" : "stopped");
 }
 
-void MainWindow::handleLs(const QJsonArray &jsonDirectories, const QJsonArray &jsonSidfiles) {
+void MainWindow::handleLs(const QString& path, const QJsonArray &jsonDirectories, const QJsonArray &jsonSidfiles) {
     QStringList directories;
     QStringList sidfiles;
 
@@ -154,15 +170,29 @@ void MainWindow::handleLs(const QJsonArray &jsonDirectories, const QJsonArray &j
         sidfiles.append(value.toString());
     }
 
+    _model->directoryData(path, directories, sidfiles);
+    /*
     _model->directoryData(ui->columnView->selectionModel()->currentIndex(), directories, sidfiles);
+    */
+
+    if (selectPath.size() > 0) {
+        resolveSelectPath();
+    }
 }
 
 void MainWindow::handleLoad(const QString &data) {
-    ui->labelCurrentSong->setText(data);
+    updateNavbar(data);
 }
 
 void MainWindow::handleStateChange(const QString &data) {
     ui->labelCurrentState->setText(data == "play" ? "playing" : "stopped");
+}
+
+void MainWindow::fetchPath(const QString& path) {
+    QJsonObject json;
+    json["action"] = "ls";
+    json["argument"] = path;
+    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 }
 
 void MainWindow::onFetchItem(SidItem *item) {
@@ -170,10 +200,7 @@ void MainWindow::onFetchItem(SidItem *item) {
         return;
     }
 
-    QJsonObject json;
-    json["action"] = "ls";
-    json["argument"] = item->path();
-    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
+    fetchPath(item->path());
 }
 
 void MainWindow::onUpdatePreview(const QModelIndex &index) {
@@ -196,5 +223,47 @@ void MainWindow::onSelectionChanged(const QItemSelection & selected, const QItem
     /* Prevents annoying select-all => select actual behaviour when clicking a sid file */
     if (ui->columnView->selectionModel()->selectedIndexes().size() > 0) {
         ui->columnView->selectionModel()->select(ui->columnView->selectionModel()->selectedIndexes().last(), QItemSelectionModel::SelectCurrent);
+    }
+}
+
+void MainWindow::onNavigation(const QString &link) {
+    selectPath.clear();
+
+    QString path;
+    QStringList filepath = link.split("/");
+    foreach (const QString& file, filepath) {
+        selectPath.append(QString("%1%2").arg(path).arg(file));
+        path.append(file + "/");
+    }
+
+    resolveSelectPath();
+}
+
+void MainWindow::resolveSelectPath() {
+    QModelIndexList modelIndexList;
+    QModelIndex index;
+
+    foreach (const QString& pathItem, selectPath) {
+        QModelIndex idx = _model->fromPath(pathItem);
+        if (idx.isValid()) {
+            SidItem* item = _model->itemFromModelIndex(idx);
+            if (item->hasLoaded()) {
+                modelIndexList.append(idx);
+                index = idx;
+                selectPath.removeFirst();
+            } else {
+                fetchPath(pathItem);
+                return;
+            }
+        } else {
+            // TODO this is probably an error!
+            fetchPath(pathItem);
+            return;
+        }
+    }
+
+    if (selectPath.isEmpty()) {
+        ui->columnView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect);
+        selectPath.clear();
     }
 }
