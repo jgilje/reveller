@@ -26,8 +26,9 @@ type ReplyMessage struct {
 }
 
 type lsReply struct {
-	Directiories []string `json:"directories"`
-	SidFiles     []string `json:"sidfiles"`
+	Path        string   `json:"path"`
+	Directories []string `json:"directories"`
+	SidFiles    []string `json:"sidfiles"`
 }
 
 type StateReply struct {
@@ -66,10 +67,8 @@ func (c *connection) reader() {
 
 		switch action.Action {
 		case "ls":
-			var lsreply lsReply
 			dirs, sids := Readpath(action.Argument)
-			lsreply.Directiories = dirs
-			lsreply.SidFiles = sids
+			lsreply := lsReply{Path: action.Argument, Directories: dirs, SidFiles: sids}
 			msg, _ := json.Marshal(lsreply)
 			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
 			websocket.JSON.Send(c.ws, reply)
