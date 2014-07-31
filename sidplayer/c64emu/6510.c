@@ -265,11 +265,15 @@ void installSIDDriver(void) {
 	int freePage = 0;
 	unsigned char IOPort = 0x37;
 	unsigned short address = 0;
-	
-	for (pageCounter = 0x04; pageCounter < 0xa0; pageCounter++) {
-		if (! pages[pageCounter]) {
-			freePage = pageCounter;
-			break;
+
+	if (sh.version >= 2 && sh.startPage > 0 && sh.pageLength > 0) {
+		freePage = sh.startPage;
+	} else {
+		for (pageCounter = 0x04; pageCounter < 0xa0; pageCounter++) {
+			if (! pages[pageCounter]) {
+				freePage = pageCounter;
+				break;
+			}
 		}
 	}
 	
