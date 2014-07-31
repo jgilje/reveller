@@ -34,7 +34,7 @@ type lsReply struct {
 type StateReply struct {
 	File  string `json:"file"`
 	State string `json:"state"`
-	Song  int8   `json:"song"`
+	Song  uint16 `json:"song"`
 }
 
 func broadCastState() {
@@ -85,7 +85,7 @@ func (c *connection) reader() {
 				websocket.JSON.Send(c.ws, err)
 				break
 			}
-			Sidplayer.song <- int8(song)
+			Sidplayer.song <- uint16(song)
 		case "stop":
 			Sidplayer.stop <- true
 		case "play":

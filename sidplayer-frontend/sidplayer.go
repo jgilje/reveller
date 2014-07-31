@@ -17,13 +17,14 @@ type sidplayer struct {
 	play chan bool
 	stop chan bool
 	help chan bool
-	song chan int8
+	song chan uint16
 
 	Command string
 
-	currentFile  string
-	currentSong  int8
-	currentState string
+	currentFile      string
+	currentSong      uint16
+	currentState     string
+	currentSidHeader sid.SidFile
 
 	stdin  io.WriteCloser
 	reader *bufio.Reader
@@ -35,7 +36,7 @@ var Sidplayer = sidplayer{
 	play: make(chan bool),
 	stop: make(chan bool),
 	help: make(chan bool),
-	song: make(chan int8),
+	song: make(chan uint16),
 }
 
 func (s *sidplayer) stopPlayback() error {
@@ -44,10 +45,8 @@ func (s *sidplayer) stopPlayback() error {
 		return err
 	}
 
-	Sidplayer.currentState = "stop"
-
-	msg, _ := json.Marshal(ReplyMessage{MsgType: "stateChange", Data: "stop"})
-	h.broadcast <- string(msg)
+	s.currentState = "stop"
+	broadCastState()
 
 	return nil
 }
@@ -129,7 +128,7 @@ func (s *sidplayer) run() {
 				break
 			}
 
-			if Sidplayer.currentState == "play" {
+			if s.currentState == "play" {
 				if s.stopPlayback() != nil {
 					return
 				}
@@ -142,15 +141,23 @@ func (s *sidplayer) run() {
 				return
 			}
 
-			Sidplayer.currentFile = strings.TrimPrefix(file, Browser.RootPath+"/")
+			s.currentSidHeader = sidheader
+			s.currentFile = strings.TrimPrefix(file, Browser.RootPath+"/")
 
-			msg, _ := json.Marshal(ReplyMessage{MsgType: "load", Data: Sidplayer.currentFile})
+			msg, _ := json.Marshal(ReplyMessage{MsgType: "load", Data: s.currentFile})
 			h.broadcast <- string(msg)
 			msg, _ = json.Marshal(sidheader)
-			msg, _ = json.Marshal(ReplyMessage{MsgType: "sidHeader", Data: string(msg)})
+			msg, _ = json.Marshal(ReplyMessage{MsgType: "currentSidHeader", Data: string(msg)})
 			h.broadcast <- string(msg)
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
+
+			if s.currentState == "play" {
+				if s.stopPlayback() != nil {
+					return
+				}
+			}
+
 			load := fmt.Sprintf("s %d\n", songno)
 			_, err := io.WriteString(s.stdin, load)
 			if err != nil {
@@ -158,11 +165,14 @@ func (s *sidplayer) run() {
 				return
 			}
 
-			Sidplayer.currentSong = songno
-			Sidplayer.currentState = "play"
+			if songno == 0 {
+				songno = s.currentSidHeader.StartSong
+				fmt.Println("default song, from song", songno, s.currentSidHeader.StartSong, s.currentSidHeader.Songs)
+			}
+			s.currentSong = songno
+			s.currentState = "play"
 
-			msg, _ := json.Marshal(ReplyMessage{MsgType: "stateChange", Data: "play"})
-			h.broadcast <- string(msg)
+			broadCastState()
 		case <-s.stop:
 			if s.stopPlayback() != nil {
 				return
@@ -174,10 +184,7 @@ func (s *sidplayer) run() {
 				return
 			}
 
-			Sidplayer.currentState = "play"
-
-			msg, _ := json.Marshal(ReplyMessage{MsgType: "stateChange", Data: "play"})
-			h.broadcast <- string(msg)
+			broadCastState()
 		case <-s.help:
 			io.WriteString(s.stdin, "h\n")
 		}
