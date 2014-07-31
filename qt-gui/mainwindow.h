@@ -27,17 +27,19 @@ private:
     SidItemModel *_model;
     SidHeader header;
     QStringList selectPath;
+    uint currentSong;
+    QString currentFile;
 
     QString runConnectionDialog();
     void fetchPath(const QString& path);
     void resolveSelectPath();
     void updateNavbar(const QString& file);
     void wsConnect(const QString& address);
+    void songRequest();
 
     void handleLs(const QString& path, const QJsonArray& directories, const QJsonArray& sidfiles);
     void handleLoad(const QString& data);
     void handleState(const QJsonObject& data);
-    void handleStateChange(const QString& data);
 private slots:
     void onConnected();
     void onNavigation(const QString & link);
@@ -47,6 +49,10 @@ private slots:
     void onUpdatePreview(const QModelIndex &index);
     void onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected);
     void onWebSocketStateChange(QAbstractSocket::SocketState state);
+
+    void on_actionDisconnect_triggered();
+    void on_pushButtonPrev_clicked();
+    void on_pushButtonNext_clicked();
 };
 
 #endif // MAINWINDOW_H

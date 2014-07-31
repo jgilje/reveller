@@ -56,6 +56,12 @@ QString MainWindow::runConnectionDialog() {
     return d.url();
 }
 
+void MainWindow::on_actionDisconnect_triggered() {
+    qDebug() << Q_FUNC_INFO;
+    _webSocket->close();
+
+}
+
 void MainWindow::wsConnect(const QString &address) {
     if (_webSocket != NULL) {
         delete _webSocket;
@@ -127,14 +133,11 @@ void MainWindow::onTextMessageReceived(QString message) {
         handleLs(dataObj.value("path").toString(), dataObj.value("directories").toArray(), dataObj.value("sidfiles").toArray());
     } else if (type == QStringLiteral("load")) {
         handleLoad(data);
-    } else if (type == QStringLiteral("stateChange")) {
-        handleStateChange(data);
-    } else if (type == QStringLiteral("sidHeader")) {
+    } else if (type == QStringLiteral("currentSidHeader")) {
         header = SidHeader::parse(dataObj);
         SidInfo *info = qobject_cast<SidInfo*>(ui->columnView->previewWidget());
-        info->name(header.name);
-        info->author(header.author);
-        info->released(header.released);
+        info->setHeader(header);
+        ui->labelTotalSubsongs->setText(QString::number(header.songs));
     } else if (type == QStringLiteral("crash")) {
         ui->centralWidget->setEnabled(false);
         QMessageBox::warning(this, "Crash!", QString("The SIDPlayer crashed with the following error \"%1\"").arg(data.trimmed()));
@@ -155,8 +158,12 @@ void MainWindow::updateNavbar(const QString& file) {
 }
 
 void MainWindow::handleState(const QJsonObject &data) {
-    updateNavbar(data["file"].toString());
+    currentFile = data["file"].toString();
+    updateNavbar(currentFile);
     ui->labelCurrentState->setText(data["state"].toString() == "play" ? "playing" : "stopped");
+
+    currentSong = data["song"].toInt();
+    ui->labelCurrentSubsong->setText(QString::number(currentSong));
 }
 
 void MainWindow::handleLs(const QString& path, const QJsonArray &jsonDirectories, const QJsonArray &jsonSidfiles) {
@@ -171,10 +178,6 @@ void MainWindow::handleLs(const QString& path, const QJsonArray &jsonDirectories
     }
 
     _model->directoryData(path, directories, sidfiles);
-    /*
-    _model->directoryData(ui->columnView->selectionModel()->currentIndex(), directories, sidfiles);
-    */
-
     if (selectPath.size() > 0) {
         resolveSelectPath();
     }
@@ -182,10 +185,6 @@ void MainWindow::handleLs(const QString& path, const QJsonArray &jsonDirectories
 
 void MainWindow::handleLoad(const QString &data) {
     updateNavbar(data);
-}
-
-void MainWindow::handleStateChange(const QString &data) {
-    ui->labelCurrentState->setText(data == "play" ? "playing" : "stopped");
 }
 
 void MainWindow::fetchPath(const QString& path) {
@@ -203,6 +202,13 @@ void MainWindow::onFetchItem(SidItem *item) {
     fetchPath(item->path());
 }
 
+void MainWindow::songRequest() {
+    QJsonObject json;
+    json["action"] = "song";
+    json["argument"] = QString::number(currentSong);
+    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
+}
+
 void MainWindow::onUpdatePreview(const QModelIndex &index) {
     SidItem *item = _model->itemFromModelIndex(index);
 
@@ -211,9 +217,8 @@ void MainWindow::onUpdatePreview(const QModelIndex &index) {
     json["argument"] = item->path();
     _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 
-    json["action"] = "song";
-    json["argument"] = "0";
-    _webSocket->sendTextMessage(QJsonDocument(json).toJson());
+    currentSong = 0;
+    songRequest();
 }
 
 void MainWindow::onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) {
@@ -266,4 +271,22 @@ void MainWindow::resolveSelectPath() {
         ui->columnView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect);
         selectPath.clear();
     }
+}
+
+void MainWindow::on_pushButtonPrev_clicked() {
+    if (currentSong <= 1) {
+        return;
+    }
+
+    currentSong--;
+    songRequest();
+}
+
+void MainWindow::on_pushButtonNext_clicked() {
+    if (currentSong >= header.songs) {
+        return;
+    }
+
+    currentSong++;
+    songRequest();
 }

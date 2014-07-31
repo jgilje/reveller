@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "sidheader.h"
+
 namespace Ui {
 class SidInfo;
 }
@@ -15,11 +17,10 @@ public:
     explicit SidInfo(QWidget *parent = 0);
     ~SidInfo();
 
-    void name(const QString& name);
-    void author(const QString& author);
-    void released(const QString& released);
+    void setHeader(const SidHeader& header);
 private:
     Ui::SidInfo *ui;
+    SidHeader _header;
 };
 
 #endif // SIDINFO_H

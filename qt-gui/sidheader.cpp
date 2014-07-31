@@ -1,6 +1,7 @@
 #include "sidheader.h"
 
 #include <QJsonArray>
+#include <QDebug>
 
 SidHeader::SidHeader() :
     basicRom(0),
@@ -42,18 +43,18 @@ SidHeader SidHeader::parse(const QJsonObject &jsonObj) {
         return sh;
     }
 
-    sh.systemHz = jsonObj["Hz"].toString().toUInt();
-    sh.songs = jsonObj["Songs"].toString().toUInt();
-    sh.startSong = jsonObj["StartSong"].toString().toUInt();
-    sh.version = jsonObj["Version"].toString().toUInt();
+    sh.systemHz = jsonObj["Hz"].toInt();
+    sh.songs = jsonObj["Songs"].toInt();
+    sh.startSong = jsonObj["StartSong"].toInt();
+    sh.version = jsonObj["Version"].toInt();
 
-    sh.pageLength = jsonObj["PageLength"].toString().toUInt();
-    sh.startPage = jsonObj["StartPage"].toString().toUInt();
+    sh.pageLength = jsonObj["PageLength"].toInt();
+    sh.startPage = jsonObj["StartPage"].toInt();
 
-    sh.dataOffset = jsonObj["DataOffset"].toString().toUShort();
-    sh.initAddress = jsonObj["InitAddress"].toString().toUShort();
-    sh.loadAddress = jsonObj["LoadAddress"].toString().toUShort();
-    sh.playAddress = jsonObj["PlayAddress"].toString().toUShort();
+    sh.dataOffset = jsonObj["DataOffset"].toInt();
+    sh.initAddress = jsonObj["InitAddress"].toInt();
+    sh.loadAddress = jsonObj["LoadAddress"].toInt();
+    sh.playAddress = jsonObj["PlayAddress"].toInt();
 
     QJsonObject flags = jsonObj["Flags"].toObject();
     sh.basicRom = flags["BASIC_ROM"].toBool();

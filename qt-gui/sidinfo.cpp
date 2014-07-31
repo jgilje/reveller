@@ -13,14 +13,12 @@ SidInfo::~SidInfo()
     delete ui;
 }
 
-void SidInfo::name(const QString& name) {
-    ui->labelName->setText(name);
-}
+void SidInfo::setHeader(const SidHeader &header) {
+    _header = header;
 
-void SidInfo::author(const QString& author) {
-    ui->labelAuthor->setText(author);
-}
+    ui->labelName->setText(header.name);
+    ui->labelAuthor->setText(header.author);
+    ui->labelReleased->setText(header.released);
 
-void SidInfo::released(const QString& released) {
-    ui->labelReleased->setText(released);
+    // header.startSong
 }
