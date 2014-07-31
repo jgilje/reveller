@@ -196,7 +196,7 @@ void fetchOP(void) {
                 return;
         }
 
-	loadMemRAM(page, offset);
+	loadMem(reg.pc);
 	return;
 }
 
