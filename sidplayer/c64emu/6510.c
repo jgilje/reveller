@@ -195,7 +195,7 @@ void c64_trigger_nmi() {
 int32_t c64_next_trigger(void) {
 	int32_t cia_next = c64_cia_next_timer();
 	int32_t vic_next = c64_vic_next_timer();
-	
+
 	if (cia_next > 0 && vic_next > 0) {
 		if (cia_next < vic_next) {
 			return cia_next;
@@ -342,11 +342,17 @@ void setSubSong(unsigned char song) {
 	c64_current_song = (song == 0) ? (sh.startSong - 1) : (song - 1);
 	reg.a = c64_current_song;
 	interpret(1, sh.initAddress);
-	*(pages[0x0] + 0x1) = 0x37;
-	
-	installSIDDriver();
+	platform_debug("Bank after init: %x\n", *(pages[0x0] + 0x1));
 	
 	if (! strcmp(sh.type, "PSID")) {
+		/*
+		 * This was previously set for all SIDs
+		 * this has two outcomes
+		 * - it was never needed
+		 * - be prepared for bugs
+		 */
+		*(pages[0x0] + 0x1) = 0x37;
+		
 		if (sh.playAddress) {
 			storeMemRAMShort(0xfffe, 0x48, 0xff);
 			storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
@@ -362,5 +368,7 @@ void setSubSong(unsigned char song) {
 			vicWrite(0x1a, 0x1);	// enable VIC Interrupts
 		}
 	}
+	
+	installSIDDriver();
 }
 
