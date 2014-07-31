@@ -258,5 +258,8 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 		default:
 			platform_abort("Unsupported CIA Read (%02x)\n", addr);
 	}
+	
+	platform_abort("Unsupported CIA Read (%02x)\n", addr);
+	return 0x0;
 }
 
