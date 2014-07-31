@@ -27,9 +27,6 @@ unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÂde
 // vi lar storeMem avgj¯re, istedet, ATM
 //unsigned char *write_pages[256];	// skrivetabell, hvilken funksjon hÂndterer skriving til en page
 
-const static unsigned char kernal[] = { 
-	#include "kernal.bin" 
-};
 //static unsigned char chararcter[] = { 
 //	#include "char.bin" 
 //};

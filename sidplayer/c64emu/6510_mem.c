@@ -1,6 +1,13 @@
 #include "6510_mem.h"
 #include "platform-support.h"
 
+const static unsigned char kernal[] = {
+	#include "kernal.901227-03.h"
+};
+const static unsigned char basic[] = {
+	#include "basic.901226-01.h"
+};
+
 // Memory management
 void createMem(unsigned char page) {
     if (pages[page]) {
@@ -221,14 +228,13 @@ void loadMem(unsigned short addr) {
 		case 0xa:
 		case 0xb:
 			// LORAM (BASIC ROM)
-			if ((data & 0x1) && (data & 0x2))		// iflg. programmeringsguiden swappes basic rom ut hvis kernal swappes ut
+			if ((data & 0x3) == 0x3)		// iflg. programmeringsguiden swappes basic rom ut hvis kernal swappes ut
 			{
-				//data = basic[((page - 0xa0) << 8 | offset)];
-				platform_debug("WARNING:, loadMem from BASIC ROM, returning 0x0\n");
-				data = 0x0;
+				data = basic[((page - 0xa0) << 8 | offset)];
 				return;
-			} else
+			} else {
 				loadMemRAM(page, offset);
+			}
 			break;
 		case 0xc:
 			loadMemRAM(page, offset);
