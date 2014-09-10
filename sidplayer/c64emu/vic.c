@@ -45,6 +45,9 @@ unsigned char vicRead(unsigned char addr) {
 		default:
 			platform_abort("Unsupported VIC Read (%02x)\n", addr);
 	}
+	
+	platform_abort("vicRead: Unreachable\n");
+	return 0;
 }
 
 /*
