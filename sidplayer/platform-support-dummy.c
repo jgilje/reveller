@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void platform_usleep(u_int32_t us) {
+void platform_usleep(uint32_t us) {
     usleep(us);
 }
 
