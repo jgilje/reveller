@@ -9,7 +9,6 @@
 #define _SIDHEADER_H_
 
 #include <stdio.h>
-#include "endian.h"
 // #include "rprintf.h"
 // #include "93cXX.h"
 

@@ -1,5 +1,3 @@
-#include "endian.h"
-
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 void read_bigEndian_int(int *dest, unsigned char* source) {
     *dest = ((source[0] << 24 | source[1] << 16 | source[2] << 8 | source[3]));
