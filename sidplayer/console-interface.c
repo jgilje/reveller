@@ -1,14 +1,17 @@
 #include "console-interface.h"
 #include "6510.h"
 
+#if defined unix
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#endif
 
 void platform_usleep(int32_t us);
 FILE* inputSidFile;
 
 void continuosPlay(void) {
+#if defined unix
 	struct termios currentTerm;
 	struct termios originalTerm;
 	int originalFcntl;
@@ -36,6 +39,13 @@ void continuosPlay(void) {
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
 	printf("\n");
 	fflush(stdout);
+#elif defined WIN32
+	getch();
+	printf("\n");
+	fflush(stdout);
+#else
+	#error Unimplemented continuosPlay for this platform
+#endif
 }
 
 char* nextToken(char* in) {
