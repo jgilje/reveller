@@ -1,5 +1,4 @@
 #include "6510.h"
-#include <unistd.h>
 #include <stdint.h>
 #include "platform-support.h"
 
