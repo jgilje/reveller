@@ -2,10 +2,17 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 void platform_usleep(uint32_t us) {
-    usleep(us);
+#if defined unix
+	usleep(us);
+#elif defined _WIN32
+	Sleep(us/1000);
+#endif
 }
 
 void c64_sid_block_start(void) {
