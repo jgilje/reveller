@@ -167,7 +167,6 @@ func (s *sidplayer) run() {
 
 			if songno == 0 {
 				songno = s.currentSidHeader.StartSong
-				fmt.Println("default song, from song", songno, s.currentSidHeader.StartSong, s.currentSidHeader.Songs)
 			}
 			s.currentSong = songno
 			s.currentState = "play"
