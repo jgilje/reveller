@@ -36,7 +36,7 @@ unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÂde
 
 // signaturer
 void createMem(unsigned char page);
-void initMem();
+void initMem(void);
 void resetMem(void);
 void dumpMem(void);
 

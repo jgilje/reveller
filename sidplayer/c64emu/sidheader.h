@@ -91,6 +91,6 @@ typedef struct sidHeader {
 } sidHeader;
 
 sidHeader sh;
-int parseHeader();
+int parseHeader(void);
 
 #endif
