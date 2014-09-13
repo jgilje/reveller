@@ -95,6 +95,10 @@ func (c *connection) reader() {
 			msg, _ := json.Marshal(s)
 			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
 			websocket.JSON.Send(c.ws, reply)
+		case "currentHeader":
+			msg, _ := json.Marshal(Sidplayer.currentSidHeader)
+			reply := ReplyMessage{MsgType: "currentSidHeader", Data: string(msg)}
+			websocket.JSON.Send(c.ws, reply)
 		default:
 			websocket.JSON.Send(c.ws, "unknown action")
 		}
