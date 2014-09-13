@@ -30,6 +30,14 @@ SET(sidplayer-rpi_SOURCES
     common/endian-conversion.c
 )
 
+SET(sidplayer-bbb_SOURCES
+    sidplayer-bbb.c
+    c64emu-support-common.c
+    platform-support-bbb.c
+    console-interface.c
+    common/endian-conversion.c
+)
+
 SET(sidplayer-dummy_SOURCES
     sidplayer-dummy.c
     c64emu-support-common.c
@@ -47,6 +55,9 @@ ADD_EXECUTABLE(sidplayer-hammer-standalone
 ADD_EXECUTABLE(sidplayer-rpi
     ${sidplayer-rpi_SOURCES}
 )
+ADD_EXECUTABLE(sidplayer-bbb
+    ${sidplayer-bbb_SOURCES}
+)
 ADD_EXECUTABLE(sidplayer-dummy
     ${sidplayer-dummy_SOURCES}
 )
@@ -58,5 +69,6 @@ set(CMAKE_C_FLAGS "-Wall")
 TARGET_LINK_LIBRARIES(sidplayer-hammer c64emu rt)
 TARGET_LINK_LIBRARIES(sidplayer-hammer-standalone c64emu rt)
 TARGET_LINK_LIBRARIES(sidplayer-rpi c64emu rt)
+TARGET_LINK_LIBRARIES(sidplayer-bbb c64emu rt)
 TARGET_LINK_LIBRARIES(sidplayer-dummy c64emu)
 
