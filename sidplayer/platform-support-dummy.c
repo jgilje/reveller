@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef unix
+#include <unistd.h>
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
