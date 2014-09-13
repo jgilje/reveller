@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #endif
+#if defined _WIN32
+#include <conio.h>
+#endif
 
 void platform_usleep(int32_t us);
 FILE* inputSidFile;
@@ -39,8 +42,14 @@ void continuosPlay(void) {
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
 	printf("\n");
 	fflush(stdout);
-#elif defined WIN32
-	getch();
+#elif defined _WIN32
+	while (! _kbhit()) {
+		int32_t next = c64_play();
+		next = next * ((float) sh.hz / 1000000.0f);
+		platform_usleep(next);
+	}
+	_getch();
+
 	printf("\n");
 	fflush(stdout);
 #else
@@ -110,12 +119,12 @@ void console_interface(void) {
 			}
 
 			// PLAY
-			printf("Starting PlayAddr %d times (warning, no sleep)\n", i);
+			printf("Starting PlayAddr %d times\n", i);
 			{
 			    int j;
 			    for (j = 0; j < i; j++) {
 					c64_play();
-					usleep(1000000 / 55);
+					platform_usleep(1000000 / 55);
 			    }
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
