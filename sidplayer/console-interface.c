@@ -94,6 +94,10 @@ void console_interface(void) {
 				   "(q)uit\n"
 				   );
 		} else if (! strcmp(input, "load") || ! strcmp(input, "l")) {
+			if (inputSidFile) {
+				fclose(inputSidFile);
+			}
+
 			inputSidFile = fopen(args, "rb");
 			if (inputSidFile == 0) {
 				printf("ERROR: File %s not found\n", args);
