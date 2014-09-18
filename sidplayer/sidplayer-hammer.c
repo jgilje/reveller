@@ -15,7 +15,7 @@
 #include "lcd-hammer.h"
 #include "console-interface.h"
 
-FILE *inputSidFile, *sid_kernel_timer;
+FILE *inputSidFile = NULL, *sid_kernel_timer = NULL;
 int fd_mem = -1;
 
 s3c2410_registers_t s3c2410_registers;
