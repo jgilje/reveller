@@ -18,7 +18,7 @@ typedef struct sidHeader {
     // 0x04
     short version;	// RSID og PSIDv2NG == 0002
     // 0x06
-    short dataOffset;	// 0x0076 for v1, 0x007C for v2
+    unsigned short dataOffset;	// 0x0076 for v1, 0x007C for v2
 			// Offsett i _SIDfila_
     // 0x08
     unsigned short loadAddress;	// C64 minnelokasjon for C64 data (little endian)

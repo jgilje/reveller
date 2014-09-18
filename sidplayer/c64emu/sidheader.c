@@ -26,7 +26,7 @@ int parseHeader() {
     }
 
     read_bigEndian_short(&sh.version, &buffer[0x4]);
-    read_bigEndian_short(&sh.dataOffset, &buffer[0x6]);
+    read_bigEndian_ushort(&sh.dataOffset, &buffer[0x6]);
     read_bigEndian_ushort(&sh.loadAddress, &buffer[0x8]);
     read_bigEndian_ushort(&sh.initAddress, &buffer[0xa]);
     read_bigEndian_ushort(&sh.playAddress, &buffer[0xc]);
@@ -44,8 +44,11 @@ int parseHeader() {
 	memcpy(&sh.author, &buffer[0x36], 32);
 	memcpy(&sh.released, &buffer[0x56], 32);
 		    
-    // sjekk om data ligger lagret i originalt format
+    // if sh.loadAddress is zero, loadAddress given at start of dataOffset
     if (sh.loadAddress == 0x0) {
+	if (sh.dataOffset >= 128) {
+		platform_abort("sh.dataOffset is invalid, %x\n", sh.dataOffset);
+	}
 	read_littleEndian_ushort(&sh.loadAddress, &buffer[sh.dataOffset]);
 	sh.dataOffset += 2;
 	// platform_debug("\t (LoadAddress is: %x (first two bytes in dataOffset))\n", sh.loadAddress);
