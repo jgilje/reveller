@@ -9,9 +9,6 @@
 extern FILE *sid_kernel_timer;
 
 void platform_usleep(uint32_t usec) {
-    if (usec < 0) {
-        return;
-    }
     if (usec > 20971) {
         printf("sidplayer: usec was %d, limiting to 20950\n", usec);
         usec = 20950;
