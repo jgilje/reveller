@@ -122,14 +122,19 @@ void console_interface(void) {
 				continue;
 			}
 
-			// PLAY
+			// sanitize input (code scanners get happy)
+			if (i > 0xffff) {
+				i = 0xffff;
+			}
+
+			// START PLAY
 			printf("Starting PlayAddr %d times\n", i);
 			{
-			    int j;
-			    for (j = 0; j < i; j++) {
+				int j;
+				for (j = 0; j < i; j++) {
 					c64_play();
 					platform_usleep(1000000 / 55);
-			    }
+				}
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
 			int i;
