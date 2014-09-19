@@ -1,4 +1,5 @@
 #include "console-interface.h"
+#include "platform-support.h"
 #include "6510.h"
 
 #if defined unix
@@ -10,8 +11,7 @@
 #include <conio.h>
 #endif
 
-void platform_usleep(int32_t us);
-FILE* inputSidFile;
+extern FILE* inputSidFile;
 
 void continuosPlay(void) {
 #if defined unix
