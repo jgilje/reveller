@@ -27,7 +27,9 @@ void continuosPlay(void) {
 	currentTerm.c_cc[VTIME] = 0;
 	tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
 	originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
-	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+	if (fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK) < 0) {
+		platform_abort("Failed to set stdin nonblocking\n");
+	}
 	
 	printf("Playing... (any key to stop)...");
 	fflush(stdout);
@@ -38,7 +40,9 @@ void continuosPlay(void) {
 		platform_usleep(next);
 	}
 	
-	fcntl(STDIN_FILENO, F_SETFL, originalFcntl);
+	if (fcntl(STDIN_FILENO, F_SETFL, originalFcntl) < 0) {
+		platform_abort("Failed to restore stdin\n");
+	}
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
 	printf("\n");
 	fflush(stdout);

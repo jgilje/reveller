@@ -32,7 +32,9 @@ void platform_abort(char *msg, ...) {
 size_t c64_read_source(uint32_t offset, uint32_t length, uint8_t *dest) {
     size_t ret;
     // printf("Reading at offset %d - %d bytes\n", offset, length);
-    fseek(inputSidFile, offset, SEEK_SET);
+    if (fseek(inputSidFile, offset, SEEK_SET) < 0) {
+        platform_abort("Failed to seek inputSidFile, offset %x\n", offset);
+    }
     ret = fread(dest, 1, length, inputSidFile);
     return ret;
 }

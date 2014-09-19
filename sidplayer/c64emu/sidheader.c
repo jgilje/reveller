@@ -8,7 +8,9 @@
 
 int parseHeader() {
     unsigned char buffer[128];
-    c64_read_source(0, 128, buffer);
+    if (c64_read_source(0, 128, buffer) == 0) {
+	platform_abort("Failed to read from input file\n");
+    }
     // sett filpeker til 0
     //fseek(sidFile, 0, SEEK_SET);
 
