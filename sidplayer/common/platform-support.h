@@ -2,6 +2,7 @@
 #define PLATFORM_SUPPORT
 
 #include <stdint.h>
+#include <stddef.h>
 
 /*
   These functions must be implemented to support a new platform
