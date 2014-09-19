@@ -95,6 +95,7 @@ void console_interface(void) {
 				   "(s)ong <subgsong>\n"
 				   "(l)oad <file>\n"
 				   "(d)umpmem\n"
+				   "(i)nteractive (toggle)\n"
 				   "(q)uit\n"
 				   );
 		} else if (! strcmp(input, "load") || ! strcmp(input, "l")) {
@@ -166,6 +167,14 @@ void console_interface(void) {
 			fflush(NULL);
 			printf("Bye\n");
 			exit(0);
+		} else if (! strcmp(input, "interactive") || ! strcmp(input, "i")) {
+			if (interactive) {
+				printf("Disabling interactive mode\n");
+				interactive = 0;
+			} else {
+				printf("Enabling interactive mode\n");
+				interactive = 1;
+			}
 		} else if (interactive && inputSidFile) {
 			printf("Starting PlayAddr 1 time\n");
 			interpret(1, sh.playAddress);
