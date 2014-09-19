@@ -15,6 +15,7 @@
 
 #include "6510.h"
 #include "sidheader.h"
+#include "platform-support.h"
 
 #include "../lcd-hammer.h"
 
@@ -61,9 +62,10 @@ static int sid_scandir_filter(const struct dirent* d) {
 	return 0;
 }
 
-static void menu_scandir(const char* dir) {
+static struct dirent** menu_scandir(const char* dir) {
 	int n;
-	n = scandir(dir, &menu_data.dir_entries, sid_scandir_filter, alphasort);
+	struct dirent **dir_entries;
+	n = scandir(dir, &dir_entries, sid_scandir_filter, alphasort);
    if (n < 0) {
        perror("scandir");
    }
@@ -92,6 +94,8 @@ static void menu_scandir(const char* dir) {
 		
 		menu_data.prev_dir[0] = 0;
 	}
+
+	return dir_entries;
 }
 
 /*
@@ -176,7 +180,10 @@ static void menu_dir_display(void) {
 			menu_data.dir_entries = 0;
 		}
 	
-		menu_scandir(menu_data.cur_dir);
+		menu_data.dir_entries = menu_scandir(menu_data.cur_dir);
+		if (menu_data.dir_entries == 0) {
+			platform_abort("Failed to scan directory");
+		}
 		menu_data.dir_scanned = 1;
 	}
 	
