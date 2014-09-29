@@ -26,8 +26,9 @@ void vicWrite(unsigned char addr, unsigned char data) {
 				platform_debug("WARNING: Program Disabled VIC interrupts, and so should you!\n");
 			}
 			break;
-		case 0x11:			// kontrollregister
+		case 0x11:			// control register
 		case 0x12:			// raster counter
+		case 0x20:			// border color
 			break;
 		default:
 			platform_abort("Unsupported VIC Write (%02x: %02x)\n", addr, data);
