@@ -124,6 +124,7 @@ void storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char da
 	*(pages[page] + offset) = datah;
 }
 
+static char sid_data[0x1f];
 void storeMem(unsigned char s_data) {
     unsigned char page = effAddr >> 8;
     unsigned char offset = effAddr;
@@ -139,6 +140,7 @@ void storeMem(unsigned char s_data) {
 #ifdef DEBUG
 				platform_debug("\nSID Write: %04x, %02x", effAddr, s_data);
 #endif
+				sid_data[offset&0x1f] = s_data;
 				c64_sid_write(offset & 0x1f, s_data);
 				break;
 			case 0xd0:		// VIC-II
@@ -237,6 +239,8 @@ void loadMem(unsigned short addr) {
 						data = ciaRead(1, offset);
 						break;
 					case 0xd4:
+						data = sid_data[offset & 0x1f];
+						// platform_debug("WARNING: Read from SID %x: %x\n", offset, data);
 						// data = LES FRA SID (offset)
 						break;
 					default:
