@@ -168,6 +168,9 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			    ciaTimers[chip].counters[1] = ciaTimers[chip].latches[1];
 			}
 			break;
+		case 0xc:		// Serial shift register
+			ciaRegister[chip].SDR = data;
+			break;
 		case 0xd:		// ICR
 			if (data & 0x80) {
 				if (data & 0x1) {
@@ -236,6 +239,9 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 			break;
 		case 0x5:		// timerA high
 			return (ciaTimers[chip].counters[0] >> 8) & 0xff;
+			break;
+		case 0xc:
+			return ciaRegister[chip].SDR;
 			break;
 		case 0xd:		// IDR
 			{
