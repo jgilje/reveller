@@ -180,24 +180,7 @@ void storeMem(unsigned char s_data) {
 
 // fetches data for the current value in PC
 void fetchOP(void) {
-    unsigned char page = reg.pc >> 8;
-    unsigned char offset = reg.pc;
-    
-        // antagelse: henter ikke OPKODER fra BASIC ROM eller IO
-	if (page < 0xe0) {
-		data = (*(pages[page] + offset));
-		return;
-	}
-	
-	data = (*(pages[0x0] + 0x1));
-	
-        if (data & 0x2) {
-                data = kernal[((page - 0xe0) << 8 | offset)];
-                return;
-        }
-
 	loadMem(reg.pc);
-	return;
 }
 
 // henter ut data fra ei minneadresse
