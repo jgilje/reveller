@@ -197,7 +197,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			c64_cia_write_cr(chip, data, 'B');
 			break;
 		default:
-			platform_abort("Unsupported CIA Write (%02x)\n", addr);
+			platform_abort("Unsupported CIA Write on chip %d: (%02x)\n", chip, addr);
 	}
 }
 
@@ -262,7 +262,7 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 			return ciaTimers[chip].CR[0];
 			break;
 		default:
-			platform_abort("Unsupported CIA Read (%02x)\n", addr);
+			platform_abort("Unsupported CIA Read on chip %d: (%02x)\n", chip, addr);
 	}
 	
 	platform_abort("Unsupported CIA Read (%02x)\n", addr);
