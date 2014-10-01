@@ -279,8 +279,7 @@ void installSIDDriver(void) {
 	if (freePage == 0) {
 		platform_abort("Failed to retrieve a free page for SID Driver\n");
 	}
-	
-	IOPort = getIOPort(sh.playAddress);
+	IOPort = *(pages[0x0] + 0x1);
 
 #ifdef DEBUG
 	platform_debug("Installing SID Driver in free page %x\n", freePage);
@@ -348,13 +347,7 @@ void setSubSong(unsigned char song) {
 	platform_debug("Bank after init: %x\n", *(pages[0x0] + 0x1));
 	
 	if (! strcmp(sh.type, "PSID")) {
-		/*
-		 * This was previously set for all SIDs
-		 * this has two outcomes
-		 * - it was never needed
-		 * - be prepared for bugs
-		 */
-		*(pages[0x0] + 0x1) = 0x37;
+		installSIDDriver();
 		
 		if (sh.playAddress) {
 			storeMemRAMShort(0xfffe, 0x48, 0xff);
@@ -372,6 +365,5 @@ void setSubSong(unsigned char song) {
 		}
 	}
 	
-	installSIDDriver();
 }
 
