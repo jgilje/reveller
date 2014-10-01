@@ -154,7 +154,7 @@ void triggerInterrupt(void) {
 	storeMem(reg.pc & 0xff);
 	reg.s--;
 	memStack();
-	storeMem(FLAG_U);
+	storeMem(reg.p);
 	reg.s--;
 	
 	work = 1;
