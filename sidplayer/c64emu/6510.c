@@ -138,8 +138,13 @@ uint32_t interpretMain(void) {
 		c64_vic_update_timer(1);
 		cycles += 1;
 
-		if (c64_cia_nmi() || c64_cia_irq() || c64_vic_irq()) {
-			platform_debug("interpretMain(): interrupted\n");
+		if (c64_cia_nmi()) {
+			platform_debug("interpretMain(): NMI\n", reg.p);
+			work = 0;
+		}
+
+		if ((c64_cia_irq() || c64_vic_irq()) && !(reg.p & FLAG_I)) {
+			platform_debug("interpretMain(): IRQ (%x)\n", reg.p);
 			work = 0;
 		}
 	}
