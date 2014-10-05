@@ -133,8 +133,14 @@ void c64_cia_write_cr(unsigned char chip, unsigned char data, unsigned char time
 }
 
 void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
+#ifdef DEBUG
+	platform_debug(" (CIA write to chip %d %x) %x\n", chip, addr, data);
+#endif
 	switch (addr) {
 		case 0x0:		// PDRa
+			//ciaRegister[chip].PDRa = data;
+			break;
+		case 0x1:		// PDRb
 			//ciaRegister[chip].PDRa = data;
 			break;
 		case 0x2:		// DDRa
@@ -169,8 +175,17 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			    ciaTimers[chip].counters[1] = ciaTimers[chip].latches[1];
 			}
 			break;
+		case 0x8:		// TOD msec.
+			break;
+		case 0x9:		// TOD sec.
+			break;
+		case 0xa:		// TOD min.
+			break;
+		case 0xb:		// TOD HR
+			break;
 		case 0xc:		// Serial shift register
 			ciaRegister[chip].SDR = data;
+			ciaRegister[chip].IDR |= (1 << 3);
 			break;
 		case 0xd:		// ICR
 			if (data & 0x80) {
@@ -179,6 +194,9 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 				}
 				if (data & 0x2) {
 					ciaTimers[chip].interrupt_enabled[1] = 1;
+				}
+				if (data & 0x8) {
+					platform_abort("CIA#%d enabled IRQ on SD, not supported", chip);
 				}
 				ciaRegister[chip].ICR |= (data & 0x1f);
 			} else {
@@ -190,6 +208,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 				}
 				ciaRegister[chip].ICR &= ~data;
 			}
+			platform_debug("\tCIA#%d ICR: %x\n", chip, ciaRegister[chip].ICR );
 			break;
 		case 0xe:		// CRA
 			c64_cia_write_cr(chip, data, 'A');
@@ -204,7 +223,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 
 unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 #ifdef DEBUG
-	platform_debug(" (CIA read from chip %d %x) ", chip, addr);
+	platform_debug(" (CIA read from chip %d %x) \n", chip, addr);
 #endif
 	switch (addr) {
 		case 0x0:		// PDRa
@@ -241,6 +260,12 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 		case 0x5:		// timerA high
 			return (ciaTimers[chip].counters[0] >> 8) & 0xff;
 			break;
+		case 0x6:		// timerB low
+			return ciaTimers[chip].counters[1] & 0xff;
+			break;
+		case 0x7:		// timerB high
+			return (ciaTimers[chip].counters[1] >> 8) & 0xff;
+			break;
 		case 0xc:
 			return ciaRegister[chip].SDR;
 			break;
@@ -252,13 +277,13 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 				}
 				ciaRegister[chip].IDR = 0;
 #ifdef DEBUG
-				platform_debug("ciaRead(): read from chip %d, addr: 0xd, returning %x\n", chip, ret);
+				platform_debug("\tciaRead(): read from chip %d, addr: 0xd, returning %x\n", chip, ret);
 #endif
 				return ret;
 			}
 		case 0xe:
 #ifdef DEBUG
-			platform_debug("ciaRead(): read from chip %d, addr: 0xe, returning %x\n", chip, ciaTimers[chip].CR[0]);
+			platform_debug("\tciaRead(): read from chip %d, addr: 0xe, returning %x\n", chip, ciaTimers[chip].CR[0]);
 #endif
 			return ciaTimers[chip].CR[0];
 			break;
