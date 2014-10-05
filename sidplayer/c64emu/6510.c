@@ -358,10 +358,9 @@ void setSubSong(unsigned char song) {
 	
 	if (! strcmp(sh.type, "PSID")) {
 		installSIDDriver();
-		
+
 		if (sh.playAddress) {
-			storeMemRAMShort(0xfffe, 0x48, 0xff);
-			storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
+			storeMemRAMShort(0xfffe, 0x0, SIDDriverPage);
 		}
 		
 		// sett opp CIA#1
@@ -374,6 +373,5 @@ void setSubSong(unsigned char song) {
 			vicWrite(0x1a, 0x1);	// enable VIC Interrupts
 		}
 	}
-	
 }
 
