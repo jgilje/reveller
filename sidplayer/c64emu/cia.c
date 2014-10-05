@@ -208,7 +208,9 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 				}
 				ciaRegister[chip].ICR &= ~data;
 			}
+#ifdef DEBUG
 			platform_debug("\tCIA#%d ICR: %x\n", chip, ciaRegister[chip].ICR );
+#endif
 			break;
 		case 0xe:		// CRA
 			c64_cia_write_cr(chip, data, 'A');
