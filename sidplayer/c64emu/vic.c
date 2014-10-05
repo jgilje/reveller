@@ -78,10 +78,11 @@ int32_t c64_vic_next_timer(void) {
 
 void c64_vic_update_timer(int32_t next) {
 	if (c64_vic_timer.enabled) {
-		c64_vic_timer.counter -= next;
-		if (c64_vic_timer.counter == 0) {
+		if (next >= c64_vic_timer.counter) {
 			c64_vic_timer.interrupt = 1;
-			c64_vic_timer.counter = c64_vic_timer.latch;
+			c64_vic_timer.counter = c64_vic_timer.latch - (next - c64_vic_timer.counter);
+		} else {
+			c64_vic_timer.counter -= next;
 		}
 	}
 }

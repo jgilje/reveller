@@ -110,7 +110,8 @@ void (*opcodes[])(void) = 	// alle opcodes for prosessoren
 
 };
 
-void interpretMain(void) {
+uint32_t interpretMain(void) {
+	uint32_t cycles = 0;
 	while (work) {
 		fetchOP();
 #ifdef DEBUG
@@ -132,7 +133,18 @@ void interpretMain(void) {
 #ifdef DEBUG
 		platform_debug("\n\n");
 #endif
+		/* Until we correct the opcode handling, assume each opcode is 1 cycles */
+		c64_cia_update_timers(1);
+		c64_vic_update_timer(1);
+		cycles += 1;
+
+		if (c64_cia_nmi() || c64_cia_irq() || c64_vic_irq()) {
+			platform_debug("interpretMain(): interrupted\n");
+			work = 0;
+		}
 	}
+
+	return cycles;
 }
 
 // interpret i times playAddr from address addr
@@ -160,9 +172,7 @@ void triggerInterrupt(void) {
 	work = 1;
 }
 
-void c64_trigger_irq(void) {
-	c64_sid_block_start();
-	
+uint32_t c64_trigger_irq(void) {
 	unsigned short addr = (*(pages[0xff] + 0xff) << 8) | *(pages[0xff] + 0xfe);
 	triggerInterrupt();
 	reg.p |= FLAG_I;
@@ -173,11 +183,10 @@ void c64_trigger_irq(void) {
 	platform_debug("****************************************************\n");
 #endif
 
-	interpretMain();
-	c64_sid_block_end();
+	return interpretMain();
 }
 
-void c64_trigger_nmi() {
+uint32_t c64_trigger_nmi() {
 	unsigned short addr = (*(pages[0xff] + 0xfb) << 8) | *(pages[0xff] + 0xfa);
 	triggerInterrupt();
 	setPC(addr);
@@ -188,7 +197,7 @@ void c64_trigger_nmi() {
 	platform_debug("****************************************************\n");
 #endif
 
-	interpretMain();
+	return interpretMain();
 }
 
 int32_t c64_next_trigger(void) {
@@ -214,9 +223,10 @@ int32_t c64_next_trigger(void) {
 	return 20000;
 }
 
+static uint32_t last_irq_handler_cycles = 0;
 int32_t c64_play(void) {
-	int32_t sleep_time = 0;
-	int32_t next;
+	uint32_t sleep_time = last_irq_handler_cycles;
+	uint32_t next;
 	int interrupted = 0;
 	
 	while (! interrupted) {
@@ -226,15 +236,15 @@ int32_t c64_play(void) {
 		
 		if (c64_cia_nmi()) {
 			interrupted = 1;
-			c64_trigger_nmi();
+			last_irq_handler_cycles = c64_trigger_nmi();
 		}
 		if (c64_cia_irq()) {
 			interrupted = 1;
-			c64_trigger_irq();
+			last_irq_handler_cycles = c64_trigger_irq();
 		}
 		if (c64_vic_irq()) {
 			interrupted = 1;
-			c64_trigger_irq();
+			last_irq_handler_cycles = c64_trigger_irq();
 		}
 		
 		sleep_time += next;

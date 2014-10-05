@@ -41,16 +41,17 @@ void c64_cia_update_timers(int32_t next) {
 	for (i = 0; i < 2; i++) {
 		for (j = 0; j < 2; j++) {
 			if (ciaTimers[i].enabled[j]) {
-				ciaTimers[i].counters[j] -= next;
-				if (ciaTimers[i].counters[j] == 0) {
+				if (next >= ciaTimers[i].counters[j]) {
 					if (ciaTimers[i].interrupt_enabled[j]) {
 						ciaTimers[i].interrupt_triggered[j] = 1;
 						ciaRegister[i].IDR |= (1 << j);
 					}
-					ciaTimers[i].counters[j] = ciaTimers[i].latches[j];
+					ciaTimers[i].counters[j] = ciaTimers[i].latches[j] - (next - ciaTimers[i].counters[j]);
 					if (ciaTimers[i].oneshot[j]) {
 						ciaTimers[i].enabled[j] = 0;
 					}
+				} else {
+					ciaTimers[i].counters[j] -= next;
 				}
 			}
 		}
