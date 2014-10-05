@@ -28,6 +28,7 @@ void vicWrite(unsigned char addr, unsigned char data) {
 			break;
 		case 0x11:			// control register
 		case 0x12:			// raster counter
+		case 0x15:			// sprite enable
 		case 0x20:			// border color
 			break;
 		default:
