@@ -290,6 +290,7 @@ void installSIDDriver(void) {
 		platform_abort("Failed to retrieve a free page for SID Driver\n");
 	}
 	IOPort = *(pages[0x0] + 0x1);
+	platform_debug("installSIDDriver(): installing at freePage: %x, IOPort: %x\n", freePage, IOPort);
 
 #ifdef DEBUG
 	platform_debug("Installing SID Driver in free page %x\n", freePage);
@@ -349,10 +350,11 @@ void setSubSong(unsigned char song) {
 	// TODO remove if not needed
 	// storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
 
-	// run INIT adresse med sang i reg.a
+	// run INIT adress with songNo in reg.a
 	*(pages[0x0] + 0x1) = getIOPort(sh.initAddress);
 	c64_current_song = (song == 0) ? (sh.startSong - 1) : (song - 1);
 	reg.a = c64_current_song;
+	platform_debug("c64_setSubSong(): running initAddress\n");
 	interpret(1, sh.initAddress);
 	platform_debug("Bank after init: %x\n", *(pages[0x0] + 0x1));
 	
