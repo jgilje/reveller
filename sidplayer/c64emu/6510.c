@@ -129,27 +129,53 @@ uint32_t interpretMain(void) {
 
 		opcodes[data]();
 		reg.pc++;
+		cycles += 3;
 
 #ifdef DEBUG
 		platform_debug("\n\n");
 #endif
-		/* Until we correct the opcode handling, assume each opcode is 1 cycles */
-		c64_cia_update_timers(1);
-		c64_vic_update_timer(1);
-		cycles += 1;
+	}
+	return cycles;
+}
+
+static uint32_t c64_trigger_irq(void);
+static uint32_t c64_trigger_nmi(void);
+void interpretInit(unsigned char song) {
+	*(pages[0x0] + 0x1) = getIOPort(sh.initAddress);
+	c64_current_song = (song == 0) ? (sh.startSong - 1) : (song - 1);
+	reg.a = c64_current_song;
+	platform_debug("c64_setSubSong(): running initAddress\n");
+	reg.p |= FLAG_I;
+
+	setPC(sh.initAddress);
+	uint32_t cycles = 0;
+	work = 1;
+	while (work) {
+		fetchOP();
+		opcodes[data]();
+		reg.pc++;
+
+		/* Until we correct the opcode handling, assume each opcode is 3 cycles */
+		c64_cia_update_timers(3);
+		c64_vic_update_timer(3);
+		cycles += 3;
 
 		if (c64_cia_nmi()) {
-			platform_debug("interpretMain(): NMI\n", reg.p);
-			work = 0;
+			// platform_debug("interpretMain(): NMI\n");
+			cycles += c64_trigger_nmi();
+			reg.pc -= 2;
+			work = 1;
 		}
 
 		if ((c64_cia_irq() || c64_vic_irq()) && !(reg.p & FLAG_I)) {
-			platform_debug("interpretMain(): IRQ (%x)\n", reg.p);
-			work = 0;
+			// platform_debug("interpretMain(): IRQ\n");
+			cycles += c64_trigger_irq();
+			reg.pc -= 2;
+			work = 1;
 		}
 	}
 
-	return cycles;
+	reg.p &= ~FLAG_I;
 }
 
 // interpret i times playAddr from address addr
@@ -163,7 +189,7 @@ void interpret(int i, unsigned short addr) {
 }
 
 void triggerInterrupt(void) {
-	reg.s = 0xff;
+	unsigned char stack_start = reg.s;
 	memStack();
 	storeMem(reg.pc >> 8);
 	reg.s--;
@@ -173,6 +199,9 @@ void triggerInterrupt(void) {
 	memStack();
 	storeMem(reg.p);
 	reg.s--;
+	if (reg.s > stack_start) {
+		platform_abort("Stack Overflow");
+	}
 	
 	work = 1;
 }
@@ -228,10 +257,9 @@ int32_t c64_next_trigger(void) {
 	return 20000;
 }
 
-static uint32_t last_irq_handler_cycles = 0;
 int32_t c64_play(void) {
-	uint32_t sleep_time = last_irq_handler_cycles;
-	uint32_t next;
+	uint32_t sleep_time = 0;
+	uint32_t next = 0;
 	int interrupted = 0;
 	
 	while (! interrupted) {
@@ -241,15 +269,11 @@ int32_t c64_play(void) {
 		
 		if (c64_cia_nmi()) {
 			interrupted = 1;
-			last_irq_handler_cycles = c64_trigger_nmi();
+			c64_trigger_nmi();
 		}
-		if (c64_cia_irq()) {
+		if (c64_cia_irq() || c64_vic_irq()) {
 			interrupted = 1;
-			last_irq_handler_cycles = c64_trigger_irq();
-		}
-		if (c64_vic_irq()) {
-			interrupted = 1;
-			last_irq_handler_cycles = c64_trigger_irq();
+			c64_trigger_irq();
 		}
 		
 		sleep_time += next;
@@ -312,8 +336,12 @@ void installSIDDriver(void) {
 	storeMemRAMShort(address, 0xa9, 0x37); address += 2;
 	storeMemRAMShort(address, 0x85, 0x1); address += 2;
 	// JMP to yourself, the emulator will figure out what's happening
+	/*
 	storeMemRAMChar(address, 0x4c); address += 1;
 	storeMemRAMShort(address, 0xb, freePage);
+	*/
+	// RTI
+	storeMemRAMChar(address, 0x40);
 
 	SIDDriverPage = (freePage & 0xff);
 }
@@ -356,12 +384,7 @@ void setSubSong(unsigned char song) {
 	// storeMemRAMShort(0x0314, 0x0, SIDDriverPage);
 
 	// run INIT adress with songNo in reg.a
-	*(pages[0x0] + 0x1) = getIOPort(sh.initAddress);
-	c64_current_song = (song == 0) ? (sh.startSong - 1) : (song - 1);
-	reg.a = c64_current_song;
-	platform_debug("c64_setSubSong(): running initAddress\n");
-	interpret(1, sh.initAddress);
-	platform_debug("Bank after init: %x\n", *(pages[0x0] + 0x1));
+	interpretInit(song);
 	
 	if (! strcmp(sh.type, "PSID")) {
 		installSIDDriver();
