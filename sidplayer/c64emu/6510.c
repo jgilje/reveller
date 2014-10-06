@@ -318,7 +318,7 @@ void installSIDDriver(void) {
 	if (freePage == 0) {
 		platform_abort("Failed to retrieve a free page for SID Driver\n");
 	}
-	IOPort = *(pages[0x0] + 0x1);
+	IOPort = getIOPort(sh.playAddress);
 	platform_debug("installSIDDriver(): installing at freePage: %x, IOPort: %x\n", freePage, IOPort);
 
 #ifdef DEBUG
