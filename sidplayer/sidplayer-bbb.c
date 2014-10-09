@@ -140,27 +140,25 @@ void initPWM(void) {
 	
 	/* time based 1MHz PWM */
 	/* Set HSPCLKDIV: /1, CTRMODE: Up-count */
-	//tbctl &= 0xfc7c;
+	tbctl &= 0xfc7c;
 	//printf("mod. tbctl: %x\n", tbctl);
-	//*tbctl_reg = tbctl;
-	// *tbcnt_reg = 500;
+	*tbctl_reg = tbctl;
+	*am335x_registers.pwm_tbcnt = 500;
 	/* Set Period */
-	//*tbprd_reg = 50;
+	*tbprd_reg = 50;
 	/* Action when the counter equals the period: Toggle EPWMxA output */
-	//printf("aqctla_reg: %x\n", *aqctla_reg);
-	//*aqctla_reg = 0x3;
+	// printf("aqctla_reg: %x\n", *aqctla_reg);
+	*aqctla_reg = 0x3;
 	
 	/* Set HSPCLKDIV: /1 */
-	tbctl &= 0xfc7f;
-	*tbctl_reg = tbctl;
-	*tbprd_reg = 101;
-	*cmpa_reg = 51;
-	*aqctla_reg = (0x2 << 4) | 0x1;
+	//tbctl &= 0xfc7f;
+	//*tbctl_reg = tbctl;
+	//*tbprd_reg = 101;
+	//*cmpa_reg = 51;
+	//*aqctla_reg = (0x2 << 4) | 0x1;
 	
-	while (*tbcnt_reg < 101);
-	while (*tbcnt_reg < 101);
-	
-	exit(0);
+	// while (*tbcnt_reg < 25);
+	// while (*tbcnt_reg < 25);
 }
 
 void printWelcome(void) {
