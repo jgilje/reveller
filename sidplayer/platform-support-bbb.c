@@ -37,7 +37,13 @@ void c64_sid_write(uint8_t reg, uint8_t data) {
 	clear_pins |= (1 << 31);	// SID CS
 	
 	*am335x_registers.gpio_0_clear = clear_pins;
-	usleep(1);
+
+	/*
+	while (*am335x_registers.pwm_tbcnt > 50);
+	while (*am335x_registers.pwm_tbcnt < 25);
+	*/
+	int i = 0;
+	while (i++ < 32);
 
 	// Disable SID access first
 	uint32_t set_pins = 0;
