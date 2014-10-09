@@ -78,6 +78,8 @@ typedef struct am335x_registers {
     volatile uint32_t* gpio_2_clear;
     volatile uint32_t* gpio_2_set;
     volatile uint32_t* gpio_2_oe;
+
+    volatile uint16_t* pwm_tbcnt;
 } am335x_registers_t;
 am335x_registers_t am335x_registers;
 

@@ -108,7 +108,7 @@ void initPWM(void) {
 	volatile uint32_t* pwm = get_addr(PWM_1);
 	volatile uint16_t* tbctl_reg = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_TBCTL;
 	volatile uint16_t* tbsts_reg = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_TBSTS;
-	volatile uint16_t* tbcnt_reg = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_TBCNT;
+	am335x_registers.pwm_tbcnt = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_TBCNT;
 	volatile uint16_t* tbprd_reg = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_TBPRD;
 	volatile uint16_t* cmpctl_reg = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_CMPCTL;
 	volatile uint16_t*   cmpa_reg = (uint16_t*)(pwm + EPWM_OFFSET) + PWM_CMPA;
@@ -117,7 +117,7 @@ void initPWM(void) {
 	uint32_t tbctl_tbsts = *(pwm + EPWM_OFFSET + PWM_TBCTL);
 	uint16_t tbctl = *tbctl_reg;
 	uint16_t tbsts = *tbsts_reg;
-	uint16_t tbcnt = *tbcnt_reg;
+	uint16_t tbcnt = *am335x_registers.pwm_tbcnt;
 	uint16_t tbprd = *tbprd_reg;
 	uint16_t cmpctl = *cmpctl_reg;
 	uint16_t   cmpa = *cmpa_reg;
