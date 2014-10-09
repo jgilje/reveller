@@ -90,8 +90,11 @@ void initGPIO(void) {
 	oe &= 0xFFFFC03F;	// output on pin 13 <-> 6
 	*am335x_registers.gpio_2_oe = oe;
 
-	// Clear RESET and POWER
-	*am335x_registers.gpio_1_clear = (1 << 28) | (1 << 16);
+	// Clear POWER
+	*am335x_registers.gpio_1_clear = (1 << 16);
+	
+	// Set RESET
+	*am335x_registers.gpio_1_set = (1 << 28);
 }
 
 #define PWM_TBCTL (0x0 / 2)
