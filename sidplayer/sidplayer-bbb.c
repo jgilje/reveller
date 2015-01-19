@@ -79,7 +79,7 @@ void initGPIO(void) {
 	am335x_registers.gpio_1_set = am335x_registers.gpio_1 + (GPIO_SET_OFFSET);
 	am335x_registers.gpio_1_oe = am335x_registers.gpio_1 + (GPIO_OE_OFFSET);
 	oe = *am335x_registers.gpio_1_oe;
-	oe &= 0xEFFFFFFF;	// output on pin 28
+	oe &= 0xEFFF7FFF;	// output on pin 16 and 28
 	*am335x_registers.gpio_1_oe = oe;
 	
 	am335x_registers.gpio_2 = get_addr(GPIO_2);
