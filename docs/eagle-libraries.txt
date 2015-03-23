@@ -1,0 +1,6 @@
+Raspberry Pi library from
+http://www.cadsoftusa.com/downloads/libraries
+(http://www.cadsoftusa.com/downloads/file/raspberrypi_bastelstube_v13.lbr)
+
+https://github.com/sparkfun/SparkFun-Eagle-Libraries
+https://github.com/adafruit/Adafruit-Eagle-Library
