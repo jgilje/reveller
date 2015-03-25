@@ -162,11 +162,9 @@ int main(int argc, char **argv) {
 			printf("ERROR: File %s not found\n", argv[1]);
 			exit(1);
 		}
-		fseek(inputSidFile, 0, SEEK_END);
-		printf("Inputfile is %ld bytes\n", ftell(inputSidFile));
-		
-		setSubSong(0);
-		printf("Loaded song %d of %d subsongs\n", sh.startSong, sh.songs);
+
+		parseHeader();
+		printf("Loaded %s, %d subsongs\n", argv[1], sh.songs);
 	}
 
 	console_interface();
