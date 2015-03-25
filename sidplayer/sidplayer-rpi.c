@@ -69,12 +69,12 @@ void initGPIO(void) {
 	
 	// function selection register 2, GPIO 20-29
 	fsel = *bcm2835_registers.gpio_fsel2;
-	// clear 22-25
-	fsel &= 0x3ffc003f;
-	//  enable input on 22-25
+	// clear 22-25, 27
+	fsel &= 0x3f1C003f;
+	//  enable input on 22-25, 27
 	*bcm2835_registers.gpio_fsel2 = fsel;
-	// enable output on 22-25
-	fsel |= 0x9240;
+	// enable output on 22-25, 27
+	fsel |= 0x209240;
 	*bcm2835_registers.gpio_fsel2 = fsel;
 	
 	bcm2835_registers.gpio_output_set0 = bcm2835_registers.gpio_base + 7; // 0x1C;
@@ -83,6 +83,8 @@ void initGPIO(void) {
 	bcm2835_registers.gpio_output_clear1 = bcm2835_registers.gpio_base + 11; // 0x2C;
 	bcm2835_registers.gpio_level0 = bcm2835_registers.gpio_base + 13; // 0x34;
 	
+	// enable power
+	*bcm2835_registers.gpio_output_clear0 = 0x08000000;
 	/*
 	volatile uint32_t *g1, *g2;
 	g1 = bcm2835_registers.gpio_base + 19;
