@@ -11868,14 +11868,14 @@ KS-S stereo microphone/headphone jack&lt;p&gt;
 <part name="C3" library="rcl" deviceset="CPOL-EU" device="E2-4" value="1uF"/>
 <part name="R2" library="rcl" deviceset="R-EU_" device="0204/7" value="3.3k"/>
 <part name="+3V1" library="supply1" deviceset="+3V3" device=""/>
-<part name="C4" library="rcl" deviceset="CPOL-EU" device="E15-5AXIAL" value="1nF"/>
+<part name="C4" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="1nF"/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="R1" library="rcl" deviceset="R-EU_" device="0204/7" value="1k"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
-<part name="C5" library="rcl" deviceset="CPOL-EU" device="E15-5AXIAL" value="0.1uF"/>
-<part name="C6" library="rcl" deviceset="CPOL-EU" device="E15-5AXIAL" value="10uF"/>
-<part name="C7" library="rcl" deviceset="CPOL-EU" device="E15-5AXIAL" value="0.1uF"/>
-<part name="C8" library="rcl" deviceset="CPOL-EU" device="E15-5AXIAL" value="10uF"/>
+<part name="C5" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="0.1uF"/>
+<part name="C6" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="10uF"/>
+<part name="C7" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="0.1uF"/>
+<part name="C8" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="10uF"/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="X2" library="raspberrypi_bastelstube_v13" deviceset="RASPI_BOARD_AB" device="_E0"/>
 <part name="Q1" library="transistor-fet" deviceset="?548*" device="2N" technology="4" value="BS270"/>
@@ -11884,6 +11884,7 @@ KS-S stereo microphone/headphone jack&lt;p&gt;
 <part name="X1" library="con-molex" deviceset="22-23-2041" device="" value="CANTON-POWER"/>
 <part name="X3" library="con-hirschmann" deviceset="PG203J" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
+<part name="GND6" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -11918,6 +11919,7 @@ KS-S stereo microphone/headphone jack&lt;p&gt;
 <instance part="X1" gate="-4" x="149.86" y="121.92"/>
 <instance part="X3" gate="1" x="231.14" y="96.52"/>
 <instance part="GND5" gate="1" x="218.44" y="55.88"/>
+<instance part="GND6" gate="1" x="53.34" y="35.56"/>
 </instances>
 <busses>
 <bus name="A[0..4]">
@@ -12037,7 +12039,6 @@ KS-S stereo microphone/headphone jack&lt;p&gt;
 <segment>
 <pinref part="X2" gate="G$1" pin="N.C.5"/>
 <wire x1="68.58" y1="55.88" x2="76.2" y2="55.88" width="0.1524" layer="91"/>
-<label x="76.2" y="55.88" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="X1" gate="-2" pin="S"/>
@@ -12050,9 +12051,9 @@ KS-S stereo microphone/headphone jack&lt;p&gt;
 <wire x1="218.44" y1="88.9" x2="218.44" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 <segment>
+<pinref part="GND6" gate="1" pin="GND"/>
 <pinref part="X2" gate="G$1" pin="GND"/>
-<wire x1="53.34" y1="45.72" x2="53.34" y2="40.64" width="0.1524" layer="91"/>
-<label x="53.34" y="40.64" size="1.27" layer="95" rot="R270" xref="yes"/>
+<wire x1="53.34" y1="38.1" x2="53.34" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="D0" class="0">
@@ -12152,11 +12153,6 @@ KS-S stereo microphone/headphone jack&lt;p&gt;
 <wire x1="170.18" y1="83.82" x2="147.32" y2="83.82" width="0.1524" layer="91"/>
 <junction x="147.32" y="83.82"/>
 <label x="149.86" y="83.82" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="X2" gate="G$1" pin="N.C.4"/>
-<wire x1="68.58" y1="58.42" x2="76.2" y2="58.42" width="0.1524" layer="91"/>
-<label x="76.2" y="58.42" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="X2" gate="G$1" pin="GPIO25"/>
