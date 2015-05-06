@@ -1882,7 +1882,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="39.497" y="11.176" size="1.27" layer="26" font="vector" ratio="16" rot="MR90"/>
 <attribute name="VALUE" x="37.465" y="12.446" size="0.3048" layer="28" rot="MR90"/>
 </element>
-<element name="C1" library="rcl" package="E5-10,5" value="1000uF" x="59.817" y="48.006" rot="R180"/>
+<element name="C1" library="rcl" package="E5-10,5" value="1000uF" x="49.276" y="50.673" rot="R270"/>
 </elements>
 <signals>
 <signal name="A4" class="1">
