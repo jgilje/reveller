@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationName("Carbonium Development");
     QCoreApplication::setOrganizationDomain("jgilje.net");
     QCoreApplication::setApplicationName("SID Player");
+    QApplication::setWindowIcon(QIcon(":/gfx/C64icon.png"));
 
     bool ok;
     MainWindow w(ok);

@@ -30,3 +30,8 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     connectdialog.ui \
     sidinfo.ui
+
+DISTFILES +=
+
+RESOURCES += \
+    resources.qrc

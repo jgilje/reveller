@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/gfx">
+        <file>C64icon.png</file>
+    </qresource>
+</RCC>
