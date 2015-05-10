@@ -11,7 +11,12 @@ void platform_usleep(u_int32_t us) {
 }
 
 void platform_shutdown() {
-
+	// function selection register 2, GPIO 20-29
+	uint32_t fsel = *bcm2835_registers.gpio_fsel2;
+	// clear 21 and 27
+	fsel &= 0xff1fffc7;
+	//  enable input on 21 and 27
+	*bcm2835_registers.gpio_fsel2 = fsel;
 }
 
 void c64_sid_block_start(void) {

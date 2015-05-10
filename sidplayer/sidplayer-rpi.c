@@ -37,7 +37,7 @@ void initGPIO(void) {
 	bcm2835_registers.gpio_base = get_addr(GPIO_BASE);
 
 	/*
-	0x1 as output on pins 0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 17, 22, 23, 24, 25
+	0x1 as output on pins 0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 17, 21, 22, 23, 24, 25, 27
 	0x2 as function 5 on pin 18
 	*/
 	bcm2835_registers.gpio_fsel0 = bcm2835_registers.gpio_base;
@@ -69,12 +69,12 @@ void initGPIO(void) {
 	
 	// function selection register 2, GPIO 20-29
 	fsel = *bcm2835_registers.gpio_fsel2;
-	// clear 22-25, 27
-	fsel &= 0x3f1C003f;
-	//  enable input on 22-25, 27
+	// clear 21, 22-25, 27
+	fsel &= 0x3f1C0007;
+	//  enable input on 21, 22-25, 27
 	*bcm2835_registers.gpio_fsel2 = fsel;
-	// enable output on 22-25, 27
-	fsel |= 0x209240;
+	// enable output on 21, 22-25, 27
+	fsel |= 0x209248;
 	*bcm2835_registers.gpio_fsel2 = fsel;
 	
 	bcm2835_registers.gpio_output_set0 = bcm2835_registers.gpio_base + 7; // 0x1C;
@@ -83,8 +83,8 @@ void initGPIO(void) {
 	bcm2835_registers.gpio_output_clear1 = bcm2835_registers.gpio_base + 11; // 0x2C;
 	bcm2835_registers.gpio_level0 = bcm2835_registers.gpio_base + 13; // 0x34;
 	
-	// enable power
-	*bcm2835_registers.gpio_output_clear0 = 0x08000000;
+	// enable power (pins 21 and 27 for compat. with rev 1 and 2)
+	*bcm2835_registers.gpio_output_clear0 = 0x08200000;
 	/*
 	volatile uint32_t *g1, *g2;
 	g1 = bcm2835_registers.gpio_base + 19;
