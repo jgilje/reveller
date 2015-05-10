@@ -17,6 +17,10 @@ void platform_usleep(uint32_t usec) {
     ioctl(fileno(sid_kernel_timer), usec);
 }
 
+void platform_shutdown() {
+
+}
+
 void c64_sid_block_start(void) {
 }
 

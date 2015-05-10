@@ -11,6 +11,8 @@ void platform_debug(char *msg, ...);
 void platform_abort(char *msg, ...);
 
 void platform_usleep(uint32_t us);
+void platform_shutdown();
+
 size_t c64_read_source(uint32_t offset, uint32_t length, uint8_t *dest);
 
 void c64_sid_block_start(void);

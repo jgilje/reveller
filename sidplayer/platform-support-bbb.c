@@ -10,7 +10,7 @@ void platform_usleep(uint32_t us) {
     usleep(us);
 }
 
-void platform_exit() {
+void platform_shutdown() {
     *am335x_registers.gpio_1_set = (1 << 16);
 }
 

@@ -163,7 +163,8 @@ void console_interface(void) {
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
 			dumpMem();
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
-			// ikke så nøye her, vi er ferdige anyway
+            platform_shutdown();
+
 			fflush(NULL);
 			printf("Bye\n");
 			exit(0);

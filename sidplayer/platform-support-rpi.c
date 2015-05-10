@@ -10,6 +10,10 @@ void platform_usleep(u_int32_t us) {
     usleep(us);
 }
 
+void platform_shutdown() {
+
+}
+
 void c64_sid_block_start(void) {
 }
 

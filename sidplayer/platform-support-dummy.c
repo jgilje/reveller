@@ -1,3 +1,5 @@
+#include "platform-support.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -12,11 +14,16 @@
 #endif
 
 void platform_usleep(uint32_t us) {
+	platform_debug("Sleep %d\n", us);
 #if defined unix
 	usleep(us);
 #elif defined _WIN32
 	Sleep(us/1000);
 #endif
+}
+
+void platform_shutdown() {
+
 }
 
 void c64_sid_block_start(void) {
@@ -26,6 +33,7 @@ void c64_sid_block_end(void) {
 }
 
 void c64_sid_write(uint8_t reg, uint8_t data) {
+//	platform_debug("SID Write: %x: %x\n", reg, data);
 }
 
 void c64_set_freq_vic(uint32_t hz) {
