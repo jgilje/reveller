@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = SidPlayer
 TEMPLATE = app
 
+CONFIG += c++11
+CONFIG += silent
 
 SOURCES += main.cpp\
         mainwindow.cpp \
