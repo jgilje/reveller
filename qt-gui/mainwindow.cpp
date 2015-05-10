@@ -185,6 +185,13 @@ void MainWindow::handleLs(const QString& path, const QJsonArray &jsonDirectories
 
 void MainWindow::handleLoad(const QString &data) {
     updateNavbar(data);
+
+    if (_setDefaultSong) {
+        currentSong = 0;
+        songRequest();
+
+        _setDefaultSong = false;
+    }
 }
 
 void MainWindow::fetchPath(const QString& path) {
@@ -217,8 +224,7 @@ void MainWindow::onUpdatePreview(const QModelIndex &index) {
     json["argument"] = item->path();
     _webSocket->sendTextMessage(QJsonDocument(json).toJson());
 
-    currentSong = 0;
-    songRequest();
+    _setDefaultSong = true;
 }
 
 void MainWindow::onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) {

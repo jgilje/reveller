@@ -29,6 +29,7 @@ private:
     QStringList selectPath;
     uint currentSong;
     QString currentFile;
+    bool _setDefaultSong = false;
 
     QString runConnectionDialog();
     void fetchPath(const QString& path);
