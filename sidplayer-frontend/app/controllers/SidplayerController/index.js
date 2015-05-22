@@ -5,12 +5,13 @@ class SidplayerController {
 		this.ws.onopen = () => {
 			this.ls();
 		}
-		this.ws.onmessage = this.messageHandler.bind(this);
+		this.ws.onmessage = (message) => {
+			this.messageHandler(message);
+		};
 	}
 	messageHandler(message) {
 		let response = JSON.parse(message.data);
 		let type = response.type;
-		console.log(response);
 		switch (type) {
 			case 'ls':
 				this.handleLsResponse(response.data);
@@ -27,9 +28,10 @@ class SidplayerController {
 		this.ws.send(JSON.stringify(command));
 	}
 	handleLsResponse(responseString) {
-		console.log(responseString);
-		let dirs = JSON.parse(responseString);
-		console.log(dirs);
+		let response = JSON.parse(responseString);
+		let dirs = response.directories;
+		let sidfiles = response.sidfiles;
+		console.log(dirs, sidfiles);
 	}
 }
 
