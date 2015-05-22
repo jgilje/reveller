@@ -1,3 +1,5 @@
 const React = require('react');
 
-console.log('lol');
+const SidplayerController = require('./controllers/SidplayerController');
+
+const sidplayer = new SidplayerController('ws://localhost:8080/ws');

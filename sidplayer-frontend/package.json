@@ -24,5 +24,10 @@
   },
   "dependencies": {
     "react": "^0.13.3"
+  },
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
   }
 }
