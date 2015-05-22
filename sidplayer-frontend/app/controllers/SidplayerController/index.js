@@ -1,4 +1,6 @@
 
+const SidfilesStore = require('../../stores/SidfilesStore.js');
+
 class SidplayerController {
 	constructor(url) {
 		this.ws = new WebSocket(url);
