@@ -2,7 +2,7 @@
 #include "platform-support.h"
 #include "6510.h"
 
-#if defined unix
+#if defined unix || (defined(__APPLE__) && defined(__MACH__))
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -14,7 +14,7 @@
 extern FILE* inputSidFile;
 
 void continuosPlay(void) {
-#if defined unix
+#if defined unix || (defined(__APPLE__) && defined(__MACH__))
 	struct termios currentTerm;
 	struct termios originalTerm;
 	int originalFcntl;
