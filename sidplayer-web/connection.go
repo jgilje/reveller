@@ -72,6 +72,10 @@ func (c *connection) reader() {
 			msg, _ := json.Marshal(lsreply)
 			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
 			websocket.JSON.Send(c.ws, reply)
+		case "search":
+			path := action.Argument
+			searcher := Searcher{}
+			searcher.SearchFile(path, c)
 		case "load":
 			file, err := SidPath(action.Argument)
 			if err != nil {

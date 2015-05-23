@@ -17,10 +17,6 @@ type browser struct {
 
 var Browser = browser{}
 
-func walker(path string, info os.FileInfo, err error) error {
-	log.Println(path)
-	return nil
-}
 
 func SidPath(path string) (string, error) {
 	file := filepath.Join(Browser.RootPath, path)
