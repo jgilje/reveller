@@ -1,7 +1,7 @@
 const React = require('react');
 
-const DirectoryComponent = require('./DirectoryComponent.js');
-const Sidfile = require('../components/FilelistComponent.js');
+const Directory = require('./DirectoryComponent.js');
+const Sidfile = require('../components/SidfileComponent.js');
 
 class FilelistComponent extends React.Component {
 	constructor() {
@@ -10,12 +10,15 @@ class FilelistComponent extends React.Component {
 	render() {
 
 		let dirs = this.props.directories.map((d,i) => {
-			let path = this.props.path.join('/') + '/' + d;
-			return <DirectoryComponent directoryName={d} path={path} key={i}/>
+			return <Directory directoryName={d} path={this.props.path} key={i}/>
+		});
+		let files = this.props.sidfiles.map((f,i) => {
+			return <Sidfile filename={f} key={i} />
 		});
 		return (
 			<div className="filelist">
 				{dirs}
+				{files}
 			</div>
 		)
 	}

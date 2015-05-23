@@ -16,7 +16,9 @@ class SidplayerAPI {
 		this.dispatchToken = AppDispatcher.register(action => {
 			switch (action.type) {
 				case ActionTypes.LOAD_DIRECTORY:
-					this.ls(action.path);
+					console.log(action.path);
+					let path = action.path.join('/');
+					this.ls(path);
 					break;
 			}
 		});

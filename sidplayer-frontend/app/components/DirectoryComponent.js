@@ -12,6 +12,7 @@ class DirectoryComponent extends React.Component {
 		)
 	}
 	handleDirectoryClick() {
+		this.props.path.push(this.props.directoryName);
 		AppDispatcher.dispatch({
 			type: ActionTypes.LOAD_DIRECTORY,
 			path: this.props.path
