@@ -1,5 +1,6 @@
 const React = require('react');
-
+const AppDispatcher = require('../dispatcher/AppDispatcher.js');
+const ActionTypes = require('../constants/RevellerConstants.js').ActionTypes;
 
 class DirectoryComponent extends React.Component {
 	constructor() {
@@ -11,7 +12,10 @@ class DirectoryComponent extends React.Component {
 		)
 	}
 	handleDirectoryClick() {
-		// set store to this directory
+		AppDispatcher.dispatch({
+			type: ActionTypes.LOAD_DIRECTORY,
+			path: this.props.path
+		});
 	}
 }
 

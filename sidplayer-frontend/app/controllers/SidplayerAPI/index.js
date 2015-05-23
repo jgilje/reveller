@@ -13,6 +13,13 @@ class SidplayerAPI {
 		this.ws.onmessage = (message) => {
 			this.messageHandler(message);
 		};
+		this.dispatchToken = AppDispatcher.register(action => {
+			switch (action.type) {
+				case ActionTypes.LOAD_DIRECTORY:
+					this.ls(action.path);
+					break;
+			}
+		});
 	}
 	messageHandler(message) {
 		let response = JSON.parse(message.data);
@@ -23,16 +30,13 @@ class SidplayerAPI {
 				break;
 		}
 	}
-	ls(args) {
+	ls(path) {
 		let command = {
 			action: 'ls'
 		};
-		if (args) {
-			command.argument = args
+		if (path) {
+			command.argument = path;
 		}
-		AppDispatcher.dispatch({
-			type: ActionTypes.LOAD_DIRECTORY
-		});
 		this.ws.send(JSON.stringify(command));
 	}
 	handleLsResponse(responseString) {

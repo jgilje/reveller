@@ -8,8 +8,10 @@ class FilelistComponent extends React.Component {
 		super();
 	}
 	render() {
+
 		let dirs = this.props.directories.map((d,i) => {
-			return <DirectoryComponent directoryName={d} key={i}/>
+			let path = this.props.path.join('/') + '/' + d;
+			return <DirectoryComponent directoryName={d} path={path} key={i}/>
 		});
 		return (
 			<div className="filelist">
