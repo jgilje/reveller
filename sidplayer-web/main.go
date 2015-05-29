@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
+var port uint
 var homeTempl = template.Must(template.ParseFiles("home.html"))
 
 func homeHandler(c http.ResponseWriter, req *http.Request) {
@@ -27,19 +27,25 @@ func broadCaster() {
 }
 
 func main() {
+	flag.UintVar(&port, "port", 8080, "http service address")
 	flag.StringVar(&Sidplayer.Command, "player", "sidplayer", "command for the sidplayer")
 	flag.StringVar(&Browser.RootPath, "rootpath", "C64Music", "rootpath for sid files")
 	flag.Parse()
 
-	go Sidplayer.run()
+	if port > 0xffff {
+		log.Fatalln("Invalid port number", port)
+	}
 
+	go Sidplayer.run()
 	go h.run()
 	/* go broadCaster() */
 
 	http.HandleFunc("/", homeHandler)
 	http.Handle("/ws", websocket.Handler(wsHandler))
 
-	if err := http.ListenAndServe(*addr, nil); err != nil {
+	registerService(uint16(port))
+	addr := ":" + string(port)
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
 	/*
