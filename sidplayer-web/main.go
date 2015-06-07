@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"strconv"
 	"text/template"
 	"time"
 )
@@ -44,7 +45,7 @@ func main() {
 	http.Handle("/ws", websocket.Handler(wsHandler))
 
 	registerService(uint16(port))
-	addr := ":" + string(port)
+	addr := ":" + strconv.FormatUint(uint64(port), 10)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
