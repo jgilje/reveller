@@ -147,7 +147,8 @@ public class MainActivity extends AppCompatActivity {
 
             SidListFragment fragment;
             if (mFragments.size() < splits.length) {
-                fragment = new SidListFragment(listener, path, directories, files);
+                fragment = new SidListFragment();
+                fragment.setClickListener(listener);
                 mFragments.add(fragment);
 
                 notifyDataSetChanged();

@@ -22,7 +22,7 @@ import java.util.Random;
  * Created by jgilje on 10/11/15.
  */
 public class SidListFragment extends Fragment {
-    private final ClickListener clickListener;
+    private ClickListener clickListener;
     private List<String> directories;
     private List<String> files;
     private String path;
@@ -33,13 +33,8 @@ public class SidListFragment extends Fragment {
         void folder(String folder);
     }
 
-    public SidListFragment(ClickListener listener, String path, List<String> directories, List<String> files) {
+    void setClickListener(ClickListener listener) {
         this.clickListener = listener;
-        /*
-        this.directories = directories;
-        this.files = files;
-        this.path = path;
-        */
     }
 
     void update(String path, List<String> directories, List<String> files) {
