@@ -166,12 +166,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             TabLayout.Tab tab = tabLayout.newTab();
-            tab.setText(splits[splits.length - 1]);
+            if (path.isEmpty()) {
+                tab.setText("ROOT");
+            } else {
+                tab.setText(splits[splits.length - 1]);
+            }
+
             tabLayout.addTab(tab, true);
 
-            if (path.isEmpty()) {
-                path = "ROOT";
-            }
             fragment.update(path, directories, files);
             notifyDataSetChanged();
         }
