@@ -27,6 +27,7 @@ public class SidListFragment extends Fragment {
     private List<String> files;
     private String path;
     private SimpleStringRecyclerViewAdapter adapter;
+    private RecyclerView rv;
 
     public interface ClickListener {
         void file(String file);
@@ -42,13 +43,14 @@ public class SidListFragment extends Fragment {
         this.files = files;
         this.directories = directories;
 
+        rv.scrollToPosition(0);
         adapter.notifyDataSetChanged();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        RecyclerView rv = (RecyclerView) inflater.inflate(R.layout.fragment_sid_list, container, false);
+        rv = (RecyclerView) inflater.inflate(R.layout.fragment_sid_list, container, false);
         setupRecyclerView(rv);
         return rv;
     }
