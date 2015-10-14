@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="jgilje.net.reveller" >
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/reveller"
+        android:theme="@style/Reveller" >
+        <activity
+            android:name="jgilje.net.reveller.ConnectActivity"
+            android:label="@string/reveller" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="jgilje.net.reveller.MainActivity"
+            android:label="@string/reveller" >
+        </activity>
+    </application>
+</manifest>

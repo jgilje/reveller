@@ -1,0 +1,30 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        applicationId "jgilje.net.sidcontrol"
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+dependencies {
+    compile "org.java-websocket:Java-WebSocket:1.3.0"
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    // You must install or update the Support Repository through the SDK manager to use this dependency.
+    // compile 'com.android.support:support-v4:22.1.1'
+
+    compile 'com.android.support:design:23.0.1'
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:cardview-v7:23.0.1'
+    compile 'com.android.support:recyclerview-v7:23.0.1'
+}

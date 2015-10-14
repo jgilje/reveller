@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*   == This file is part of Tomahawk Player - <http://tomahawk-player.org> ===
+ *
+ *   Copyright 2014, Enno Gottschalk <mrmaffen@googlemail.com>
+ *
+ *   Tomahawk is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Tomahawk is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Tomahawk. If not, see <http://www.gnu.org/licenses/>.
+ */
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+    android:clickable="false"
+    android:background="@android:color/background_dark">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="@dimen/row_height_verylarge"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:padding="@dimen/padding_small"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/now_playing_title"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/row_height_verylarge"
+            android:ellipsize="marquee"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:textColor="@android:color/primary_text_dark"
+            android:textSize="@dimen/text_size_large"/>
+
+        <TextView
+            android:id="@+id/now_playing_author"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/row_height_verylarge"
+            android:ellipsize="marquee"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:textColor="@android:color/secondary_text_dark"
+            android:textSize="@dimen/text_size_small"/>
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/now_playing_button_previous"
+        android:layout_width="@dimen/row_height_large"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:paddingBottom="3dip"
+        android:paddingStart="6dip"
+        android:paddingEnd="10dip"
+        android:paddingTop="3dip"
+        android:background="@drawable/selectable_background_playing"
+        android:src="@android:drawable/ic_media_previous"
+        android:scaleType="fitCenter"/>
+
+    <ImageButton
+        android:id="@+id/now_playing_button_playpause"
+        android:layout_width="@dimen/row_height_large"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:padding="8dp"
+        android:background="@drawable/selectable_background_playing"
+        android:src="@android:drawable/ic_media_play"
+        android:scaleType="fitCenter"/>
+
+    <ImageButton
+        android:id="@+id/now_playing_button_next"
+        android:layout_width="@dimen/row_height_large"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:paddingBottom="3dip"
+        android:paddingStart="10dip"
+        android:paddingEnd="6dip"
+        android:paddingTop="3dip"
+        android:background="@drawable/selectable_background_playing"
+        android:src="@android:drawable/ic_media_next"
+        android:scaleType="fitCenter"/>
+
+</LinearLayout>

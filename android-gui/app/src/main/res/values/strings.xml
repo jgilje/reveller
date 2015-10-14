@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_example">Example action</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="current_song">Current Song</string>
+    <string name="sub_song">Subsong</string>
+    <string name="state">State</string>
+    <string name="sub_songs">Subsongs</string>
+    <string name="sid_collection">SID Collection</string>
+    <string name="first">First</string>
+    <string name="last">Last</string>
+    <string name="hello_world">Hello, World!</string>
+    <string name="reveller">Reveller</string>
+    <string name="manual_entry">Manual Entry</string>
+    <string name="hint_host">Host</string>
+    <string name="hint_port">Port</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+
+</resources>
