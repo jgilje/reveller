@@ -6,22 +6,30 @@
     android:layout_width="match_parent"
     android:fitsSystemWindows="true">
 
-    <include layout="@layout/include_list_viewpager"/>
-
     <LinearLayout
-        android:id="@+id/now_playing_frame"
+        android:id="@+id/wrapping_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="bottom">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <View
+        <include layout="@layout/include_list_viewpager"/>
+
+        <LinearLayout
+            android:id="@+id/now_playing_frame"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/divider_height_thin"
-            android:background="@android:color/background_light"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="bottom">
 
-        <include layout="@layout/playing"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/divider_height_thin"
+                android:background="@android:color/background_light"/>
+
+            <include layout="@layout/playing"/>
+        </LinearLayout>
     </LinearLayout>
+
 
     <!--
     <android.support.design.widget.NavigationView
