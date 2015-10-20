@@ -135,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class Adapter extends FragmentPagerAdapter {
+        int depth = 0;
         private final List<Fragment> mFragments = new ArrayList<>();
-        private final List<String> mFragmentTitles = new ArrayList<>();
 
         public Adapter(FragmentManager fm) {
             super(fm);
@@ -150,11 +150,11 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new SidListFragment();
                 fragment.setClickListener(listener);
                 mFragments.add(fragment);
-
-                notifyDataSetChanged();
             } else {
                 fragment = (SidListFragment) mFragments.get(splits.length - 1);
             }
+            depth = splits.length;
+            notifyDataSetChanged();
 
             if ((tabLayout.getSelectedTabPosition() + 1) < tabLayout.getTabCount()) {
                 int selected = tabLayout.getSelectedTabPosition() + 1;
@@ -171,11 +171,9 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 tab.setText(splits[splits.length - 1]);
             }
-
             tabLayout.addTab(tab, true);
 
             fragment.update(path, directories, files);
-            notifyDataSetChanged();
         }
 
         @Override
@@ -185,12 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return mFragments.size();
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return mFragmentTitles.get(position);
+            return depth;
         }
     }
 
