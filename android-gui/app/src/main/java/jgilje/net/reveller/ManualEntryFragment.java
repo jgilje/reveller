@@ -1,5 +1,6 @@
 package jgilje.net.reveller;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
@@ -19,6 +20,7 @@ public class ManualEntryFragment extends DialogFragment {
 
     private Listener listener;
 
+    @SuppressLint("ValidFragment")
     private ManualEntryFragment() {}
 
     public static ManualEntryFragment newInstance(Listener listener) {

@@ -4,7 +4,6 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.Intent;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
@@ -14,15 +13,17 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -45,7 +46,7 @@ public class ConnectActivity extends AppCompatActivity {
 
     private NsdManager nsdManager;
 
-    private SimpleStringRecyclerViewAdapter serviceAdapter;
+    private RecyclerViewAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,18 +71,42 @@ public class ConnectActivity extends AppCompatActivity {
                 DialogFragment newFragment = ManualEntryFragment.newInstance(new ManualEntryFragment.Listener() {
                     @Override
                     public void onManualEntry(String host, int port) {
-
+                        RevellerEntry entry = new RevellerEntry(host, port);
+                        Set<RevellerEntry> manualEntries = getManualEntries();
+                        manualEntries.add(entry);
+                        saveManualEntries(manualEntries);
+                        adapter.addEntry(entry);
                     }
                 });
                 newFragment.show(ft, "manual_entry_dialog");
             }
         });
 
-        RecyclerView rv = (RecyclerView) findViewById(R.id.recyclerview);
+        ContextMenuRecyclerView rv = (ContextMenuRecyclerView) findViewById(R.id.recyclerview);
         setupRecyclerView(rv);
 
         nsdManager = (NsdManager) getApplicationContext().getSystemService(Context.NSD_SERVICE);
-        serviceAdapter.addEntry("reveller-pi.gilje.fluxxx.lan", 8080);
+    }
+
+    private Set<RevellerEntry> getManualEntries() {
+        try {
+            FileInputStream fis = openFileInput(getString(R.string.manuel_entries_file));
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Set<RevellerEntry> entries = (Set<RevellerEntry>) ois.readObject();
+            return entries;
+        } catch (Throwable e) {
+            return new HashSet<>();
+        }
+    }
+
+    private void saveManualEntries(Set<RevellerEntry> entries) {
+        try {
+            FileOutputStream fos = openFileOutput(getString(R.string.manuel_entries_file), Context.MODE_PRIVATE);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(entries);
+        } catch (Throwable e) {
+            System.out.println(e);
+        }
     }
 
     @Override
@@ -95,92 +120,41 @@ public class ConnectActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        for (RevellerEntry entry : getManualEntries()) {
+            adapter.addEntry(entry);
+        }
+
         initializeDiscoveryListener();
     }
 
     private void setupRecyclerView(RecyclerView recyclerView) {
         recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-        serviceAdapter = new SimpleStringRecyclerViewAdapter(getApplicationContext());
-        recyclerView.setAdapter(serviceAdapter);
+        adapter = new RecyclerViewAdapter(getApplicationContext());
+        recyclerView.setAdapter(adapter);
+        registerForContextMenu(recyclerView);
     }
 
-    public static class SimpleStringRecyclerViewAdapter extends RecyclerView.Adapter<SimpleStringRecyclerViewAdapter.ViewHolder> {
-        private final TypedValue mTypedValue = new TypedValue();
-        private int mBackground;
-        private List<String> mHostnames = new ArrayList<>();
-        private List<Integer> mPorts = new ArrayList<>();
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.list_context_menu, menu);
+    }
 
-        public void addEntry(String canonicalHostName, int port) {
-            int pos = mHostnames.size();
-            mHostnames.add(canonicalHostName);
-            mPorts.add(port);
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        ContextMenuRecyclerView.ContextMenuInfo info = (ContextMenuRecyclerView.ContextMenuInfo) item.getMenuInfo();
 
-            notifyItemInserted(pos);
-        }
-
-        public void clearEntries() {
-            int items = mHostnames.size();
-            mHostnames.clear();
-            mPorts.clear();
-
-            notifyItemRangeRemoved(0, items);
-        }
-
-        public static class ViewHolder extends RecyclerView.ViewHolder {
-            public String mBoundString;
-
-            public final View mView;
-            public final ImageView mImageView;
-            public final TextView mTextView;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mImageView = (ImageView) view.findViewById(R.id.list_item_icon);
-                mTextView = (TextView) view.findViewById(R.id.list_item_text);
-            }
-
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mTextView.getText();
-            }
-        }
-
-        public SimpleStringRecyclerViewAdapter(Context context) {
-            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
-            mBackground = mTypedValue.resourceId;
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
-            view.setBackgroundResource(mBackground);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, final int position) {
-            holder.mBoundString = mHostnames.get(position);
-            holder.mTextView.setText(mHostnames.get(position));
-
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Context context = v.getContext();
-                    Intent intent = new Intent(context, MainActivity.class);
-                    intent.putExtra(MainActivity.SERVERHOST_EXTRA, mHostnames.get(position));
-                    intent.putExtra(MainActivity.SERVERPORT_EXTRA, mPorts.get(position));
-
-                    context.startActivity(intent);
-                }
-            });
-
-            holder.mImageView.setImageResource(R.drawable.ic_developer_board_black_24dp);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mHostnames.size();
+        switch (item.getItemId()) {
+            case R.id.remove:
+                RevellerEntry entry = adapter.getEntry(info.position);
+                Set<RevellerEntry> manualEntries = getManualEntries();
+                manualEntries.remove(entry);
+                saveManualEntries(manualEntries);
+                adapter.removeEntry(info.position);
+                return true;
+            default:
+                return super.onContextItemSelected(item);
         }
     }
 
@@ -201,12 +175,13 @@ public class ConnectActivity extends AppCompatActivity {
                     nsdManager.resolveService(queue.get(0), resolveListener);
                 }
 
+                final String serviceName = nsdServiceInfo.getServiceName();
                 final String canonicalHostName = nsdServiceInfo.getHost().getCanonicalHostName();
                 final int port = nsdServiceInfo.getPort();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        serviceAdapter.addEntry(canonicalHostName, port);
+                        adapter.addEntry(new RevellerEntry(serviceName, canonicalHostName, port));
                     }
                 });
             }
@@ -240,7 +215,7 @@ public class ConnectActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        serviceAdapter.clearEntries();
+                        adapter.clearEntries();
                     }
                 });
             }
