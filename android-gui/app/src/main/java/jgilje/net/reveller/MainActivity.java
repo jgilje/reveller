@@ -1,18 +1,14 @@
 package jgilje.net.reveller;
 
 import android.os.Bundle;
-import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -36,11 +32,10 @@ import java.util.Map;
  * Created by jgilje on 5/24/15.
  */
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "ConnectActivity";
+    private static final String TAG = "MainActivity";
     public static final String SERVERHOST_EXTRA = "SERVERHOST_EXTRA";
     public static final String SERVERPORT_EXTRA = "SERVERPORT_EXTRA";
 
-    private DrawerLayout mDrawerLayout;
     private String serverHost;
     private int serverPort;
     private WebSocketClient webSocketClient;
@@ -87,19 +82,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        /*
-        final ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-        ab.setDisplayHomeAsUpEnabled(true);
-
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        if (navigationView != null) {
-            setupDrawerContent(navigationView);
-        }
-        */
-
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         if (viewPager != null) {
@@ -119,24 +101,15 @@ public class MainActivity extends AppCompatActivity {
         connectWebSocket();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
     private void setupViewPager(ViewPager viewPager) {
         adapter = new Adapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
     }
-
-    /*
-    private void setupDrawerContent(NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        menuItem.setChecked(true);
-                        mDrawerLayout.closeDrawers();
-                        return true;
-                    }
-                });
-    }
-    */
 
     class Adapter extends FragmentPagerAdapter {
         int depth = 0;

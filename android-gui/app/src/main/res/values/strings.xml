@@ -23,5 +23,7 @@
     <string name="hint_port">Port</string>
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
+    <string name="manuel_entries_file">manual_entries</string>
+    <string name="remove">Remove</string>
 
 </resources>
