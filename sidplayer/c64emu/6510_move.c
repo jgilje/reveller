@@ -3,7 +3,7 @@
 // LOAD
 // Accumulator
 static void LDA_(void) {
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     reg.a = data;
     evalNZ(reg.a);
 #ifdef DEBUG
@@ -12,7 +12,7 @@ static void LDA_(void) {
 }
 
 static void LDA_imm(void) {	// 0xA9
-    memImm();
+    c64_memImm();
     reg.a = data;
     evalNZ(reg.a);
 #ifdef DEBUG
@@ -21,43 +21,43 @@ static void LDA_imm(void) {	// 0xA9
 }
 
 static void LDA_abs(void) {	// 0xAD
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     LDA_();
 }
 
 static void LDA_absx(void) {	// 0xBD
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     LDA_();
 }
 
 static void LDA_absy(void) {	// 0xB9
-    memAbsoluteAddrY();
+    c64_memAbsoluteAddrY();
     LDA_();
 }
 
 static void LDA_zp(void) {		// 0xA5
-    memZero();
+    c64_memZero();
     LDA_();
 }
 
 static void LDA_zpx(void) {	// 0xB5
-	memZeroX();
+        c64_memZeroX();
 	LDA_();
 }
 
 static void LDA_izx(void) {	// 0xA1
-	memIndirectZeroX();
+        c64_memIndirectZeroX();
 	LDA_();
 }
 
 static void LDA_izy(void) {	// 0xB1
-    memIndirectZeroY();
+    c64_memIndirectZeroY();
     LDA_();
 }
 
 // RegX
 static void LDX_(void) {
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     reg.x = data;
 #ifdef DEBUG
     platform_debug("LDX");
@@ -66,7 +66,7 @@ static void LDX_(void) {
 }
 
 static void LDX_imm(void) {	// 0xA2
-    memImm();
+    c64_memImm();
 	reg.x = data;
 #ifdef DEBUG
     platform_debug("LDX_imm");
@@ -75,28 +75,28 @@ static void LDX_imm(void) {	// 0xA2
 }
 
 static void LDX_abs(void) {	// 0xAE
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
 	LDX_();
 }
 
 static void LDX_absy(void) {	// 0xAE
-    memAbsoluteAddrY();
+    c64_memAbsoluteAddrY();
 	LDX_();
 }
 
 static void LDX_zp(void) {		// 0xA6
-    memZero();
+    c64_memZero();
 	LDX_();
 }
 
 static void LDX_zpy(void) {	// 0xB6
-    memZeroY();
+    c64_memZeroY();
 	LDX_();    
 }
 
 // RegY
 static void LDY_(void) {
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     reg.y = data;
     evalNZ(reg.y);
 #ifdef DEBUG
@@ -105,7 +105,7 @@ static void LDY_(void) {
 }
 
 static void LDY_imm(void) {	// 0xA0
-    memImm();
+    c64_memImm();
     reg.y = data;
     evalNZ(reg.y);
 #ifdef DEBUG
@@ -114,130 +114,130 @@ static void LDY_imm(void) {	// 0xA0
 }
 
 static void LDY_abs(void) {	// 0xAC
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     LDY_();
 }
 
 static void LDY_absx(void) {	// 0xBC
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     LDY_();
 }
 
 static void LDY_zp(void) {		// 0xA4
-    memZero();
+    c64_memZero();
     LDY_();
 }
 
 static void LDY_zpx(void) {	// 0xB4
-	memZeroX();
+        c64_memZeroX();
 	LDY_();
 }
 
 // STA
 static void STA_abs(void) {	// 0x8D
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
 #ifdef DEBUG
     platform_debug("STAa  [%04x]", effAddr);
 #endif    
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 static void STA_absx(void) {	// 0x9D
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
 #ifdef DEBUG
     platform_debug("STAax [%04x]", effAddr);
 #endif    
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 static void STA_absy(void) {	// 0x99
-    memAbsoluteAddrY();
+    c64_memAbsoluteAddrY();
 #ifdef DEBUG
     platform_debug("STAay [%04x]", effAddr);
 #endif    
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 static void STA_zp(void) {		// 0x85
-    memZero();
+    c64_memZero();
 #ifdef DEBUG
     platform_debug("STAz  [%04x]", effAddr);
 #endif
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 static void STA_zpx(void) {	// 0x95
-    memZeroX();
+    c64_memZeroX();
 #ifdef DEBUG
     platform_debug("STAzx [%04x]", effAddr);
 #endif
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 static void STA_izx(void) {	// 0x81
-    memIndirectZeroX();
+    c64_memIndirectZeroX();
 #ifdef DEBUG
     platform_debug("STAix [%04x]", effAddr);
 #endif
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 static void STA_izy(void) {	// 0x91
-    memIndirectZeroY();
+    c64_memIndirectZeroY();
 #ifdef DEBUG
     platform_debug("STAiy [%04x]", effAddr);
 #endif
-    storeMem(reg.a);
+    c64_storeMem(reg.a);
 }
 
 // STX
 static void STX_abs(void) {	// 0x8E
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
 #ifdef DEBUG
     platform_debug("STXa");
 #endif
-    storeMem(reg.x);
+    c64_storeMem(reg.x);
 }
 
 static void STX_zp(void) {		// 0x86
-    memZero();
+    c64_memZero();
 #ifdef DEBUG
     platform_debug("STXz");
 #endif    
-    storeMem(reg.x);
+    c64_storeMem(reg.x);
 }
 
 static void STX_zpy(void) {	// 0x96
-    memZeroY();
+    c64_memZeroY();
 #ifdef DEBUG
     platform_debug("STXzy");
 #endif    
-    storeMem(reg.x);
+    c64_storeMem(reg.x);
 }
 
 // STY
 static void STY_abs(void) {	// 0x8C
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
 #ifdef DEBUG
     platform_debug("STYa");
 #endif    
-    storeMem(reg.y);
+    c64_storeMem(reg.y);
 }
 
 static void STY_zp(void) {		// 0x84
-    memZero();
+    c64_memZero();
 #ifdef DEBUG
     platform_debug("STYz");
 #endif    
-    storeMem(reg.y);
+    c64_storeMem(reg.y);
 }
 
 static void STY_zpx(void) {	// 0x94
-    memZeroX();
+    c64_memZeroX();
 #ifdef DEBUG
     platform_debug("STYzx");
 #endif    
-    storeMem(reg.y);
+    c64_storeMem(reg.y);
 }
 
 // Transfer
@@ -302,8 +302,8 @@ static void PushStack(unsigned char d) {
 		return;
     }
 	
-    memStack();
-    storeMem(d);
+    c64_memStack();
+    c64_storeMem(d);
     reg.s--;
 }
 
@@ -317,8 +317,8 @@ static void PullStack(void) {
     }
 
     reg.s++;
-    memStack();
-    loadMem(effAddr);
+    c64_memStack();
+    c64_loadMem(effAddr);
 }
 
 static void PHA_(void) {		// 0x48

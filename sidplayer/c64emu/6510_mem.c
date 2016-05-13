@@ -9,7 +9,7 @@ const static unsigned char basic[] = {
 };
 
 // Memory management
-void createMem(unsigned char page) {
+static void createMem(unsigned char page) {
     if (pages[page]) {
 		return;
     }
@@ -28,7 +28,7 @@ void createMem(unsigned char page) {
 
 // initier minnet
 //  det betyr: sett opp stack page, og last inn programdata
-void initMem() {
+void c64_initMem() {
     unsigned char buffer[256];
     unsigned char page;
     unsigned char offset;
@@ -78,28 +78,28 @@ void initMem() {
     }
 }
 
-void resetMem() {
-	storeMemRAMShort(0x000, 0x2f, 0x37);		// default ved powerON
-	storeMemRAMChar(0x00cc, 0x1);				// disable cursor blink
+void c64_resetMem() {
+    c64_storeMemRAMShort(0x000, 0x2f, 0x37);		// default ved powerON
+    c64_storeMemRAMChar(0x00cc, 0x1);				// disable cursor blink
 	
 	// NTSC/PAL setting (=1 for PAL)
-	storeMemRAMChar(0x02a6, 0x1);
+    c64_storeMemRAMChar(0x02a6, 0x1);
 	// SETT 50 Hz timer
 	if (sh.flags & (1 << 3)) {	// sjekk om headeren sier NTSC
-		storeMemRAMChar(0x02a6, 0x0);
+        c64_storeMemRAMChar(0x02a6, 0x0);
 		// SETT 60 Hz timer
 	}
 	
 	if (!strcmp(sh.type, "RSID")) {
 		// keylog
-		storeMemRAMShort(0x028f, 0x48, 0xeb);
+        c64_storeMemRAMShort(0x028f, 0x48, 0xeb);
 		
 		// software vector
-		storeMemRAMShort(0x0314, 0x31, 0xea);
+        c64_storeMemRAMShort(0x0314, 0x31, 0xea);
 	}
 }
 
-void storeMemRAMChar(unsigned short addr, unsigned char data) {
+void c64_storeMemRAMChar(unsigned short addr, unsigned char data) {
     unsigned char page = addr >> 8;
     unsigned char offset = addr;
 
@@ -111,7 +111,7 @@ void storeMemRAMChar(unsigned short addr, unsigned char data) {
 }
 
 // denne er ikke sikker i da den ikke sjekker page-crossing
-void storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char datah) {
+void c64_storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char datah) {
     unsigned char page = addr >> 8;
     unsigned char offset = addr;
 
@@ -125,7 +125,7 @@ void storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char da
 }
 
 static char sid_data[0x1f];
-void storeMem(unsigned char s_data) {
+void c64_storeMem(unsigned char s_data) {
     unsigned char page = effAddr >> 8;
     unsigned char offset = effAddr;
 	
@@ -150,19 +150,19 @@ void storeMem(unsigned char s_data) {
 #ifdef DEBUG
 				platform_debug("\nVIC Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
-				vicWrite(offset & 0x3f, s_data);
+                c64_vic_write(offset & 0x3f, s_data);
 				break;
 			case 0xdc:		// CIA 1
 #ifdef DEBUG
 				platform_debug("\nCIA#1 Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
-				ciaWrite(0, offset & 0xf, s_data);
+                c64_cia_write(0, offset & 0xf, s_data);
 				break;
 			case 0xdd:		// CIA 2
 #ifdef DEBUG
 				platform_debug("\nCIA#2 Write: %x, %x", offset, s_data);
 #endif
-				ciaWrite(1, offset & 0xf, s_data);
+                c64_cia_write(1, offset & 0xf, s_data);
 				break;
 			default:
 				if (! pages[page]) {
@@ -181,12 +181,12 @@ void storeMem(unsigned char s_data) {
 }
 
 // fetches data for the current value in PC
-void fetchOP(void) {
-	loadMem(reg.pc);
+void c64_fetchOP(void) {
+    c64_loadMem(reg.pc);
 }
 
 // henter ut data fra ei minneadresse
-void loadMemRAM(unsigned char page, unsigned char offset) {
+static void loadMemRAM(unsigned char page, unsigned char offset) {
 	if (! pages[page]) {
 		platform_debug("WARNING: at %x (op: %x): fetch from uninitialized PAGE (%x %x, returning 0x0)\n", reg.pc, data, page, offset);
 		createMem(page);
@@ -197,7 +197,7 @@ void loadMemRAM(unsigned char page, unsigned char offset) {
 	data = (*(pages[page] + offset));
 }
 
-void loadMem(unsigned short addr) {
+void c64_loadMem(unsigned short addr) {
     unsigned char page = addr >> 8;
     unsigned char offset = addr;
     
@@ -233,10 +233,10 @@ void loadMem(unsigned short addr) {
 						data = 0;
 						break;
 					case 0xdc:
-						data = ciaRead(0, offset);
+                        data = c64_cia_read(0, offset);
 						break;
 					case 0xdd:
-						data = ciaRead(1, offset);
+                        data = c64_cia_read(1, offset);
 						break;
 					case 0xd4:
 						data = sid_data[offset & 0x1f];
@@ -270,7 +270,7 @@ void loadMem(unsigned short addr) {
 	}
 }
 
-void dumpMem() {
+void c64_dumpMem() {
 	int i, j;
 	
 	for (i = 0; i < 0x100; i++) {
@@ -306,22 +306,22 @@ void dumpMem() {
 }
 
 // memory fetch modes
-void memImm() {
+void c64_memImm() {
 	effAddr = ++reg.pc;
-	fetchOP();
+    c64_fetchOP();
 #ifdef DEBUG
     platform_debug(" %02x     ", data);
 #endif
 }
 
-void memAbsoluteAddr() {
+void c64_memAbsoluteAddr() {
     unsigned char page;
     unsigned char offset;
 
     // hent ut adresse
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     page = data;
     
     // adder ut riktig adresse
@@ -332,13 +332,13 @@ void memAbsoluteAddr() {
 #endif
 }
 
-void memAbsoluteAddrX() {
+void c64_memAbsoluteAddrX() {
     unsigned char page;
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     page = data;
     
     effAddr = (page << 8) + offset + reg.x;
@@ -347,13 +347,13 @@ void memAbsoluteAddrX() {
 #endif
 }
 
-void memAbsoluteAddrY() {
+void c64_memAbsoluteAddrY() {
     unsigned char page;
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     page = data;
     
     effAddr = (page << 8) + offset + reg.y;
@@ -362,10 +362,10 @@ void memAbsoluteAddrY() {
 #endif
 }
 
-void memZero() {
+void c64_memZero() {
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
     
     effAddr = (0x00 << 8) + offset;
@@ -374,10 +374,10 @@ void memZero() {
 #endif
 }
 
-void memZeroX() {
+void c64_memZeroX() {
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = (data + reg.x) % 0x100;
     
     effAddr = (0x00 << 8) + offset;
@@ -386,10 +386,10 @@ void memZeroX() {
 #endif
 }
 
-void memZeroY() {
+void c64_memZeroY() {
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = (data + reg.y) % 0x100;
     
     effAddr = (0x00 << 8) + offset;
@@ -398,20 +398,20 @@ void memZeroY() {
 #endif
 }
 
-void memIndirectZeroX() {
+void c64_memIndirectZeroX() {
     unsigned char page;
     unsigned char offset;
     unsigned char temp;
 
     // operand
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     temp = data + reg.x;
 
     // hent ut adresse fra ZP
-    loadMem(0x0 << 8 | (temp));
+    c64_loadMem(0x0 << 8 | (temp));
     offset = data;
     // her emulerer vi en faktisk BUG i 6510
-    loadMem(0x0 << 8 | ((temp + 1) % 0x100));
+    c64_loadMem(0x0 << 8 | ((temp + 1) % 0x100));
     page = data;
     
     // adder ut riktig adresse
@@ -422,13 +422,13 @@ void memIndirectZeroX() {
 #endif
 }
 
-void memIndirectZeroY() {
+void c64_memIndirectZeroY() {
     unsigned char page;
     unsigned char offset;
     unsigned char temp;
 
     // operand
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     temp = data;
 
 #ifdef DEBUG
@@ -436,17 +436,17 @@ void memIndirectZeroY() {
 #endif
 
     // hent ut adresse fra ZP
-    loadMem(0x0 << 8 | (temp));
+    c64_loadMem(0x0 << 8 | (temp));
     offset = data;
     // her emulerer vi en faktisk BUG i 6510
-    loadMem(0x0 << 8 | ((temp + 1) % 0x100));
+    c64_loadMem(0x0 << 8 | ((temp + 1) % 0x100));
     page = data;
     
     // adder ut riktig adresse
     effAddr = (page << 8) + offset + reg.y;
 }
 
-void memStack() {
+void c64_memStack() {
     effAddr = (0x01 << 8) + reg.s;
 }
 

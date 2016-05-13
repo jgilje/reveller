@@ -18,22 +18,22 @@ static void BRK_(void) {		// 0x00
 	// feng tak i neste adresse, BRK har 1 byte padding
 	reg.pc++;
 
-	memStack();
-	storeMem(reg.pc >> 8);
+        c64_memStack();
+        c64_storeMem(reg.pc >> 8);
 	reg.s--;
-	memStack();
-	storeMem(reg.pc & 0xff);
+        c64_memStack();
+        c64_storeMem(reg.pc & 0xff);
 	reg.s--;
 
-	memStack();
-	storeMem(reg.p | FLAG_U | FLAG_B);
+        c64_memStack();
+        c64_storeMem(reg.p | FLAG_U | FLAG_B);
 	reg.s--;
 	
 	reg.p |= FLAG_I;
 	
-	loadMem(0xfffe);
+        c64_loadMem(0xfffe);
 	offset = data;
-	loadMem(0xffff);
+        c64_loadMem(0xffff);
 	page = data;
 	
 #ifdef DEBUG	
@@ -62,7 +62,7 @@ static void BIT_(void) {	// 0x2C
     // with the accumulator. The N and V flags are set to match bits 8 and 7
     // respectively in the value stored at the tested address.
 
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     // Denne setter flaggene N og V, samt & mot A i Z
     // bit: 8, 7 og 2
     //data = 0xe0;
@@ -79,12 +79,12 @@ static void BIT_(void) {	// 0x2C
 }
 
 static void BIT_abs(void) {	// 0x2C
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	BIT_();
 }
 
 static void BIT_zp(void) {		// 0x24
-	memZero();
+        c64_memZero();
 	BIT_();
 }
 
@@ -146,7 +146,7 @@ static void SED_(void) {		// 0xF8
 
 // Branching
 static void Branch_(void) {	// Wrapper for flere branch funksjoner
-    memImm();
+    c64_memImm();
     // loadMem(effAddr);
 #ifdef DEBUG
 //    platform_debug("\tBranch: %02x (%d, sbyte: %02x (%d))\n", data, data, (signed char)data, (signed char)data);
@@ -228,7 +228,7 @@ static void BEQ_(void) {		// 0xF0
 }
 
 static void JMP_abs(void) {	// 0x4c
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
 		
 	// check if we entered an endless loop
 	if (effAddr == (reg.pc - 2)) {
@@ -251,14 +251,14 @@ static void JMP_ind(void) {	// 0x6c
 	unsigned char jmp_page;
 	unsigned char jmp_offset;
 	
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     page = effAddr >> 8;
 	offset = effAddr & 0xff;
 	
-	loadMem(effAddr);
+        c64_loadMem(effAddr);
 	jmp_offset = data;
 	offset++;
-	loadMem((page << 8) | offset);
+        c64_loadMem((page << 8) | offset);
 	jmp_page = data;
 	
 	reg.pc = (jmp_page << 8) | jmp_offset;
@@ -274,16 +274,16 @@ static void JMP_ind(void) {	// 0x6c
 static void JSR_(void) {		// 0x20
 	// feng tak i neste adresse
 	unsigned short jmpAddr;
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	jmpAddr = effAddr;
 	
 	// lagre adresse til (nextop - 1) i stack 
 	
-	memStack();
-	storeMem(reg.pc >> 8);
+        c64_memStack();
+        c64_storeMem(reg.pc >> 8);
 	reg.s--;
-	memStack();
-	storeMem(reg.pc & 0xff);
+        c64_memStack();
+        c64_storeMem(reg.pc & 0xff);
 	reg.s--;
 
 #ifdef DEBUG	
@@ -308,17 +308,17 @@ static void RTI_(void) {		// 0x40
     }
 	
 	reg.s++;
-	memStack();
-	loadMem(effAddr);
+        c64_memStack();
+        c64_loadMem(effAddr);
 	reg.p = data;
 	
 	reg.s++;
-	memStack();
-	loadMem(effAddr);
+        c64_memStack();
+        c64_loadMem(effAddr);
 	offset = data;
 	reg.s++;
-	memStack();
-	loadMem(effAddr);
+        c64_memStack();
+        c64_loadMem(effAddr);
 	page = data;
 	
     reg.pc = ((page << 8) | offset);    
@@ -359,12 +359,12 @@ static void RTS_(void) {		// 0x60
 //	}
 		
 	reg.s++;
-	memStack();
-	loadMem(effAddr);
+        c64_memStack();
+        c64_loadMem(effAddr);
 	offset = data;
 	reg.s++;
-	memStack();
-	loadMem(effAddr);
+        c64_memStack();
+        c64_loadMem(effAddr);
 	page = data;
 	
     reg.pc = ((page << 8) | offset);    

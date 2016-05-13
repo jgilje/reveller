@@ -8,7 +8,9 @@
 #include "vic.h"
 #include "platform-support.h"
 
-void vicWrite(unsigned char addr, unsigned char data) {
+static vicRegister vicReg;
+
+void c64_vic_write(unsigned char addr, unsigned char data) {
 	switch (addr) {
 		case 0x19:			// Interrupt Register
 			vicReg.idr &= (~data & 0xf);
@@ -36,7 +38,7 @@ void vicWrite(unsigned char addr, unsigned char data) {
 	}
 }
 
-unsigned char vicRead(unsigned char addr) {
+unsigned char c64_vic_read(unsigned char addr) {
 	switch (addr) {
 //		case 0x19:
 //			return vicReg.idr;

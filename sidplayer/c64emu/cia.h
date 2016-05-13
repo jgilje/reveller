@@ -46,13 +46,10 @@ typedef struct ciaTimer {
 
 //#define CIA_INTERRUPT_THRESHOLD 0x2000
 
-ciaReg ciaRegister[2];
-ciaTimer ciaTimers[2];
-
 void c64_cia_init(void);
 
-unsigned char ciaRead(unsigned char chip, unsigned char addr);
-void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data);
+unsigned char c64_cia_read(unsigned char chip, unsigned char addr);
+void c64_cia_write(unsigned char chip, unsigned char addr, unsigned char data);
 
 int32_t c64_cia_next_timer(void);
 void c64_cia_update_timers(int32_t next);

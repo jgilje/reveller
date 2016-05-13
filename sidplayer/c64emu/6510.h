@@ -141,7 +141,7 @@ unsigned char c64_current_song;
 void IRQTrigger(void);
 void NMITrigger(void);
 void c64_setSubSong(unsigned char);
-void PrintOpcodeStats(void);
+void c64_printOpcodeStats(void);
 int32_t c64_play(void);
 void interpret(int i, unsigned short addr);
 unsigned char getIOPort(unsigned short address);

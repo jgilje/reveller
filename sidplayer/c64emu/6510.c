@@ -10,15 +10,14 @@ FILE* file;
 // this system was good enough to run up to ~45kb songs
 unsigned char *pages[256];
 unsigned char work = 0;
-unsigned char ciaChip;
 
-void setPC(short pc) {
+static void setPC(short pc) {
     // reg.offset = pc;
     // reg.page = ((pc & 0xFF00) >> 8);
     reg.pc = pc;
 }
 
-void evalNZ(unsigned char byte) {
+static void evalNZ(unsigned char byte) {
     reg.p &= 0x7d;
     if (byte & FLAG_N) reg.p |= FLAG_N;	// n
     if (byte == 0) reg.p |= FLAG_Z;	// z
@@ -30,28 +29,30 @@ void evalNZ(unsigned char byte) {
 #include "6510_move.c"
 #include "6510_branch.c"
 
-void PrintOpcodeStats(void) {
+static void (*opcodes[256])(void);
+static void Un_imp(void);
+
+void c64_printOpcodeStats(void) {
     int unimplemented = 0;
     int implemented = 0;
     int x;
 
     for (x = 0; x < 256; x++) {
-		if (opcodes[x] == &Un_imp) unimplemented++;
-		else implemented++;
+        if (opcodes[x] == &Un_imp) unimplemented++;
+        else implemented++;
     }
 
     platform_debug("Implemented OpCodes: %d of 256 (unimplemented %d)\n", implemented, unimplemented);
 }
 
-void Un_imp(void) {
-    PrintOpcodeStats();
-    dumpMem();
+static void Un_imp(void) {
+    c64_printOpcodeStats();
+    c64_dumpMem();
 
     platform_abort("\nCall to unimplemented function %x at %d\n", data, reg.pc);
 }
 
-
-void (*opcodes[])(void) = 	// alle opcodes for prosessoren
+static void (*opcodes[])(void) = 	// alle opcodes for prosessoren
 {
 
 // 0x0,  0x1,     0x2,     0x3,     0x4,     0x5,     0x6,     0x7
@@ -113,7 +114,7 @@ void (*opcodes[])(void) = 	// alle opcodes for prosessoren
 uint32_t interpretMain(void) {
 	uint32_t cycles = 0;
 	while (work) {
-		fetchOP();
+        c64_fetchOP();
 #ifdef DEBUG
 		platform_debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
 		platform_debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
@@ -151,7 +152,7 @@ void interpretInit(unsigned char song) {
 	uint32_t cycles = 0;
 	work = 1;
 	while (work) {
-		fetchOP();
+        c64_fetchOP();
 		opcodes[data]();
 		reg.pc++;
 
@@ -190,14 +191,14 @@ void interpret(int i, unsigned short addr) {
 
 void triggerInterrupt(void) {
 	unsigned char stack_start = reg.s;
-	memStack();
-	storeMem(reg.pc >> 8);
+    c64_memStack();
+    c64_storeMem(reg.pc >> 8);
 	reg.s--;
-	memStack();
-	storeMem(reg.pc & 0xff);
+    c64_memStack();
+    c64_storeMem(reg.pc & 0xff);
 	reg.s--;
-	memStack();
-	storeMem(reg.p);
+    c64_memStack();
+    c64_storeMem(reg.p);
 	reg.s--;
 	if (reg.s > stack_start) {
 		platform_abort("Stack Overflow");
@@ -327,37 +328,37 @@ void installSIDDriver(void) {
 	address = freePage << 8;
 	
 	// retrieve correct IOPort before running SID
-	storeMemRAMShort(address, 0xa9, IOPort); address += 2;
-	storeMemRAMShort(address, 0x85, 0x1); address += 2;
+    c64_storeMemRAMShort(address, 0xa9, IOPort); address += 2;
+    c64_storeMemRAMShort(address, 0x85, 0x1); address += 2;
 	// JSR to PlayAddress
-	storeMemRAMChar(address, 0x20); address += 1;
-	storeMemRAMShort(address, (sh.playAddress & 0xff), (sh.playAddress >> 8)); address += 2;
+    c64_storeMemRAMChar(address, 0x20); address += 1;
+    c64_storeMemRAMShort(address, (sh.playAddress & 0xff), (sh.playAddress >> 8)); address += 2;
 	// reset IOPort to 0x37
-	storeMemRAMShort(address, 0xa9, 0x37); address += 2;
-	storeMemRAMShort(address, 0x85, 0x1); address += 2;
+    c64_storeMemRAMShort(address, 0xa9, 0x37); address += 2;
+    c64_storeMemRAMShort(address, 0x85, 0x1); address += 2;
 	// JMP to yourself, the emulator will figure out what's happening
 	/*
 	storeMemRAMChar(address, 0x4c); address += 1;
 	storeMemRAMShort(address, 0xb, freePage);
 	*/
 	// RTI
-	storeMemRAMChar(address, 0x40);
+    c64_storeMemRAMChar(address, 0x40);
 
 	SIDDriverPage = (freePage & 0xff);
 }
 
-void initCPU(void) {
+static void initCPU(void) {
 	memset(&reg, 0, sizeof(reg));
 	reg.p = FLAG_U;		// NOT USED
 	reg.s = 0xff;
 }
 
-void initSong() {
+static void initSong() {
 	// initier minne og registre
 	parseHeader();
 	initCPU();
-	initMem();
-	resetMem();
+    c64_initMem();
+    c64_resetMem();
 }
 
 void c64_sid_init(void) {
@@ -367,14 +368,14 @@ void c64_sid_init(void) {
 	}
 }
 
-void setSubSong(unsigned char song) {
+void c64_setSubSong(unsigned char song) {
 	c64_cia_init();
 	c64_vic_init();
 	c64_sid_init();
 	initSong();
 
-	storeMemRAMShort(0xfffa, 0x43, 0xfe);
-	storeMemRAMShort(0xfffe, 0x48, 0xff);
+    c64_storeMemRAMShort(0xfffa, 0x43, 0xfe);
+    c64_storeMemRAMShort(0xfffe, 0x48, 0xff);
 
 	if (! strcmp(sh.type, "RSID")) {
 		platform_debug("c64_setSubSong(): running KERNAL init\n");
@@ -390,17 +391,17 @@ void setSubSong(unsigned char song) {
 		installSIDDriver();
 
 		if (sh.playAddress) {
-			storeMemRAMShort(0xfffe, 0x0, SIDDriverPage);
+            c64_storeMemRAMShort(0xfffe, 0x0, SIDDriverPage);
 		}
 		
 		// sett opp CIA#1
 		if (sh.speed & (1 << c64_current_song)) {
 			platform_debug("CIA#1 timer enabled from sh.speed\n");
-			ciaWrite(0, 0xd, 0x81);
-			ciaWrite(0, 0xe, 0x1);	// enable CIA#1TimerA
+            c64_cia_write(0, 0xd, 0x81);
+            c64_cia_write(0, 0xe, 0x1);	// enable CIA#1TimerA
 		} else {
 			platform_debug("c64_setSubSong(): VIC Timer\n");
-			vicWrite(0x1a, 0x1);	// enable VIC Interrupts
+            c64_vic_write(0x1a, 0x1);	// enable VIC Interrupts
 		}
 	}
 }

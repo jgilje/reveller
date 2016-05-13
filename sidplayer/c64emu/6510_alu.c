@@ -9,7 +9,7 @@ static void Compare_(unsigned char r, unsigned char d) {
     unsigned char temp;
 
 	if (d)
-		loadMem(effAddr);
+                c64_loadMem(effAddr);
 
     temp = r - data;
 #ifdef DEBUG
@@ -23,134 +23,134 @@ static void Compare_(unsigned char r, unsigned char d) {
 }
 
 static void CMP_imm(void) {	// 0xC9
-    memImm();
+    c64_memImm();
 	Compare_(reg.a, 0);
 }
 
 static void CMP_abs(void) {	// 0xCD
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     Compare_(reg.a, 1);
 }
 
 static void CMP_absx(void) {	// 0xDD
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     Compare_(reg.a, 1);
 }
 
 static void CMP_absy(void) {	// 0xD9
-    memAbsoluteAddrY();
+    c64_memAbsoluteAddrY();
     Compare_(reg.a, 1);
 }
 
 static void CMP_zp(void) {		// 0xC5
-	memZero();
+        c64_memZero();
     Compare_(reg.a, 1);
 }
 
 static void CMP_zpx(void) {	// 0xD5
-	memZeroX();
+        c64_memZeroX();
     Compare_(reg.a, 1);
 }
 
 static void CMP_izx(void) {	// 0xC1
-	memIndirectZeroX();
+        c64_memIndirectZeroX();
 	Compare_(reg.a, 1);
 }
 
 static void CMP_izy(void) {	// 0xD1
-	memIndirectZeroY();
+        c64_memIndirectZeroY();
 	Compare_(reg.a, 1);
 }
 
 static void CPX_imm(void) {	// 0xE0
-	memImm();
+        c64_memImm();
 	Compare_(reg.x, 0);
 }
 
 static void CPX_abs(void) {	// 0xEC
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	Compare_(reg.x, 1);
 }
 
 static void CPX_zp(void) {		// 0xE4
-	memZero();
+        c64_memZero();
 	Compare_(reg.x, 1);
 }
 
 static void CPY_imm(void) {	// 0xC0
-	memImm();
+        c64_memImm();
 	Compare_(reg.y, 0);
 }
 
 static void CPY_abs(void) {	// 0xCC
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     Compare_(reg.y, 1);
 }
 
 static void CPY_zp(void) {		// 0xC4
-    memZero();
+    c64_memZero();
     Compare_(reg.y, 1);
 }
 
 static void DEC_(void) {
     // dekrementer adressa med 1
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     data--;
     evalNZ(data);
 #ifdef DEBUG
     platform_debug("DEC  [%04x] {%02x}", effAddr, data);
 #endif
-    storeMem(data);
+    c64_storeMem(data);
 }
 
 static void DEC_abs(void) {	// 0xCE
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     DEC_();
 }
 
 static void DEC_absx(void) {	// 0xDE
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     DEC_();
 }
 
 static void DEC_zp(void) {		// 0xC6
-    memZero();
+    c64_memZero();
     DEC_();
 }
 
 static void DEC_zpx(void) {	// 0xD6
-    memZeroX();
+    c64_memZeroX();
     DEC_();
 }
 
 static void INC_(void) {
     // inkrementer adressa med 1
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     data++;
     evalNZ(data);
-    storeMem(data);
+    c64_storeMem(data);
 #ifdef DEBUG
     platform_debug("INC");
 #endif
 }
 
 static void INC_abs(void) {	// 0xEE
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	INC_();
 }
 
 static void INC_absx(void) {	// 0xFE
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     INC_();    
 }
 
 static void INC_zp(void) {		// 0xE6
-	memZero();
+        c64_memZero();
 	INC_();
 }
 
 static void INC_zpx(void) {	// 0xF6
-	memZeroX();
+        c64_memZeroX();
 	INC_();
 }
 
@@ -188,34 +188,34 @@ static void DEY_(void) {		// 0x88
 
 static void ASL_(void) {
     // left shift (bit 7 gÂr til C)
-	loadMem(effAddr);
+        c64_loadMem(effAddr);
     reg.p &= 0xfe;
     if (data & 0x80) reg.p |= 0x1;
     data <<= 1;
     evalNZ(data);
-	storeMem(data);
+        c64_storeMem(data);
 #ifdef DEBUG
     platform_debug("        ASL");
 #endif
 }
 
 static void ASL_abs(void) {	// 0x0E
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	ASL_();
 }
 
 static void ASL_absx(void) {	// 0x1E
-	memAbsoluteAddrX();
+        c64_memAbsoluteAddrX();
 	ASL_();
 }
 
 static void ASL_zp(void) {		// 0x06
-	memZero();
+        c64_memZero();
 	ASL_();
 }
 
 static void ASL_zpx(void) {	// 0x16
-	memZeroX();
+        c64_memZeroX();
 	ASL_();
 }
 
@@ -230,7 +230,7 @@ static void ASL_imp(void) {	// 0x0A
 }
 
 static void LSR_(void) {
-	loadMem(effAddr);
+        c64_loadMem(effAddr);
     reg.p &= 0xfe;
     if (data & 0x1) reg.p |= 0x1;
     data >>= 1;
@@ -238,26 +238,26 @@ static void LSR_(void) {
 #ifdef DEBUG
     platform_debug("        LSR");
 #endif
-    storeMem(data);
+    c64_storeMem(data);
 }
 
 static void LSR_abs(void) {	// 0x4E
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	LSR_();
 }
 
 static void LSR_absx(void) {	// 0x5E
-	memAbsoluteAddrX();
+        c64_memAbsoluteAddrX();
 	LSR_();
 }
 
 static void LSR_zp(void) {		// 0x46
-	memZero();
+        c64_memZero();
 	LSR_();
 }
 
 static void LSR_zpx(void) {	// 0x56
-	memZeroX();
+        c64_memZeroX();
 	LSR_();
 }
 
@@ -275,7 +275,7 @@ static void LSR_imp(void) {	// 0x4A
 // ROTATE
 static void ROL_(void) {
     // left rotate
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     unsigned char temp = reg.p & 0x1;
 
     reg.p &= 0xfe;
@@ -284,7 +284,7 @@ static void ROL_(void) {
     data <<= 1;
     if (temp) data |= 0x1;
     evalNZ(data);
-    storeMem(data);
+    c64_storeMem(data);
 #ifdef DEBUG
     platform_debug("        ROL");
 #endif
@@ -306,28 +306,28 @@ static void ROL_imp(void) {		// 0x2A
 }
 
 static void ROL_abs(void) {	// 0x2E
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	ROL_();
 }
 
 static void ROL_absx(void) {	// 0x3E
-	memAbsoluteAddrX();
+        c64_memAbsoluteAddrX();
 	ROL_();
 }
 
 static void ROL_zp(void) {		// 0x26
-    memZero();
+    c64_memZero();
     ROL_();    
 }
 
 static void ROL_zpx(void) {	// 0x36
-	memZeroX();
+        c64_memZeroX();
 	ROL_();
 }
 
 static void ROR_(void) {
     // right rotate
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     unsigned char temp = reg.p & 0x1;
 
     reg.p &= 0xfe;
@@ -336,7 +336,7 @@ static void ROR_(void) {
     data >>= 1;
     if (temp) data |= 0x80;
     evalNZ(data);
-	storeMem(data);
+        c64_storeMem(data);
 #ifdef DEBUG
     platform_debug("ROR");
 #endif
@@ -357,28 +357,28 @@ static void ROR_imp(void) {	// 0x6A
 }
 
 static void ROR_abs(void) {	// 0x6E
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	ROR_();
 }
 
 static void ROR_absx(void) {	// 0x7E
-	memAbsoluteAddrX();
+        c64_memAbsoluteAddrX();
 	ROR_();
 }
 
 static void ROR_zp(void) {		// 0x66
-    memZero();
+    c64_memZero();
     ROR_();    
 }
 
 static void ROR_zpx(void) {	// 0x76
-    memZeroX();
+    c64_memZeroX();
     ROR_();    
 }
 
 // AND
 static void AND_(void) {
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
 #ifdef DEBUG
     platform_debug("AND");
 #endif
@@ -387,7 +387,7 @@ static void AND_(void) {
 }
 
 static void AND_imm(void) {	// 0x29
-    memImm();
+    c64_memImm();
 #ifdef DEBUG
     platform_debug("AND_imm");
 #endif
@@ -396,43 +396,43 @@ static void AND_imm(void) {	// 0x29
 }
 
 static void AND_abs(void) {	// 0x2D
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	AND_();
 }
 
 static void AND_absx(void) {	// 0x3D
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     AND_();
 }
 
 static void AND_absy(void) {	// 0x39
-	memAbsoluteAddrY();
+        c64_memAbsoluteAddrY();
 	AND_();
 }
 
 static void AND_zp(void) {		// 0x25
-	memZero();
+        c64_memZero();
 	AND_();
 }
 
 static void AND_zpx(void) {	// 0x35
-	memZeroX();
+        c64_memZeroX();
 	AND_();
 }
 
 static void AND_izx(void) {	// 0x21
-	memIndirectZeroX();
+        c64_memIndirectZeroX();
 	AND_();
 }
 
 static void AND_izy(void) {	// 0x31
-	memIndirectZeroY();
+        c64_memIndirectZeroY();
 	AND_();
 }
 
 // OR(acc)
 static void ORA_(void) {
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
 #ifdef DEBUG
     platform_debug("ORA");
 #endif
@@ -441,7 +441,7 @@ static void ORA_(void) {
 }
 
 static void ORA_imm(void) {	// 0x09
-	memImm();
+        c64_memImm();
 #ifdef DEBUG
     platform_debug("ORA_imm");
 #endif
@@ -450,43 +450,43 @@ static void ORA_imm(void) {	// 0x09
 }
 
 static void ORA_abs(void) {	// 0x0D
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	ORA_();
 }
 
 static void ORA_absx(void) {	// 0x1D
-	memAbsoluteAddrX();
+        c64_memAbsoluteAddrX();
 	ORA_();
 }
 
 static void ORA_absy(void) {	// 0x19
-	memAbsoluteAddrY();
+        c64_memAbsoluteAddrY();
 	ORA_();
 }
 
 static void ORA_zp(void) {		// 0x05
-	memZero();
+        c64_memZero();
 	ORA_();
 }
 
 static void ORA_zpx(void) {	// 0x15
-	memZero();
+        c64_memZero();
 	ORA_();
 }
 
 static void ORA_izx(void) {	// 0x01
-	memIndirectZeroX();
+        c64_memIndirectZeroX();
 	ORA_();
 }
 
 static void ORA_izy(void) {	// 0x11
-	memIndirectZeroY();
+        c64_memIndirectZeroY();
 	ORA_();
 }
 
 // EOR(acc)
 static void EOR_(void) {
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
 #ifdef DEBUG
     platform_debug("EOR");
 #endif
@@ -495,7 +495,7 @@ static void EOR_(void) {
 }
 
 static void EOR_imm(void) {	// 0x49
-	memImm();
+        c64_memImm();
 #ifdef DEBUG
     platform_debug("EOR_imm");
 #endif
@@ -504,37 +504,37 @@ static void EOR_imm(void) {	// 0x49
 }
 
 static void EOR_abs(void) {	// 0x4D
-	memAbsoluteAddr();
+        c64_memAbsoluteAddr();
 	EOR_();
 }
 
 static void EOR_absx(void) {	// 0x5D
-	memAbsoluteAddrX();
+        c64_memAbsoluteAddrX();
 	EOR_();
 }
 
 static void EOR_absy(void) {	// 0x59
-	memAbsoluteAddrY();
+        c64_memAbsoluteAddrY();
 	EOR_();
 }
 
 static void EOR_zp(void) {		// 0x45
-	memZero();
+        c64_memZero();
 	EOR_();
 }
 
 static void EOR_zpx(void) {	// 0x55
-	memZeroX();
+        c64_memZeroX();
 	EOR_();
 }
 
 static void EOR_izx(void) {	// 0x41
-	memIndirectZeroX();
+        c64_memIndirectZeroX();
 	EOR_();
 }
 
 static void EOR_izy(void) {	// 0x51
-	memIndirectZeroY();
+        c64_memIndirectZeroY();
 	EOR_();
 }
 
@@ -542,7 +542,7 @@ static void EOR_izy(void) {	// 0x51
 // ADC, ADD with Carry
 static void ADC_(unsigned char d) {
 	if (d)
-		loadMem(effAddr);
+                c64_loadMem(effAddr);
 		
     unsigned char carry = reg.p & 0x1;
     
@@ -573,42 +573,42 @@ static void ADC_(unsigned char d) {
 }
 
 static void ADC_imm(void) {	// 0x69
-    memImm();
+    c64_memImm();
     ADC_(0);
 }
 
 static void ADC_abs(void) {	// 0x6D
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     ADC_(1);
 }
 
 static void ADC_absx(void) {	// 0x7D
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     ADC_(1);
 }
 
 static void ADC_absy(void) {	// 0x79
-    memAbsoluteAddrY();
+    c64_memAbsoluteAddrY();
     ADC_(1);
 }
 
 static void ADC_zp(void) {		// 0x65
-    memZero();
+    c64_memZero();
     ADC_(1);
 }
 
 static void ADC_zpx(void) {	// 0x75
-	memZeroX();
+        c64_memZeroX();
 	ADC_(1);
 }
 
 static void ADC_izx(void) {	// 0x61
-	memIndirectZeroX();
+        c64_memIndirectZeroX();
 	ADC_(1);
 }
 
 static void ADC_izy(void) {	// 0x71
-	memIndirectZeroY();
+        c64_memIndirectZeroY();
 	ADC_(1);
 }
 
@@ -616,7 +616,7 @@ static void ADC_izy(void) {	// 0x71
 // SBC, Subtract with Carry
 static void SBC_(unsigned char d) {
 	if (d)
-		loadMem(effAddr);
+                c64_loadMem(effAddr);
 
     unsigned char carry = !(reg.p & 0x1);
     unsigned int temp = reg.a - data - carry;
@@ -644,42 +644,42 @@ static void SBC_(unsigned char d) {
 }
 
 static void SBC_imm(void) {	// 0xE9
-    memImm();
+    c64_memImm();
     SBC_(0);
 }
 
 static void SBC_abs(void) {	// 0xED
-    memAbsoluteAddr();
+    c64_memAbsoluteAddr();
     SBC_(1);
 }
 
 static void SBC_absx(void) {	// 0xFD
-    memAbsoluteAddrX();
+    c64_memAbsoluteAddrX();
     SBC_(1);
 }
 
 static void SBC_absy(void) {	// 0xF9
-    memAbsoluteAddrY();
+    c64_memAbsoluteAddrY();
     SBC_(1);
 }
 
 static void SBC_zp(void) {		// 0xE5
-    memZero();
+    c64_memZero();
     SBC_(1);
 }
 
 static void SBC_zpx(void) {	// 0xF5
-    memZeroX();
+    c64_memZeroX();
     SBC_(1);
 }
 
 static void SBC_izx(void) {	// 0xE1
-    memIndirectZeroX();
+    c64_memIndirectZeroX();
     SBC_(1);
 }
 
 static void SBC_izy(void) {	// 0xF1
-    memIndirectZeroY();
+    c64_memIndirectZeroY();
     SBC_(1);
 }
 

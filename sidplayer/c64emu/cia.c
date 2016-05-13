@@ -4,6 +4,9 @@
 #include "cia.h"
 #include "platform-support.h"
 
+static ciaReg ciaRegister[2];
+static ciaTimer ciaTimers[2];
+
 int32_t c64_cia_next_timer(void) {
 	int32_t next = INT32_MAX;
 	// uint32_t next_chip, next_timer;
@@ -132,7 +135,7 @@ void c64_cia_write_cr(unsigned char chip, unsigned char data, unsigned char time
 	}
 }
 
-void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
+void c64_cia_write(unsigned char chip, unsigned char addr, unsigned char data) {
 #ifdef DEBUG
 	platform_debug(" (CIA write to chip %d %x) %x\n", chip, addr, data);
 #endif
@@ -223,7 +226,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 	}
 }
 
-unsigned char ciaRead(unsigned char chip, unsigned char addr) {
+unsigned char c64_cia_read(unsigned char chip, unsigned char addr) {
 #ifdef DEBUG
 	platform_debug(" (CIA read from chip %d %x) \n", chip, addr);
 #endif
