@@ -12,7 +12,7 @@ FILE *inputSidFile = NULL;
 void printWelcome() {
 	printf("SID Companiet - 6510 Emulator\n");
 	printf("\tDummy version\n");
-	PrintOpcodeStats();
+    c64_printOpcodeStats();
 }
 
 int main(int argc, char **argv) {

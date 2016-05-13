@@ -6,7 +6,7 @@
 extern FILE* inputSidFile;
 extern FILE* outfile;
 
-void platform_debug(char *msg, ...) {
+void platform_debug(const char *msg, ...) {
     va_list argp;
     
     va_start(argp, msg);

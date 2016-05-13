@@ -7,8 +7,8 @@
 /*
   These functions must be implemented to support a new platform
 */
-void platform_debug(char *msg, ...);
-void platform_abort(char *msg, ...);
+void platform_debug(const char *msg, ...);
+void platform_abort(const char *msg, ...);
 
 void platform_usleep(uint32_t us);
 void platform_shutdown();

@@ -108,7 +108,7 @@ void console_interface(void) {
 				printf("ERROR: File %s not found\n", args);
 			}
 			
-			setSubSong(0);
+            c64_setSubSong(0);
 		} else if (! strcmp(input, "play") || ! strcmp(input, "p")) {
 			int i;
 			if (! inputSidFile) {
@@ -156,12 +156,12 @@ void console_interface(void) {
 				}
 
 				song = i;
-				setSubSong(song);
+                c64_setSubSong(song);
 				printf("Song is now %d\n", song);
 				continuosPlay();
 			}
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
-			dumpMem();
+            c64_dumpMem();
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
             platform_shutdown();
 

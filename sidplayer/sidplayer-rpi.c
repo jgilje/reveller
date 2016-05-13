@@ -131,7 +131,7 @@ void initPWM(void) {
 void printWelcome() {
 	printf("SID Companiet - 6510 Emulator\n");
 	printf("\tLinux Hosted for Raspberry Pi\n");
-	PrintOpcodeStats();
+    c64_printOpcodeStats();
 }
 
 void set_realtime(void) {
