@@ -1,7 +1,7 @@
 // Flag/Branching
 
 // Break
-void BRK_(void) {		// 0x00
+static void BRK_(void) {		// 0x00
 	unsigned char page;
 	unsigned char offset;
 	
@@ -50,14 +50,14 @@ void BRK_(void) {		// 0x00
 }
 
 // NOP (denne hører egentlig ikke hjemme noe sted)
-void NOP_(void) {	// 0xea
+static void NOP_(void) {	// 0xea
 #ifdef DEBUG	
 	platform_debug("        NOP");
 #endif	
 }
 
 // Flag
-void BIT_(void) {	// 0x2C
+static void BIT_(void) {	// 0x2C
     // BIT sets the Z flag as though the value in the address tested were ANDed
     // with the accumulator. The N and V flags are set to match bits 8 and 7
     // respectively in the value stored at the tested address.
@@ -78,17 +78,17 @@ void BIT_(void) {	// 0x2C
 #endif
 }
 
-void BIT_abs(void) {	// 0x2C
+static void BIT_abs(void) {	// 0x2C
 	memAbsoluteAddr();
 	BIT_();
 }
 
-void BIT_zp(void) {		// 0x24
+static void BIT_zp(void) {		// 0x24
 	memZero();
 	BIT_();
 }
 
-void CLC_(void) {		// 0x18
+static void CLC_(void) {		// 0x18
     // Clear Carry
     reg.p &= 0xfe;
 #ifdef DEBUG
@@ -96,7 +96,7 @@ void CLC_(void) {		// 0x18
 #endif
 }
 
-void SEC_(void) {		// 0x38
+static void SEC_(void) {		// 0x38
     // Set Carry
     reg.p |= FLAG_C;
 #ifdef DEBUG
@@ -104,7 +104,7 @@ void SEC_(void) {		// 0x38
 #endif
 }
 
-void CLI_(void) {		// 0x58
+static void CLI_(void) {		// 0x58
     // Clear Interrupt
     reg.p &= 0xfb;
 #ifdef DEBUG
@@ -112,7 +112,7 @@ void CLI_(void) {		// 0x58
 #endif
 }
 
-void SEI_(void) {		// 0x78
+static void SEI_(void) {		// 0x78
     // Set Interrupt
     reg.p |= FLAG_I;
 #ifdef DEBUG
@@ -120,7 +120,7 @@ void SEI_(void) {		// 0x78
 #endif
 }
 
-void CLV_(void) {		// 0xB8
+static void CLV_(void) {		// 0xB8
     // Clear Overflow
     reg.p &= 0xbf;
 #ifdef DEBUG
@@ -128,7 +128,7 @@ void CLV_(void) {		// 0xB8
 #endif
 }
 
-void CLD_(void) {		// 0xD8
+static void CLD_(void) {		// 0xD8
     // Clear Decimal
     reg.p &= 0xf7;
 #ifdef DEBUG
@@ -136,7 +136,7 @@ void CLD_(void) {		// 0xD8
 #endif
 }
 
-void SED_(void) {		// 0xF8
+static void SED_(void) {		// 0xF8
     // Clear Decimal
     reg.p |= FLAG_D;
 #ifdef DEBUG
@@ -145,7 +145,7 @@ void SED_(void) {		// 0xF8
 }
 
 // Branching
-void Branch_(void) {	// Wrapper for flere branch funksjoner
+static void Branch_(void) {	// Wrapper for flere branch funksjoner
     memImm();
     // loadMem(effAddr);
 #ifdef DEBUG
@@ -155,7 +155,7 @@ void Branch_(void) {	// Wrapper for flere branch funksjoner
 	reg.pc--;
 }
 
-void BPL_(void) {		// 0x10
+static void BPL_(void) {		// 0x10
     // Branch on N=0
 #ifdef DEBUG
     platform_debug("        BPL");
@@ -164,7 +164,7 @@ void BPL_(void) {		// 0x10
 	reg.pc++;
 }
 
-void BMI_(void) {		// 0x30
+static void BMI_(void) {		// 0x30
     // Branch on N=1
 #ifdef DEBUG
     platform_debug("        BMI");
@@ -173,7 +173,7 @@ void BMI_(void) {		// 0x30
 	reg.pc++;
 }
 
-void BVC_(void) {		// 0x50
+static void BVC_(void) {		// 0x50
     // Branch on V=0	// FAAAAAAAAN!  Den kosta giljen en halv dag med arbeid
 #ifdef DEBUG
     platform_debug("        BVC");
@@ -182,7 +182,7 @@ void BVC_(void) {		// 0x50
 	reg.pc++;
 }
 
-void BVS_(void) {		// 0x70
+static void BVS_(void) {		// 0x70
     // branch on V=1
 #ifdef DEBUG
     platform_debug("        BVS");
@@ -191,7 +191,7 @@ void BVS_(void) {		// 0x70
 	reg.pc++;
 }
 
-void BCC_(void) {		// 0x90
+static void BCC_(void) {		// 0x90
     // Branch on C=0
 #ifdef DEBUG
     platform_debug("        BCC");
@@ -200,7 +200,7 @@ void BCC_(void) {		// 0x90
 	reg.pc++;
 }
 
-void BCS_(void) {		// 0xB0
+static void BCS_(void) {		// 0xB0
     // Branch on C=1
 #ifdef DEBUG
     platform_debug("        BCS");
@@ -209,7 +209,7 @@ void BCS_(void) {		// 0xB0
 	reg.pc++;
 }
 
-void BNE_(void) {		// 0xD0
+static void BNE_(void) {		// 0xD0
     // Branch on Z=0
 #ifdef DEBUG
     platform_debug("        BNE");
@@ -218,7 +218,7 @@ void BNE_(void) {		// 0xD0
 	reg.pc++;
 }
 
-void BEQ_(void) {		// 0xF0
+static void BEQ_(void) {		// 0xF0
     // Branch on Z=1
 #ifdef DEBUG
     platform_debug("        BEQ");
@@ -227,7 +227,7 @@ void BEQ_(void) {		// 0xF0
 	reg.pc++;
 }
 
-void JMP_abs(void) {	// 0x4c
+static void JMP_abs(void) {	// 0x4c
     memAbsoluteAddr();
 		
 	// check if we entered an endless loop
@@ -245,7 +245,7 @@ void JMP_abs(void) {	// 0x4c
 #endif
 }
 
-void JMP_ind(void) {	// 0x6c
+static void JMP_ind(void) {	// 0x6c
 	unsigned char page;
 	unsigned char offset;
 	unsigned char jmp_page;
@@ -271,7 +271,7 @@ void JMP_ind(void) {	// 0x6c
 
 
 // Subroutines
-void JSR_(void) {		// 0x20
+static void JSR_(void) {		// 0x20
 	// feng tak i neste adresse
 	unsigned short jmpAddr;
 	memAbsoluteAddr();
@@ -294,7 +294,7 @@ void JSR_(void) {		// 0x20
 	reg.pc--;
 }
 
-void RTI_(void) {		// 0x40
+static void RTI_(void) {		// 0x40
     unsigned char page;
 	unsigned char offset;
 	
@@ -336,7 +336,7 @@ void RTI_(void) {		// 0x40
 	return;
 }
 
-void RTS_(void) {		// 0x60
+static void RTS_(void) {		// 0x60
     unsigned char page;
 	unsigned char offset;
 	
