@@ -13,7 +13,7 @@ static void Compare_(unsigned char r, unsigned char d) {
 
     temp = r - data;
 #ifdef DEBUG
-    platform_debug("CMP");
+    reveller->debug("CMP");
 #endif
     evalNZ(temp);
 
@@ -98,7 +98,7 @@ static void DEC_(void) {
     data--;
     evalNZ(data);
 #ifdef DEBUG
-    platform_debug("DEC  [%04x] {%02x}", effAddr, data);
+    reveller->debug("DEC  [%04x] {%02x}", effAddr, data);
 #endif
     c64_storeMem(data);
 }
@@ -130,7 +130,7 @@ static void INC_(void) {
     evalNZ(data);
     c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("INC");
+    reveller->debug("INC");
 #endif
 }
 
@@ -157,7 +157,7 @@ static void INC_zpx(void) {	// 0xF6
 static void INX_(void) {		// 0xE8
     reg.x++;
 #ifdef DEBUG
-    platform_debug("        INX");
+    reveller->debug("        INX");
 #endif
     evalNZ(reg.x);
 }
@@ -165,7 +165,7 @@ static void INX_(void) {		// 0xE8
 static void DEX_(void) {		// 0xCA
     reg.x--;
 #ifdef DEBUG
-    platform_debug("        DEX");
+    reveller->debug("        DEX");
 #endif
     evalNZ(reg.x);
 }
@@ -173,7 +173,7 @@ static void DEX_(void) {		// 0xCA
 static void INY_(void) {		// 0xC8
     reg.y++;
 #ifdef DEBUG
-    platform_debug("        INY");
+    reveller->debug("        INY");
 #endif
     evalNZ(reg.y);
 }
@@ -181,7 +181,7 @@ static void INY_(void) {		// 0xC8
 static void DEY_(void) {		// 0x88
     reg.y--;
 #ifdef DEBUG
-    platform_debug("        DEY");
+    reveller->debug("        DEY");
 #endif
     evalNZ(reg.y);
 }
@@ -195,7 +195,7 @@ static void ASL_(void) {
     evalNZ(data);
         c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("        ASL");
+    reveller->debug("        ASL");
 #endif
 }
 
@@ -225,7 +225,7 @@ static void ASL_imp(void) {	// 0x0A
     reg.a <<= 1;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("ASL");
+    reveller->debug("ASL");
 #endif
 }
 
@@ -236,7 +236,7 @@ static void LSR_(void) {
     data >>= 1;
     evalNZ(data);
 #ifdef DEBUG
-    platform_debug("        LSR");
+    reveller->debug("        LSR");
 #endif
     c64_storeMem(data);
 }
@@ -268,7 +268,7 @@ static void LSR_imp(void) {	// 0x4A
     reg.a >>= 1;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("        LSR");
+    reveller->debug("        LSR");
 #endif
 }
 
@@ -286,7 +286,7 @@ static void ROL_(void) {
     evalNZ(data);
     c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("        ROL");
+    reveller->debug("        ROL");
 #endif
 }
 
@@ -301,7 +301,7 @@ static void ROL_imp(void) {		// 0x2A
     if (temp) reg.a |= 0x1;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("        ROL");
+    reveller->debug("        ROL");
 #endif
 }
 
@@ -338,7 +338,7 @@ static void ROR_(void) {
     evalNZ(data);
         c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("ROR");
+    reveller->debug("ROR");
 #endif
 }
 
@@ -352,7 +352,7 @@ static void ROR_imp(void) {	// 0x6A
     if (temp) reg.a |= 0x80;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("        ROR");
+    reveller->debug("        ROR");
 #endif
 }
 
@@ -380,7 +380,7 @@ static void ROR_zpx(void) {	// 0x76
 static void AND_(void) {
     c64_loadMem(effAddr);
 #ifdef DEBUG
-    platform_debug("AND");
+    reveller->debug("AND");
 #endif
     reg.a &= data;
     evalNZ(reg.a);
@@ -389,7 +389,7 @@ static void AND_(void) {
 static void AND_imm(void) {	// 0x29
     c64_memImm();
 #ifdef DEBUG
-    platform_debug("AND_imm");
+    reveller->debug("AND_imm");
 #endif
     reg.a &= data;
     evalNZ(reg.a);
@@ -434,7 +434,7 @@ static void AND_izy(void) {	// 0x31
 static void ORA_(void) {
     c64_loadMem(effAddr);
 #ifdef DEBUG
-    platform_debug("ORA");
+    reveller->debug("ORA");
 #endif
     reg.a |= data;
     evalNZ(reg.a);
@@ -443,7 +443,7 @@ static void ORA_(void) {
 static void ORA_imm(void) {	// 0x09
         c64_memImm();
 #ifdef DEBUG
-    platform_debug("ORA_imm");
+    reveller->debug("ORA_imm");
 #endif
     reg.a |= data;
     evalNZ(reg.a);
@@ -488,7 +488,7 @@ static void ORA_izy(void) {	// 0x11
 static void EOR_(void) {
     c64_loadMem(effAddr);
 #ifdef DEBUG
-    platform_debug("EOR");
+    reveller->debug("EOR");
 #endif
     reg.a ^= data;
     evalNZ(reg.a);
@@ -497,7 +497,7 @@ static void EOR_(void) {
 static void EOR_imm(void) {	// 0x49
         c64_memImm();
 #ifdef DEBUG
-    platform_debug("EOR_imm");
+    reveller->debug("EOR_imm");
 #endif
     reg.a ^= data;
     evalNZ(reg.a);
@@ -548,7 +548,7 @@ static void ADC_(unsigned char d) {
     
     if (reg.p & FLAG_D) {
 	// BCD calc.
-	platform_abort("ADC: BCD calculation is not yet implemented\n");
+        reveller->abort("ADC: BCD calculation is not yet implemented\n");
     } else {
 	// Binary
 	unsigned int temp = reg.a + data + carry;
@@ -565,7 +565,7 @@ static void ADC_(unsigned char d) {
 		reg.p |= FLAG_V;
 	}
 #ifdef DEBUG
-	platform_debug("ADC");
+        reveller->debug("ADC");
 #endif
 	reg.a = (temp & 0xff);
 	evalNZ(reg.a);
@@ -632,11 +632,11 @@ static void SBC_(unsigned char d) {
     
     if (reg.p & FLAG_D) {
 	// BCD calc
-	platform_abort("SBC: BCD calculation is not yet implemented\n");
+        reveller->abort("SBC: BCD calculation is not yet implemented\n");
     } else {
 	// Binary
 #ifdef DEBUG
-	platform_debug("SBC");
+        reveller->debug("SBC");
 #endif
 	reg.a = (temp & 0xff);
     }

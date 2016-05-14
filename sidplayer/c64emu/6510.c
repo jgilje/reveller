@@ -1,6 +1,5 @@
 #include "6510.h"
 #include <stdint.h>
-#include "platform-support.h"
 
 unsigned char instruction[3];	// vi leser maksimalt inn 3 byte
 FILE* file;
@@ -42,14 +41,14 @@ void c64_printOpcodeStats(void) {
         else implemented++;
     }
 
-    platform_debug("Implemented OpCodes: %d of 256 (unimplemented %d)\n", implemented, unimplemented);
+    reveller->debug("Implemented OpCodes: %d of 256 (unimplemented %d)\n", implemented, unimplemented);
 }
 
 static void Un_imp(void) {
     c64_printOpcodeStats();
     c64_dumpMem();
 
-    platform_abort("\nCall to unimplemented function %x at %d\n", data, reg.pc);
+    reveller->abort("\nCall to unimplemented function %x at %d\n", data, reg.pc);
 }
 
 static void (*opcodes[])(void) = 	// alle opcodes for prosessoren
@@ -116,16 +115,16 @@ uint32_t interpretMain(void) {
 	while (work) {
         c64_fetchOP();
 #ifdef DEBUG
-		platform_debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
-		platform_debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
-		platform_debug("%x %x ", *(pages[0]), *(pages[0] + 1));
+        reveller->debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
+        reveller->debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
+        reveller->debug("%x %x ", *(pages[0]), *(pages[0] + 1));
 		
 		int i;
 		for (i = 7; i >= 0; i--) {
-			if (reg.p & (1 << i)) platform_debug("1"); else platform_debug("0");
+            if (reg.p & (1 << i)) reveller->debug("1"); else reveller->debug("0");
 		}
 		
-		platform_debug(" %02x", data);
+        reveller->debug(" %02x", data);
 #endif
 
 		opcodes[data]();
@@ -133,7 +132,7 @@ uint32_t interpretMain(void) {
 		cycles += 3;
 
 #ifdef DEBUG
-		platform_debug("\n\n");
+        reveller->debug("\n\n");
 #endif
 	}
 	return cycles;
@@ -145,7 +144,7 @@ void interpretInit(unsigned char song) {
 	*(pages[0x0] + 0x1) = getIOPort(sh.initAddress);
 	c64_current_song = (song == 0) ? (sh.startSong - 1) : (song - 1);
 	reg.a = c64_current_song;
-	platform_debug("c64_setSubSong(): running initAddress\n");
+    reveller->debug("c64_setSubSong(): running initAddress\n");
 	reg.p |= FLAG_I;
 
 	setPC(sh.initAddress);
@@ -162,14 +161,14 @@ void interpretInit(unsigned char song) {
 		cycles += 3;
 
 		if (c64_cia_nmi()) {
-			// platform_debug("interpretMain(): NMI\n");
+            // reveller->debug("interpretMain(): NMI\n");
 			cycles += c64_trigger_nmi();
 			reg.pc -= 2;
 			work = 1;
 		}
 
 		if ((c64_cia_irq() || c64_vic_irq()) && !(reg.p & FLAG_I)) {
-			// platform_debug("interpretMain(): IRQ\n");
+            // reveller->debug("interpretMain(): IRQ\n");
 			cycles += c64_trigger_irq();
 			reg.pc -= 2;
 			work = 1;
@@ -201,7 +200,7 @@ void triggerInterrupt(void) {
     c64_storeMem(reg.p);
 	reg.s--;
 	if (reg.s > stack_start) {
-		platform_abort("Stack Overflow");
+        reveller->abort("Stack Overflow");
 	}
 	
 	work = 1;
@@ -213,9 +212,9 @@ uint32_t c64_trigger_irq(void) {
 	reg.p |= FLAG_I;
 	setPC(addr);
 #ifdef DEBUG
-	platform_debug("\n****************************************************\n");
-	platform_debug("IRQ Vector@%04x\n", addr);
-	platform_debug("****************************************************\n");
+    reveller->debug("\n****************************************************\n");
+    reveller->debug("IRQ Vector@%04x\n", addr);
+    reveller->debug("****************************************************\n");
 #endif
 
 	return interpretMain();
@@ -227,9 +226,9 @@ uint32_t c64_trigger_nmi() {
 	setPC(addr);
 
 #ifdef DEBUG
-	platform_debug("\n****************************************************\n");
-	platform_debug("NMI Vector@%04x\n", addr);
-	platform_debug("****************************************************\n");
+    reveller->debug("\n****************************************************\n");
+    reveller->debug("NMI Vector@%04x\n", addr);
+    reveller->debug("****************************************************\n");
 #endif
 
 	return interpretMain();
@@ -254,7 +253,7 @@ int32_t c64_next_trigger(void) {
 		return vic_next;
 	}
 	
-	platform_debug("c64_next_trigger(): no IRQ?\n");
+    reveller->debug("c64_next_trigger(): no IRQ?\n");
 	return 20000;
 }
 
@@ -317,13 +316,13 @@ void installSIDDriver(void) {
 	}
 	
 	if (freePage == 0) {
-		platform_abort("Failed to retrieve a free page for SID Driver\n");
+        reveller->abort("Failed to retrieve a free page for SID Driver\n");
 	}
 	IOPort = getIOPort(sh.playAddress);
-	platform_debug("installSIDDriver(): installing at freePage: %x, IOPort: %x\n", freePage, IOPort);
+    reveller->debug("installSIDDriver(): installing at freePage: %x, IOPort: %x\n", freePage, IOPort);
 
 #ifdef DEBUG
-	platform_debug("Installing SID Driver in free page %x\n", freePage);
+    reveller->debug("Installing SID Driver in free page %x\n", freePage);
 #endif
 	address = freePage << 8;
 	
@@ -364,7 +363,7 @@ static void initSong() {
 void c64_sid_init(void) {
 	int i;
 	for (i = 0; i <= 28; i++) {
-		c64_sid_write(i, 0);
+        reveller->sid_write(i, 0);
 	}
 }
 
@@ -378,7 +377,7 @@ void c64_setSubSong(unsigned char song) {
     c64_storeMemRAMShort(0xfffe, 0x48, 0xff);
 
 	if (! strcmp(sh.type, "RSID")) {
-		platform_debug("c64_setSubSong(): running KERNAL init\n");
+        reveller->debug("c64_setSubSong(): running KERNAL init\n");
 		interpret(1, 0xff84);
 	}
 	// TODO remove if not needed
@@ -396,13 +395,16 @@ void c64_setSubSong(unsigned char song) {
 		
 		// sett opp CIA#1
 		if (sh.speed & (1 << c64_current_song)) {
-			platform_debug("CIA#1 timer enabled from sh.speed\n");
+            reveller->debug("CIA#1 timer enabled from sh.speed\n");
             c64_cia_write(0, 0xd, 0x81);
             c64_cia_write(0, 0xe, 0x1);	// enable CIA#1TimerA
 		} else {
-			platform_debug("c64_setSubSong(): VIC Timer\n");
+            reveller->debug("c64_setSubSong(): VIC Timer\n");
             c64_vic_write(0x1a, 0x1);	// enable VIC Interrupts
 		}
 	}
 }
 
+void c64_set_platform(struct reveller_platform *platform) {
+    reveller = platform;
+}

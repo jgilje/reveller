@@ -28,7 +28,7 @@ void continuosPlay(void) {
 	tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
 	originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
 	if (fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK) < 0) {
-		platform_abort("Failed to set stdin nonblocking\n");
+        reveller->abort("Failed to set stdin nonblocking\n");
 	}
 	
 	printf("Playing... (any key to stop)...");
@@ -37,11 +37,11 @@ void continuosPlay(void) {
 	while (getc(stdin) < 0) {
 		int32_t next = c64_play();
 		next = next * ((float) sh.hz / 1000000.0f);
-		platform_usleep(next);
+        reveller->usleep(next);
 	}
 	
 	if (fcntl(STDIN_FILENO, F_SETFL, originalFcntl) < 0) {
-		platform_abort("Failed to restore stdin\n");
+        reveller->abort("Failed to restore stdin\n");
 	}
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
 	printf("\n");
@@ -138,7 +138,7 @@ void console_interface(void) {
 				int j;
 				for (j = 0; j < i; j++) {
 					c64_play();
-					platform_usleep(1000000 / 55);
+                    reveller->usleep(1000000 / 55);
 				}
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
@@ -163,7 +163,7 @@ void console_interface(void) {
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
             c64_dumpMem();
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
-            platform_shutdown();
+            reveller->shutdown();
 
 			fflush(NULL);
 			printf("Bye\n");

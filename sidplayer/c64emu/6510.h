@@ -68,6 +68,8 @@
 #include "cia.h"
 #include "vic.h"
 
+#include "platform-support.h"
+
 typedef struct Register {
     // hovedregister for aritmetiske operasjoner.  er forbundet direkte til
     // ALU.  derfor er mange opcodes kun tilgjengelige for accumulator
@@ -145,6 +147,8 @@ void c64_printOpcodeStats(void);
 int32_t c64_play(void);
 void interpret(int i, unsigned short addr);
 unsigned char getIOPort(unsigned short address);
+
+void c64_set_platform(struct reveller_platform *platform);
 
 // Definer reg.p sine flag, (giljen bare roter når han skal trikse med dem)
 #define FLAG_N 0x80

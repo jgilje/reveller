@@ -15,15 +15,11 @@
     GPIO27 ReadCLK (v2)
 */
 
-#define REG (volatile uint32_t *)
-
-#define MAP_SIZE 4096UL
-#define MAP_MASK (MAP_SIZE - 1)
-
 #define BCM2835_BASE 		0x20000000
-#define GPIO_BASE		(BCM2835_BASE + 0x200000)
-#define PWM_BASE		(BCM2835_BASE + 0x20C000)
-#define CLOCK_BASE		(BCM2835_BASE + 0x101000)
+#define BCM2836_BASE 		0x3F000000
+#define GPIO_OFFSET		0x200000
+#define PWM_OFFSET		0x20C000
+#define CLOCK_OFFSET		0x101000
 
 #define GPIO_OUTPUT 0x1
 

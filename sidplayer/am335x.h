@@ -15,15 +15,6 @@
     GPIO27 ReadCLK (v2)
 */
 
-#define REG (volatile uint32_t *)
-
-#define MAP_SIZE 4096UL
-#define MAP_MASK (MAP_SIZE - 1)
-
-#define GPIO_BASE		(BCM2835_BASE + 0x200000)
-#define PWM_BASE		(BCM2835_BASE + 0x20C000)
-#define CLOCK_BASE		(BCM2835_BASE + 0x101000)
-
 // Section 9.3.1
 
 // 128kB (8kB?)
@@ -61,6 +52,14 @@
 #define CLKCTRL_MODE_DISABLE		0
 #define CLKCTRL_STATUS_DISABLED		0x00030000
 
+#define PWM_TBCTL (0x0 / 2)
+#define PWM_TBSTS (0x2 / 2)
+#define PWM_TBCNT (0x8 / 2)
+#define PWM_TBPRD (0xA / 2)
+#define PWM_CMPCTL (0xE / 2)
+#define PWM_CMPA  (0x12 / 2)
+#define PWM_AQCTLA (0x16 / 2)
+
 typedef struct am335x_registers {
     volatile uint32_t* control_module;
     
@@ -79,6 +78,7 @@ typedef struct am335x_registers {
     volatile uint32_t* gpio_2_set;
     volatile uint32_t* gpio_2_oe;
 
+    volatile uint32_t* pwm;
     volatile uint16_t* pwm_tbcnt;
 } am335x_registers_t;
 am335x_registers_t am335x_registers;

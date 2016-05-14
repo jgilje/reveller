@@ -7,8 +7,8 @@ static void BRK_(void) {		// 0x00
 	
 	if (reg.s == 0x00) {
 #ifdef DEBUG
-//		platform_debug("Stack Overflow!\n");
-//		platform_debug("Emulation Stopped\n");
+//		reveller->debug("Stack Overflow!\n");
+//		reveller->debug("Emulation Stopped\n");
 #endif
 		work = 0;
 		return;
@@ -37,14 +37,14 @@ static void BRK_(void) {		// 0x00
 	page = data;
 	
 #ifdef DEBUG	
-	platform_debug("        BRK");
+        reveller->debug("        BRK");
 #endif	
 
 	reg.pc = ((page << 8) | offset);
 	reg.pc--;
 
-	platform_debug("BRK: Denne bør sjekkes litt\n");
-	platform_debug("BRK: Jump to: %x", reg.pc);
+        reveller->debug("BRK: Denne bør sjekkes litt\n");
+        reveller->debug("BRK: Jump to: %x", reg.pc);
 	//sleep(3);
 	//exit(0);	
 }
@@ -52,7 +52,7 @@ static void BRK_(void) {		// 0x00
 // NOP (denne hører egentlig ikke hjemme noe sted)
 static void NOP_(void) {	// 0xea
 #ifdef DEBUG	
-	platform_debug("        NOP");
+        reveller->debug("        NOP");
 #endif	
 }
 
@@ -74,7 +74,7 @@ static void BIT_(void) {	// 0x2C
     reg.p |= (((data & reg.a) == 0x00) << 1);
 
 #ifdef DEBUG
-    platform_debug("BIT");
+    reveller->debug("BIT");
 #endif
 }
 
@@ -92,7 +92,7 @@ static void CLC_(void) {		// 0x18
     // Clear Carry
     reg.p &= 0xfe;
 #ifdef DEBUG
-    platform_debug("        CLC");
+    reveller->debug("        CLC");
 #endif
 }
 
@@ -100,7 +100,7 @@ static void SEC_(void) {		// 0x38
     // Set Carry
     reg.p |= FLAG_C;
 #ifdef DEBUG
-    platform_debug("        SEC");
+    reveller->debug("        SEC");
 #endif
 }
 
@@ -108,7 +108,7 @@ static void CLI_(void) {		// 0x58
     // Clear Interrupt
     reg.p &= 0xfb;
 #ifdef DEBUG
-    platform_debug("        CLI");
+    reveller->debug("        CLI");
 #endif
 }
 
@@ -116,7 +116,7 @@ static void SEI_(void) {		// 0x78
     // Set Interrupt
     reg.p |= FLAG_I;
 #ifdef DEBUG
-    platform_debug("        SEI");
+    reveller->debug("        SEI");
 #endif
 }
 
@@ -124,7 +124,7 @@ static void CLV_(void) {		// 0xB8
     // Clear Overflow
     reg.p &= 0xbf;
 #ifdef DEBUG
-    platform_debug("        CLV");
+    reveller->debug("        CLV");
 #endif
 }
 
@@ -132,7 +132,7 @@ static void CLD_(void) {		// 0xD8
     // Clear Decimal
     reg.p &= 0xf7;
 #ifdef DEBUG
-    platform_debug("        CLD");
+    reveller->debug("        CLD");
 #endif
 }
 
@@ -140,7 +140,7 @@ static void SED_(void) {		// 0xF8
     // Clear Decimal
     reg.p |= FLAG_D;
 #ifdef DEBUG
-    platform_debug("        SED");
+    reveller->debug("        SED");
 #endif
 }
 
@@ -149,7 +149,7 @@ static void Branch_(void) {	// Wrapper for flere branch funksjoner
     c64_memImm();
     // loadMem(effAddr);
 #ifdef DEBUG
-//    platform_debug("\tBranch: %02x (%d, sbyte: %02x (%d))\n", data, data, (signed char)data, (signed char)data);
+//    reveller->debug("\tBranch: %02x (%d, sbyte: %02x (%d))\n", data, data, (signed char)data, (signed char)data);
 #endif
 	reg.pc += (signed char) data;
 	reg.pc--;
@@ -158,7 +158,7 @@ static void Branch_(void) {	// Wrapper for flere branch funksjoner
 static void BPL_(void) {		// 0x10
     // Branch on N=0
 #ifdef DEBUG
-    platform_debug("        BPL");
+    reveller->debug("        BPL");
 #endif
     if (! (reg.p & FLAG_N)) Branch_();
 	reg.pc++;
@@ -167,7 +167,7 @@ static void BPL_(void) {		// 0x10
 static void BMI_(void) {		// 0x30
     // Branch on N=1
 #ifdef DEBUG
-    platform_debug("        BMI");
+    reveller->debug("        BMI");
 #endif
     if (reg.p & FLAG_N) Branch_();
 	reg.pc++;
@@ -176,7 +176,7 @@ static void BMI_(void) {		// 0x30
 static void BVC_(void) {		// 0x50
     // Branch on V=0	// FAAAAAAAAN!  Den kosta giljen en halv dag med arbeid
 #ifdef DEBUG
-    platform_debug("        BVC");
+    reveller->debug("        BVC");
 #endif
     if (! (reg.p & FLAG_V)) Branch_();
 	reg.pc++;
@@ -185,7 +185,7 @@ static void BVC_(void) {		// 0x50
 static void BVS_(void) {		// 0x70
     // branch on V=1
 #ifdef DEBUG
-    platform_debug("        BVS");
+    reveller->debug("        BVS");
 #endif
     if (reg.p & FLAG_V) Branch_();
 	reg.pc++;
@@ -194,7 +194,7 @@ static void BVS_(void) {		// 0x70
 static void BCC_(void) {		// 0x90
     // Branch on C=0
 #ifdef DEBUG
-    platform_debug("        BCC");
+    reveller->debug("        BCC");
 #endif
     if (! (reg.p & FLAG_C)) Branch_();
 	reg.pc++;
@@ -203,7 +203,7 @@ static void BCC_(void) {		// 0x90
 static void BCS_(void) {		// 0xB0
     // Branch on C=1
 #ifdef DEBUG
-    platform_debug("        BCS");
+    reveller->debug("        BCS");
 #endif
     if (reg.p & FLAG_C) Branch_();
 	reg.pc++;
@@ -212,7 +212,7 @@ static void BCS_(void) {		// 0xB0
 static void BNE_(void) {		// 0xD0
     // Branch on Z=0
 #ifdef DEBUG
-    platform_debug("        BNE");
+    reveller->debug("        BNE");
 #endif
     if (! (reg.p & FLAG_Z)) Branch_();
 	reg.pc++;
@@ -221,7 +221,7 @@ static void BNE_(void) {		// 0xD0
 static void BEQ_(void) {		// 0xF0
     // Branch on Z=1
 #ifdef DEBUG
-    platform_debug("        BEQ");
+    reveller->debug("        BEQ");
 #endif
     if (reg.p & FLAG_Z) Branch_();
 	reg.pc++;
@@ -233,7 +233,7 @@ static void JMP_abs(void) {	// 0x4c
 	// check if we entered an endless loop
 	if (effAddr == (reg.pc - 2)) {
 		work = 0;
-		// platform_debug("Infinite Loop\nEmulation Stopped\n");
+                // reveller->debug("Infinite Loop\nEmulation Stopped\n");
 		return;
 	}
 
@@ -241,7 +241,7 @@ static void JMP_abs(void) {	// 0x4c
 	reg.pc--;
 
 #ifdef DEBUG
-    platform_debug("JMP");
+    reveller->debug("JMP");
 #endif
 }
 
@@ -265,7 +265,7 @@ static void JMP_ind(void) {	// 0x6c
 	reg.pc--;
 
 #ifdef DEBUG
-    platform_debug("JMP");
+    reveller->debug("JMP");
 #endif
 }
 
@@ -287,7 +287,7 @@ static void JSR_(void) {		// 0x20
 	reg.s--;
 
 #ifdef DEBUG	
-	platform_debug("JSR");
+        reveller->debug("JSR");
 #endif	
 
 	reg.pc = jmpAddr;
@@ -300,8 +300,8 @@ static void RTI_(void) {		// 0x40
 	
 	if (reg.s == 0xff) {
 #ifdef DEBUG
-//		platform_debug("Stack Overflow!\n");
-//		platform_debug("Emulation Stopped\n");
+//		reveller->debug("Stack Overflow!\n");
+//		reveller->debug("Emulation Stopped\n");
 #endif
 		work = 0;
 		return;
@@ -325,7 +325,7 @@ static void RTI_(void) {		// 0x40
     reg.pc++;
 	
 #ifdef DEBUG	
-	platform_debug("        RTI");
+        reveller->debug("        RTI");
 #endif
 
 	// sjekk om vi er ferdige med et IRQ kall
@@ -342,8 +342,8 @@ static void RTS_(void) {		// 0x60
 	
 	if (reg.s == 0xff) {
 #ifdef DEBUG
-//		platform_debug("Stack Overflow!\n");
-//		platform_debug("Emulation Stopped\n");
+//		reveller->debug("Stack Overflow!\n");
+//		reveller->debug("Emulation Stopped\n");
 #endif
 		work = 0;
 		return;
@@ -371,7 +371,7 @@ static void RTS_(void) {		// 0x60
     // reg.pc++;
 	
 #ifdef DEBUG	
-	platform_debug("        RTS");
+        reveller->debug("        RTS");
 #endif
 }
 

@@ -8,8 +8,8 @@
 
 int parseHeader() {
     unsigned char buffer[128];
-    if (c64_read_source(0, 128, buffer) == 0) {
-	platform_abort("Failed to read from input file\n");
+    if (reveller->read(0, 128, buffer) == 0) {
+    reveller->abort("Failed to read from input file\n");
     }
     // sett filpeker til 0
     //fseek(sidFile, 0, SEEK_SET);
@@ -49,25 +49,25 @@ int parseHeader() {
     // if sh.loadAddress is zero, loadAddress given at start of dataOffset
     if (sh.loadAddress == 0x0) {
 	if (sh.dataOffset >= 128) {
-		platform_abort("sh.dataOffset is invalid, %x\n", sh.dataOffset);
+        reveller->abort("sh.dataOffset is invalid, %x\n", sh.dataOffset);
 	}
 	read_littleEndian_ushort(&sh.loadAddress, &buffer[sh.dataOffset]);
 	sh.dataOffset += 2;
-	// platform_debug("\t (LoadAddress is: %x (first two bytes in dataOffset))\n", sh.loadAddress);
+    // reveller->debug("\t (LoadAddress is: %x (first two bytes in dataOffset))\n", sh.loadAddress);
     }
 
     //rprintf("Format: %s\n", sh.type);
     //rprintf("Version: %d\n", (int) sh.version);
     //rprintf("DataOffset: %d\n", (int) sh.dataOffset);
 
-    platform_debug("LoadAddress: %x\n", (int) sh.loadAddress);
-    platform_debug("InitAddress: %x", sh.initAddress);
+    reveller->debug("LoadAddress: %x\n", (int) sh.loadAddress);
+    reveller->debug("InitAddress: %x", sh.initAddress);
 
     if (sh.initAddress == 0x0) {
-	platform_debug(" (Equals LoadAddress)");
+    reveller->debug(" (Equals LoadAddress)");
 	sh.initAddress = sh.loadAddress;
     }
-    platform_debug("\n");
+    reveller->debug("\n");
 
     //rprintf("PlayAddress: %d", sh.playAddress);
 
@@ -82,7 +82,7 @@ int parseHeader() {
     //rprintf("Speed: %d\n", sh.speed);
 
     if (sh.version == 2) {
-		// sørg for at vi ligger i rett posisjon
+		// sÃ¸rg for at vi ligger i rett posisjon
 		/*
 		    fseek(sidFile, 0x76, SEEK_SET);
 
@@ -99,18 +99,18 @@ int parseHeader() {
 		//rprintf("PSIDv2 Flags: %d\n", sh.flags);
 
 		if (sh.flags != 0) {
-			if (sh.flags & (1 << 0)) platform_debug("sidheader: Compute! MUS data\n");
-			   else platform_debug("\tUses internal player (gooooood!)\n");
-			if (sh.flags & (1 << 1) && !strcmp(sh.type, "RSID")) platform_debug("sidheader: RSID C64 Basic Flag\n");
-			   else if (sh.flags & (1 << 1) && !strcmp(sh.type, "PSID")) platform_debug("sidheader: PlaySID Specific\n");
-			   else platform_debug ("sidheader: C64 Compatible\n");
-			if (sh.flags & (1 << 3)) { platform_debug("sidheader: SID is OK in NTSC mode\n"); sh.hz = 1022727; }
-			if (sh.flags & (1 << 2)) { platform_debug("sidheader: SID is OK in PAL mode\n"); sh.hz = 985248; }
-			if (sh.flags & (1 << 4)) platform_debug("sidheader: SID is OK on MOS6581\n");
-			if (sh.flags & (1 << 5)) platform_debug("sidheader: SID is OK on MOS8580\n");
+            if (sh.flags & (1 << 0)) reveller->debug("sidheader: Compute! MUS data\n");
+               else reveller->debug("\tUses internal player (gooooood!)\n");
+            if (sh.flags & (1 << 1) && !strcmp(sh.type, "RSID")) reveller->debug("sidheader: RSID C64 Basic Flag\n");
+               else if (sh.flags & (1 << 1) && !strcmp(sh.type, "PSID")) reveller->debug("sidheader: PlaySID Specific\n");
+               else reveller->debug ("sidheader: C64 Compatible\n");
+            if (sh.flags & (1 << 3)) { reveller->debug("sidheader: SID is OK in NTSC mode\n"); sh.hz = 1022727; }
+            if (sh.flags & (1 << 2)) { reveller->debug("sidheader: SID is OK in PAL mode\n"); sh.hz = 985248; }
+            if (sh.flags & (1 << 4)) reveller->debug("sidheader: SID is OK on MOS6581\n");
+            if (sh.flags & (1 << 5)) reveller->debug("sidheader: SID is OK on MOS8580\n");
 		}
-		platform_debug("startPage: %d\n", sh.startPage);
-		platform_debug("pageLength: %d\n", sh.pageLength);
+        reveller->debug("startPage: %d\n", sh.startPage);
+        reveller->debug("pageLength: %d\n", sh.pageLength);
 
     }
     
