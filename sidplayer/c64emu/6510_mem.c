@@ -124,7 +124,6 @@ void c64_storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned cha
 	*(pages[page] + offset) = datah;
 }
 
-static char sid_data[0x1f];
 void c64_storeMem(unsigned char s_data) {
     unsigned char page = effAddr >> 8;
     unsigned char offset = effAddr;
@@ -140,7 +139,7 @@ void c64_storeMem(unsigned char s_data) {
 #ifdef DEBUG
                 reveller->debug("\nSID Write: %04x, %02x", effAddr, s_data);
 #endif
-				sid_data[offset&0x1f] = s_data;
+                c64_sid_register[offset & 0x1f] = s_data;
                 reveller->sid_write(offset & 0x1f, s_data);
 				break;
 			case 0xd0:		// VIC-II
@@ -239,7 +238,7 @@ void c64_loadMem(unsigned short addr) {
                         data = c64_cia_read(1, offset);
 						break;
 					case 0xd4:
-						data = sid_data[offset & 0x1f];
+                        data = c64_sid_register[offset & 0x1f];
                         // reveller->debug("WARNING: Read from SID %x: %x\n", offset, data);
 						// data = LES FRA SID (offset)
 						break;

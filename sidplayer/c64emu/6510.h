@@ -129,6 +129,8 @@ typedef struct Register {
 // Registeret
 Register reg;
 
+extern uint8_t c64_sid_register[0x1f];
+
 // innholdet er den byte som er gjeldende i øyeblikket
 unsigned char data;
 //volatile int data;
@@ -148,7 +150,8 @@ int32_t c64_play(void);
 void interpret(int i, unsigned short addr);
 unsigned char getIOPort(unsigned short address);
 
-void c64_set_platform(struct reveller_platform *platform);
+void c64_sid_pause();
+void c64_sid_resume();
 
 // Definer reg.p sine flag, (giljen bare roter når han skal trikse med dem)
 #define FLAG_N 0x80

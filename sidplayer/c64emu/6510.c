@@ -1,6 +1,7 @@
 #include "6510.h"
 #include <stdint.h>
 
+uint8_t c64_sid_register[0x1f];
 unsigned char instruction[3];	// vi leser maksimalt inn 3 byte
 FILE* file;
 
@@ -405,6 +406,10 @@ void c64_setSubSong(unsigned char song) {
 	}
 }
 
-void c64_set_platform(struct reveller_platform *platform) {
-    reveller = platform;
+void c64_sid_pause() {
+    reveller->sid_write(0x18, 0);
+}
+
+void c64_sid_resume() {
+    reveller->sid_write(0x18, c64_sid_register[0x18]);
 }

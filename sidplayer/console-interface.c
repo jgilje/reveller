@@ -19,7 +19,9 @@ void continuosPlay(void) {
 	struct termios originalTerm;
 	int originalFcntl;
 	
-	tcgetattr(STDIN_FILENO, &currentTerm);
+    c64_sid_resume();
+
+    tcgetattr(STDIN_FILENO, &currentTerm);
 	originalTerm = currentTerm;
 	
 	currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
@@ -59,6 +61,8 @@ void continuosPlay(void) {
 #else
 	#error Unimplemented continuosPlay for this platform
 #endif
+
+    c64_sid_pause();
 }
 
 char* nextToken(char* in) {
@@ -137,7 +141,9 @@ void console_interface(void) {
 			{
 				int j;
 				for (j = 0; j < i; j++) {
+                    c64_sid_resume();
 					c64_play();
+                    c64_sid_pause();
                     reveller->usleep(1000000 / 55);
 				}
 			}
@@ -172,9 +178,11 @@ void console_interface(void) {
 			if (interactive) {
 				printf("Disabling interactive mode\n");
 				interactive = 0;
+                c64_sid_pause();
 			} else {
 				printf("Enabling interactive mode\n");
 				interactive = 1;
+                c64_sid_resume();
 			}
 		} else if (interactive && inputSidFile) {
 			printf("Starting PlayAddr 1 time\n");
