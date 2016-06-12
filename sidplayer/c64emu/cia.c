@@ -4,6 +4,9 @@
 #include "cia.h"
 #include "platform-support.h"
 
+static ciaReg ciaRegister[2];
+static ciaTimer ciaTimers[2];
+
 int32_t c64_cia_next_timer(void) {
 	int32_t next = INT32_MAX;
 	// uint32_t next_chip, next_timer;
@@ -113,10 +116,10 @@ void c64_cia_write_cr(unsigned char chip, unsigned char data, unsigned char time
 		ciaTimers[chip].enabled[timer_no] = 0;
 	}
 	if (data & 0x2) {
-		platform_debug("WARNING: CIA%d-%c: Unsupported CIA Operation, TimerA -> PB6, ignored\n", chip, timer_char);
+        reveller->debug("WARNING: CIA%d-%c: Unsupported CIA Operation, TimerA -> PB6, ignored\n", chip, timer_char);
 	}
 	if (data & 0x4) {
-		platform_debug("WARNING: CIA%d-%c: Unsupported CIA Operation, TimerA -> Toggle output\n", chip, timer_char);
+        reveller->debug("WARNING: CIA%d-%c: Unsupported CIA Operation, TimerA -> Toggle output\n", chip, timer_char);
 	}
 	if (data & 0x8) {
 		ciaTimers[chip].oneshot[timer_no] = 1;
@@ -128,11 +131,11 @@ void c64_cia_write_cr(unsigned char chip, unsigned char data, unsigned char time
 		ciaTimers[chip].counters[timer_no] = ciaTimers[chip].latches[timer_no];
 	}
 	if (data & 0x20) {
-		platform_debug("WARNING: Unsupported CIA Operation, TimerA -> Count ext. events\n");
+        reveller->debug("WARNING: Unsupported CIA Operation, TimerA -> Count ext. events\n");
 	}
 }
 
-void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
+void c64_cia_write(unsigned char chip, unsigned char addr, unsigned char data) {
 #ifdef DEBUG
 	platform_debug(" (CIA write to chip %d %x) %x\n", chip, addr, data);
 #endif
@@ -196,7 +199,7 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 					ciaTimers[chip].interrupt_enabled[1] = 1;
 				}
 				if (data & 0x8) {
-					platform_abort("CIA#%d enabled IRQ on SD, not supported", chip);
+                    reveller->abort("CIA#%d enabled IRQ on SD, not supported", chip);
 				}
 				ciaRegister[chip].ICR |= (data & 0x1f);
 			} else {
@@ -219,11 +222,11 @@ void ciaWrite(unsigned char chip, unsigned char addr, unsigned char data) {
 			c64_cia_write_cr(chip, data, 'B');
 			break;
 		default:
-			platform_abort("Unsupported CIA Write on chip %d: (%02x)\n", chip, addr);
+            reveller->abort("Unsupported CIA Write on chip %d: (%02x)\n", chip, addr);
 	}
 }
 
-unsigned char ciaRead(unsigned char chip, unsigned char addr) {
+unsigned char c64_cia_read(unsigned char chip, unsigned char addr) {
 #ifdef DEBUG
 	platform_debug(" (CIA read from chip %d %x) \n", chip, addr);
 #endif
@@ -239,7 +242,7 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 				return 0xff;
 			}
 			
-			platform_abort("CIA#2 PDRb is not emulated\n");
+            reveller->abort("CIA#2 PDRb is not emulated\n");
 			
 			/*
 			{
@@ -290,10 +293,10 @@ unsigned char ciaRead(unsigned char chip, unsigned char addr) {
 			return ciaTimers[chip].CR[0];
 			break;
 		default:
-			platform_abort("Unsupported CIA Read on chip %d: (%02x)\n", chip, addr);
+            reveller->abort("Unsupported CIA Read on chip %d: (%02x)\n", chip, addr);
 	}
 	
-	platform_abort("Unsupported CIA Read (%02x)\n", addr);
+    reveller->abort("Unsupported CIA Read (%02x)\n", addr);
 	return 0x0;
 }
 

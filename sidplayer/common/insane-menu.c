@@ -288,7 +288,7 @@ static void menu_sid_handle(int c) {
 				if (n > sh.songs) {
 					n = 1;
 				}
-				setSubSong(n);
+                c64_setSubSong(n);
 			}
 			break;
 		case DOWN:
@@ -297,7 +297,7 @@ static void menu_sid_handle(int c) {
 				if (n <= 0) {
 					n = sh.songs;
 				}
-				setSubSong(n);
+                c64_setSubSong(n);
 			}
 			break;
 	}

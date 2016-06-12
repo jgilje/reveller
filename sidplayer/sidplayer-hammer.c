@@ -118,7 +118,7 @@ void setPWM(uint8_t counter, uint8_t compare) {
 void printWelcome() {
 	printf("SID Companiet - 6510 Emulator\n");
 	printf("\tLinux Hosted. Dev 16\n");
-	PrintOpcodeStats();
+    c64_printOpcodeStats();
 }
 
 void print_song(void) {
@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 		fseek(inputSidFile, 0, SEEK_END);
 		printf("Inputfile is %ld bytes\n", ftell(inputSidFile));
 		
-		setSubSong(0);
+        c64_setSubSong(0);
 		printf("Loaded song %d of %d subsongs\n", sh.startSong, sh.songs);
 	}
 	

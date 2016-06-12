@@ -8,7 +8,9 @@
 #include "vic.h"
 #include "platform-support.h"
 
-void vicWrite(unsigned char addr, unsigned char data) {
+static vicRegister vicReg;
+
+void c64_vic_write(unsigned char addr, unsigned char data) {
 	switch (addr) {
 		case 0x19:			// Interrupt Register
 			vicReg.idr &= (~data & 0xf);
@@ -16,14 +18,11 @@ void vicWrite(unsigned char addr, unsigned char data) {
 		case 0x1a:			// Interrupt Enable
 			vicReg.icr = (data & 0xf);
 			if (vicReg.icr != 0) {
-				c64_set_freq_vic(50);
-				c64_start_freq_vic();
-				
 				c64_vic_timer.latch = 19705;	// PAL latch, NTSC is different
 				c64_vic_timer.counter = c64_vic_timer.latch;
 				c64_vic_timer.enabled = 1;
 			} else {
-				platform_debug("WARNING: Program Disabled VIC interrupts, and so should you!\n");
+                reveller->debug("WARNING: Program Disabled VIC interrupts, and so should you!\n");
 			}
 			break;
 		case 0x11:			// control register
@@ -32,11 +31,11 @@ void vicWrite(unsigned char addr, unsigned char data) {
 		case 0x20:			// border color
 			break;
 		default:
-			platform_abort("Unsupported VIC Write (%02x: %02x)\n", addr, data);
+            reveller->abort("Unsupported VIC Write (%02x: %02x)\n", addr, data);
 	}
 }
 
-unsigned char vicRead(unsigned char addr) {
+unsigned char c64_vic_read(unsigned char addr) {
 	switch (addr) {
 //		case 0x19:
 //			return vicReg.idr;
@@ -45,10 +44,10 @@ unsigned char vicRead(unsigned char addr) {
 //			return (vicReg.icr | 0xf0);
 //			break;
 		default:
-			platform_abort("Unsupported VIC Read (%02x)\n", addr);
+            reveller->abort("Unsupported VIC Read (%02x)\n", addr);
 	}
 	
-	platform_abort("vicRead: Unreachable\n");
+    reveller->abort("vicRead: Unreachable\n");
 	return 0;
 }
 

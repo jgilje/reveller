@@ -9,26 +9,26 @@ const static unsigned char basic[] = {
 };
 
 // Memory management
-void createMem(unsigned char page) {
+static void createMem(unsigned char page) {
     if (pages[page]) {
 		return;
     }
 
     unsigned char *offset = (unsigned char*) malloc(sizeof(unsigned char[256]));
     if (offset == 0) {
-	platform_abort("ERROR: Memory Allocation failed!\n");
+    reveller->abort("ERROR: Memory Allocation failed!\n");
     }
     
     memset(offset, 0, 256);
     pages[page] = offset;
 #ifdef DEBUG
-    platform_debug(" (Page %02x created)\n", page, offset);
+    reveller->debug(" (Page %02x created)\n", page, offset);
 #endif
 }
 
 // initier minnet
 //  det betyr: sett opp stack page, og last inn programdata
-void initMem() {
+void c64_initMem() {
     unsigned char buffer[256];
     unsigned char page;
     unsigned char offset;
@@ -39,7 +39,7 @@ void initMem() {
     for (i = 0x0; i < 0x100; i++) {
 		if (pages[i] != 0x0) {
 #ifdef DEBUG
-			platform_debug("\tFreeing page %02x (pointing at %p)\n", i, pages[i]);
+            reveller->debug("\tFreeing page %02x (pointing at %p)\n", i, pages[i]);
 #endif
 			free(pages[i]);
 		}
@@ -60,46 +60,46 @@ void initMem() {
     pageStart = sh.dataOffset;
     i = 0;
 
-    readBytes = c64_read_source(pageStart, 256 - offset, buffer);
+    readBytes = reveller->read(pageStart, 256 - offset, buffer);
     memcpy(pages[page] + offset, buffer, 256 - offset);
     
     page++;
 
 	pageStart = sh.dataOffset + (256 - offset);
-    readBytes = c64_read_source(pageStart, 256, buffer);
+    readBytes = reveller->read(pageStart, 256, buffer);
     while (readBytes > 0) {
 		createMem(page);
 	
 		memcpy(pages[page], buffer, readBytes);
 		i++;
 	
-		readBytes = c64_read_source(((i * 256) + pageStart), 256, buffer);
+        readBytes = reveller->read(((i * 256) + pageStart), 256, buffer);
 		page++;
     }
 }
 
-void resetMem() {
-	storeMemRAMShort(0x000, 0x2f, 0x37);		// default ved powerON
-	storeMemRAMChar(0x00cc, 0x1);				// disable cursor blink
+void c64_resetMem() {
+    c64_storeMemRAMShort(0x000, 0x2f, 0x37);		// default ved powerON
+    c64_storeMemRAMChar(0x00cc, 0x1);				// disable cursor blink
 	
 	// NTSC/PAL setting (=1 for PAL)
-	storeMemRAMChar(0x02a6, 0x1);
+    c64_storeMemRAMChar(0x02a6, 0x1);
 	// SETT 50 Hz timer
 	if (sh.flags & (1 << 3)) {	// sjekk om headeren sier NTSC
-		storeMemRAMChar(0x02a6, 0x0);
+        c64_storeMemRAMChar(0x02a6, 0x0);
 		// SETT 60 Hz timer
 	}
 	
 	if (!strcmp(sh.type, "RSID")) {
 		// keylog
-		storeMemRAMShort(0x028f, 0x48, 0xeb);
+        c64_storeMemRAMShort(0x028f, 0x48, 0xeb);
 		
 		// software vector
-		storeMemRAMShort(0x0314, 0x31, 0xea);
+        c64_storeMemRAMShort(0x0314, 0x31, 0xea);
 	}
 }
 
-void storeMemRAMChar(unsigned short addr, unsigned char data) {
+void c64_storeMemRAMChar(unsigned short addr, unsigned char data) {
     unsigned char page = addr >> 8;
     unsigned char offset = addr;
 
@@ -111,7 +111,7 @@ void storeMemRAMChar(unsigned short addr, unsigned char data) {
 }
 
 // denne er ikke sikker i da den ikke sjekker page-crossing
-void storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char datah) {
+void c64_storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char datah) {
     unsigned char page = addr >> 8;
     unsigned char offset = addr;
 
@@ -124,8 +124,7 @@ void storeMemRAMShort(unsigned short addr, unsigned char datal, unsigned char da
 	*(pages[page] + offset) = datah;
 }
 
-static char sid_data[0x1f];
-void storeMem(unsigned char s_data) {
+void c64_storeMem(unsigned char s_data) {
     unsigned char page = effAddr >> 8;
     unsigned char offset = effAddr;
 	
@@ -138,31 +137,31 @@ void storeMem(unsigned char s_data) {
 			case 0xd6:
 			case 0xd7:		// jupp!  4 mirrors av SID
 #ifdef DEBUG
-				platform_debug("\nSID Write: %04x, %02x", effAddr, s_data);
+                reveller->debug("\nSID Write: %04x, %02x", effAddr, s_data);
 #endif
-				sid_data[offset&0x1f] = s_data;
-				c64_sid_write(offset & 0x1f, s_data);
+                c64_sid_register[offset & 0x1f] = s_data;
+                reveller->sid_write(offset & 0x1f, s_data);
 				break;
 			case 0xd0:		// VIC-II
 			case 0xd1:
 			case 0xd2:
 			case 0xd3:
 #ifdef DEBUG
-				platform_debug("\nVIC Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
+                reveller->debug("\nVIC Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
-				vicWrite(offset & 0x3f, s_data);
+                c64_vic_write(offset & 0x3f, s_data);
 				break;
 			case 0xdc:		// CIA 1
 #ifdef DEBUG
-				platform_debug("\nCIA#1 Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
+                reveller->debug("\nCIA#1 Write: %04x, %02x (%04x)", effAddr, s_data, reg.pc);
 #endif
-				ciaWrite(0, offset & 0xf, s_data);
+                c64_cia_write(0, offset & 0xf, s_data);
 				break;
 			case 0xdd:		// CIA 2
 #ifdef DEBUG
-				platform_debug("\nCIA#2 Write: %x, %x", offset, s_data);
+                reveller->debug("\nCIA#2 Write: %x, %x", offset, s_data);
 #endif
-				ciaWrite(1, offset & 0xf, s_data);
+                c64_cia_write(1, offset & 0xf, s_data);
 				break;
 			default:
 				if (! pages[page]) {
@@ -181,14 +180,14 @@ void storeMem(unsigned char s_data) {
 }
 
 // fetches data for the current value in PC
-void fetchOP(void) {
-	loadMem(reg.pc);
+void c64_fetchOP(void) {
+    c64_loadMem(reg.pc);
 }
 
 // henter ut data fra ei minneadresse
-void loadMemRAM(unsigned char page, unsigned char offset) {
+static void loadMemRAM(unsigned char page, unsigned char offset) {
 	if (! pages[page]) {
-		platform_debug("WARNING: at %x (op: %x): fetch from uninitialized PAGE (%x %x, returning 0x0)\n", reg.pc, data, page, offset);
+        reveller->debug("WARNING: at %x (op: %x): fetch from uninitialized PAGE (%x %x, returning 0x0)\n", reg.pc, data, page, offset);
 		createMem(page);
 		data = 0x0;
 		return;
@@ -197,7 +196,7 @@ void loadMemRAM(unsigned char page, unsigned char offset) {
 	data = (*(pages[page] + offset));
 }
 
-void loadMem(unsigned short addr) {
+void c64_loadMem(unsigned short addr) {
     unsigned char page = addr >> 8;
     unsigned char offset = addr;
     
@@ -233,23 +232,23 @@ void loadMem(unsigned short addr) {
 						data = 0;
 						break;
 					case 0xdc:
-						data = ciaRead(0, offset);
+                        data = c64_cia_read(0, offset);
 						break;
 					case 0xdd:
-						data = ciaRead(1, offset);
+                        data = c64_cia_read(1, offset);
 						break;
 					case 0xd4:
-						data = sid_data[offset & 0x1f];
-						// platform_debug("WARNING: Read from SID %x: %x\n", offset, data);
+                        data = c64_sid_register[offset & 0x1f];
+                        // reveller->debug("WARNING: Read from SID %x: %x\n", offset, data);
 						// data = LES FRA SID (offset)
 						break;
 					default:
-						platform_debug("WARNING: Unsupported LOAD from IO (%04x), returning RAM\n", addr);
+                        reveller->debug("WARNING: Unsupported LOAD from IO (%04x), returning RAM\n", addr);
 						loadMemRAM(page, offset);
 						break;
 				}
 			} else if (data & 0x4) {
-				platform_debug("WARNING: loadMem from CHAR, returning 0x0\n");
+                reveller->debug("WARNING: loadMem from CHAR, returning 0x0\n");
 				data = 0;
 			} else {
 				loadMemRAM(page, offset);
@@ -266,187 +265,187 @@ void loadMem(unsigned short addr) {
 			//sleep(3);
 			break;
 		default:
-			platform_debug("Yarr!  loadMemReal, her skal du bare ikke havne...\n");
+            reveller->debug("Yarr!  loadMemReal, her skal du bare ikke havne...\n");
 	}
 }
 
-void dumpMem() {
+void c64_dumpMem() {
 	int i, j;
 	
 	for (i = 0; i < 0x100; i++) {
-		platform_debug("PAGE %x\n", i);
+        reveller->debug("PAGE %x\n", i);
 		
 		if (pages[i]) {
-			platform_debug("00: %x ", (*(pages[i])));
+            reveller->debug("00: %x ", (*(pages[i])));
 			for (j = 1; j < 0x100; j++) {
 				if ((j % 0x10) == 0) {
-					platform_debug("\n%x: ", j);
+                    reveller->debug("\n%x: ", j);
 				}
-				platform_debug("%02x ", (*(pages[i] + j)));
+                reveller->debug("%02x ", (*(pages[i] + j)));
 			}
 		}
-		platform_debug("\n");
+        reveller->debug("\n");
 	}
-	platform_debug("\n");
+    reveller->debug("\n");
 
 /*  - for KERNAL dump
 	for (i = 0; i < 0x20; i++) {
-		platform_debug("KERNAL %x\n", (i + 0xe0 ));
+        reveller->debug("KERNAL %x\n", (i + 0xe0 ));
 		
-		platform_debug("00: %x ", kernal[i << 8]);
+        reveller->debug("00: %x ", kernal[i << 8]);
 		for (j = 1; j < 0x100; j++) {
 			if ((j % 0x10) == 0) {
-				platform_debug("\n%x: ", j);
+                reveller->debug("\n%x: ", j);
 			}
-			platform_debug("%x ", kernal[(i << 8) | j]);
+            reveller->debug("%x ", kernal[(i << 8) | j]);
 		}
-		platform_debug("\n");
+        reveller->debug("\n");
 	}
 */
 }
 
 // memory fetch modes
-void memImm() {
+void c64_memImm() {
 	effAddr = ++reg.pc;
-	fetchOP();
+    c64_fetchOP();
 #ifdef DEBUG
-    platform_debug(" %02x     ", data);
+    reveller->debug(" %02x     ", data);
 #endif
 }
 
-void memAbsoluteAddr() {
+void c64_memAbsoluteAddr() {
     unsigned char page;
     unsigned char offset;
 
     // hent ut adresse
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     page = data;
     
     // adder ut riktig adresse
     effAddr = (page << 8) + offset;
     
 #ifdef DEBUG
-    platform_debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
+    reveller->debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
 #endif
 }
 
-void memAbsoluteAddrX() {
+void c64_memAbsoluteAddrX() {
     unsigned char page;
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     page = data;
     
     effAddr = (page << 8) + offset + reg.x;
 #ifdef DEBUG
-    platform_debug(" %02x %02x  ", offset, page);
+    reveller->debug(" %02x %02x  ", offset, page);
 #endif
 }
 
-void memAbsoluteAddrY() {
+void c64_memAbsoluteAddrY() {
     unsigned char page;
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     page = data;
     
     effAddr = (page << 8) + offset + reg.y;
 #ifdef DEBUG
-    platform_debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
+    reveller->debug(" %02x %02x  ", effAddr & 0xff, effAddr >> 8);
 #endif
 }
 
-void memZero() {
+void c64_memZero() {
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = data;
     
     effAddr = (0x00 << 8) + offset;
 #ifdef DEBUG
-    platform_debug(" %02x     ", effAddr & 0xff);
+    reveller->debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
-void memZeroX() {
+void c64_memZeroX() {
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = (data + reg.x) % 0x100;
     
     effAddr = (0x00 << 8) + offset;
 #ifdef DEBUG
-    platform_debug(" %02x     ", effAddr & 0xff);
+    reveller->debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
-void memZeroY() {
+void c64_memZeroY() {
     unsigned char offset;
     
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     offset = (data + reg.y) % 0x100;
     
     effAddr = (0x00 << 8) + offset;
 #ifdef DEBUG
-    platform_debug(" %02x     ", effAddr & 0xff);
+    reveller->debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
-void memIndirectZeroX() {
+void c64_memIndirectZeroX() {
     unsigned char page;
     unsigned char offset;
     unsigned char temp;
 
     // operand
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     temp = data + reg.x;
 
     // hent ut adresse fra ZP
-    loadMem(0x0 << 8 | (temp));
+    c64_loadMem(0x0 << 8 | (temp));
     offset = data;
     // her emulerer vi en faktisk BUG i 6510
-    loadMem(0x0 << 8 | ((temp + 1) % 0x100));
+    c64_loadMem(0x0 << 8 | ((temp + 1) % 0x100));
     page = data;
     
     // adder ut riktig adresse
     effAddr = (page << 8) + offset;
     
 #ifdef DEBUG
-    platform_debug(" %02x     ", effAddr & 0xff);
+    reveller->debug(" %02x     ", effAddr & 0xff);
 #endif
 }
 
-void memIndirectZeroY() {
+void c64_memIndirectZeroY() {
     unsigned char page;
     unsigned char offset;
     unsigned char temp;
 
     // operand
-    ++reg.pc; fetchOP();
+    ++reg.pc; c64_fetchOP();
     temp = data;
 
 #ifdef DEBUG
-    platform_debug(" %02x     ", data);
+    reveller->debug(" %02x     ", data);
 #endif
 
     // hent ut adresse fra ZP
-    loadMem(0x0 << 8 | (temp));
+    c64_loadMem(0x0 << 8 | (temp));
     offset = data;
     // her emulerer vi en faktisk BUG i 6510
-    loadMem(0x0 << 8 | ((temp + 1) % 0x100));
+    c64_loadMem(0x0 << 8 | ((temp + 1) % 0x100));
     page = data;
     
     // adder ut riktig adresse
     effAddr = (page << 8) + offset + reg.y;
 }
 
-void memStack() {
+void c64_memStack() {
     effAddr = (0x01 << 8) + reg.s;
 }
 

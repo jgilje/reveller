@@ -17,7 +17,7 @@
 //#define PC_OP_B1 *(pages[reg.page + 1])
 //#define PC_OP_B2 *(pages[reg.page + 1] + 1)
 
-unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÂder
+extern unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÂder
 // unsigned char *rompages[256];	// pages, inneholder pekere til aktuelle rom områder
 
 //void (*fetchOP)();
@@ -35,27 +35,25 @@ unsigned char *pages[256];	// pages, inneholder pekere til aktuelle minneomrÂde
 //};
 
 // signaturer
-void createMem(unsigned char page);
-void initMem(void);
-void resetMem(void);
-void dumpMem(void);
+void c64_initMem(void);
+void c64_resetMem(void);
+void c64_dumpMem(void);
 
-void storeMemRAMChar(unsigned short addr, unsigned char data);
-void storeMemRAMShort(unsigned short addr, unsigned char data1, unsigned char data2);
-void loadMemRAM(unsigned char page, unsigned char offset);
-void loadMem(unsigned short addr);
-void storeMem(unsigned char data);
-void fetchOP(void);
+void c64_storeMemRAMChar(unsigned short addr, unsigned char data);
+void c64_storeMemRAMShort(unsigned short addr, unsigned char data1, unsigned char data2);
+void c64_loadMem(unsigned short addr);
+void c64_storeMem(unsigned char data);
+void c64_fetchOP(void);
 
-void memImm(void);
-void memAbsoluteAddr(void);
-void memAbsoluteAddrX(void);
-void memAbsoluteAddrY(void);
-void memZero(void);
-void memZeroX(void);
-void memZeroY(void);
-void memIndirectZeroX(void);
-void memIndirectZeroY(void);
-void memStack(void);
+void c64_memImm(void);
+void c64_memAbsoluteAddr(void);
+void c64_memAbsoluteAddrX(void);
+void c64_memAbsoluteAddrY(void);
+void c64_memZero(void);
+void c64_memZeroX(void);
+void c64_memZeroY(void);
+void c64_memIndirectZeroX(void);
+void c64_memIndirectZeroY(void);
+void c64_memStack(void);
 
 #endif

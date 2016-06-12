@@ -19,7 +19,9 @@ void continuosPlay(void) {
 	struct termios originalTerm;
 	int originalFcntl;
 	
-	tcgetattr(STDIN_FILENO, &currentTerm);
+    c64_sid_resume();
+
+    tcgetattr(STDIN_FILENO, &currentTerm);
 	originalTerm = currentTerm;
 	
 	currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
@@ -28,7 +30,7 @@ void continuosPlay(void) {
 	tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
 	originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
 	if (fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK) < 0) {
-		platform_abort("Failed to set stdin nonblocking\n");
+        reveller->abort("Failed to set stdin nonblocking\n");
 	}
 	
 	printf("Playing... (any key to stop)...");
@@ -37,11 +39,11 @@ void continuosPlay(void) {
 	while (getc(stdin) < 0) {
 		int32_t next = c64_play();
 		next = next * ((float) sh.hz / 1000000.0f);
-		platform_usleep(next);
+        reveller->usleep(next);
 	}
 	
 	if (fcntl(STDIN_FILENO, F_SETFL, originalFcntl) < 0) {
-		platform_abort("Failed to restore stdin\n");
+        reveller->abort("Failed to restore stdin\n");
 	}
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
 	printf("\n");
@@ -59,6 +61,8 @@ void continuosPlay(void) {
 #else
 	#error Unimplemented continuosPlay for this platform
 #endif
+
+    c64_sid_pause();
 }
 
 char* nextToken(char* in) {
@@ -108,7 +112,7 @@ void console_interface(void) {
 				printf("ERROR: File %s not found\n", args);
 			}
 			
-			setSubSong(0);
+            c64_setSubSong(0);
 		} else if (! strcmp(input, "play") || ! strcmp(input, "p")) {
 			int i;
 			if (! inputSidFile) {
@@ -137,8 +141,10 @@ void console_interface(void) {
 			{
 				int j;
 				for (j = 0; j < i; j++) {
+                    c64_sid_resume();
 					c64_play();
-					platform_usleep(1000000 / 55);
+                    c64_sid_pause();
+                    reveller->usleep(1000000 / 55);
 				}
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
@@ -156,14 +162,14 @@ void console_interface(void) {
 				}
 
 				song = i;
-				setSubSong(song);
+                c64_setSubSong(song);
 				printf("Song is now %d\n", song);
 				continuosPlay();
 			}
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
-			dumpMem();
+            c64_dumpMem();
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
-            platform_shutdown();
+            reveller->shutdown();
 
 			fflush(NULL);
 			printf("Bye\n");
@@ -172,9 +178,11 @@ void console_interface(void) {
 			if (interactive) {
 				printf("Disabling interactive mode\n");
 				interactive = 0;
+                c64_sid_pause();
 			} else {
 				printf("Enabling interactive mode\n");
 				interactive = 1;
+                c64_sid_resume();
 			}
 		} else if (interactive && inputSidFile) {
 			printf("Starting PlayAddr 1 time\n");

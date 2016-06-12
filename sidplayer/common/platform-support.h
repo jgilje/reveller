@@ -1,5 +1,5 @@
-#ifndef PLATFORM_SUPPORT
-#define PLATFORM_SUPPORT
+#ifndef PLATFORM_SUPPORT_H
+#define PLATFORM_SUPPORT_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -7,20 +7,24 @@
 /*
   These functions must be implemented to support a new platform
 */
-void platform_debug(char *msg, ...);
-void platform_abort(char *msg, ...);
+struct reveller_platform {
+    void (*init)();
 
-void platform_usleep(uint32_t us);
-void platform_shutdown();
+    void (*debug)(const char *msg, ...);
+    void (*abort)(const char *msg, ...);
 
-size_t c64_read_source(uint32_t offset, uint32_t length, uint8_t *dest);
+    void (*usleep)(uint32_t us);
+    void (*shutdown)();
 
-void c64_sid_block_start(void);
-void c64_sid_block_end(void);
+    size_t (*read)(uint32_t offset, uint32_t length, uint8_t *dest);
 
-void c64_sid_write(uint8_t reg, uint8_t data);
+    void (*sid_block_start)(void);
+    void (*sid_block_end)(void);
+    void (*sid_write)(uint8_t reg, uint8_t data);
 
-void c64_set_freq_vic(uint32_t hz);
-void c64_start_freq_vic(void);
+    const char* platform_id;
+};
+
+extern struct reveller_platform *reveller;
 
 #endif

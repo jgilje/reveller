@@ -1,8 +1,7 @@
 // Logiske og Aritmetiske Opkoder
 
-
 // Compare - CMP/CPX/CPY
-void Compare_(unsigned char r, unsigned char d) {
+static void Compare_(unsigned char r, unsigned char d) {
     // tre funksjoner:
     // N(8) flag: settes hvis subtraksjon er negativ
     // Z(2) flag: ved likhet mellom verdiene (altsÂ, sub. == 0)
@@ -10,11 +9,11 @@ void Compare_(unsigned char r, unsigned char d) {
     unsigned char temp;
 
 	if (d)
-		loadMem(effAddr);
+                c64_loadMem(effAddr);
 
     temp = r - data;
 #ifdef DEBUG
-    platform_debug("CMP");
+    reveller->debug("CMP");
 #endif
     evalNZ(temp);
 
@@ -23,260 +22,260 @@ void Compare_(unsigned char r, unsigned char d) {
     if (r >= data) reg.p |= FLAG_C;
 }
 
-void CMP_imm(void) {	// 0xC9
-    memImm();
+static void CMP_imm(void) {	// 0xC9
+    c64_memImm();
 	Compare_(reg.a, 0);
 }
 
-void CMP_abs(void) {	// 0xCD
-    memAbsoluteAddr();
+static void CMP_abs(void) {	// 0xCD
+    c64_memAbsoluteAddr();
     Compare_(reg.a, 1);
 }
 
-void CMP_absx(void) {	// 0xDD
-    memAbsoluteAddrX();
+static void CMP_absx(void) {	// 0xDD
+    c64_memAbsoluteAddrX();
     Compare_(reg.a, 1);
 }
 
-void CMP_absy(void) {	// 0xD9
-    memAbsoluteAddrY();
+static void CMP_absy(void) {	// 0xD9
+    c64_memAbsoluteAddrY();
     Compare_(reg.a, 1);
 }
 
-void CMP_zp(void) {		// 0xC5
-	memZero();
+static void CMP_zp(void) {		// 0xC5
+        c64_memZero();
     Compare_(reg.a, 1);
 }
 
-void CMP_zpx(void) {	// 0xD5
-	memZeroX();
+static void CMP_zpx(void) {	// 0xD5
+        c64_memZeroX();
     Compare_(reg.a, 1);
 }
 
-void CMP_izx(void) {	// 0xC1
-	memIndirectZeroX();
+static void CMP_izx(void) {	// 0xC1
+        c64_memIndirectZeroX();
 	Compare_(reg.a, 1);
 }
 
-void CMP_izy(void) {	// 0xD1
-	memIndirectZeroY();
+static void CMP_izy(void) {	// 0xD1
+        c64_memIndirectZeroY();
 	Compare_(reg.a, 1);
 }
 
-void CPX_imm(void) {	// 0xE0
-	memImm();
+static void CPX_imm(void) {	// 0xE0
+        c64_memImm();
 	Compare_(reg.x, 0);
 }
 
-void CPX_abs(void) {	// 0xEC
-	memAbsoluteAddr();
+static void CPX_abs(void) {	// 0xEC
+        c64_memAbsoluteAddr();
 	Compare_(reg.x, 1);
 }
 
-void CPX_zp(void) {		// 0xE4
-	memZero();
+static void CPX_zp(void) {		// 0xE4
+        c64_memZero();
 	Compare_(reg.x, 1);
 }
 
-void CPY_imm(void) {	// 0xC0
-	memImm();
+static void CPY_imm(void) {	// 0xC0
+        c64_memImm();
 	Compare_(reg.y, 0);
 }
 
-void CPY_abs(void) {	// 0xCC
-    memAbsoluteAddr();
+static void CPY_abs(void) {	// 0xCC
+    c64_memAbsoluteAddr();
     Compare_(reg.y, 1);
 }
 
-void CPY_zp(void) {		// 0xC4
-    memZero();
+static void CPY_zp(void) {		// 0xC4
+    c64_memZero();
     Compare_(reg.y, 1);
 }
 
-void DEC_(void) {
+static void DEC_(void) {
     // dekrementer adressa med 1
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     data--;
     evalNZ(data);
 #ifdef DEBUG
-    platform_debug("DEC  [%04x] {%02x}", effAddr, data);
+    reveller->debug("DEC  [%04x] {%02x}", effAddr, data);
 #endif
-    storeMem(data);
+    c64_storeMem(data);
 }
 
-void DEC_abs(void) {	// 0xCE
-    memAbsoluteAddr();
+static void DEC_abs(void) {	// 0xCE
+    c64_memAbsoluteAddr();
     DEC_();
 }
 
-void DEC_absx(void) {	// 0xDE
-    memAbsoluteAddrX();
+static void DEC_absx(void) {	// 0xDE
+    c64_memAbsoluteAddrX();
     DEC_();
 }
 
-void DEC_zp(void) {		// 0xC6
-    memZero();
+static void DEC_zp(void) {		// 0xC6
+    c64_memZero();
     DEC_();
 }
 
-void DEC_zpx(void) {	// 0xD6
-    memZeroX();
+static void DEC_zpx(void) {	// 0xD6
+    c64_memZeroX();
     DEC_();
 }
 
-void INC_(void) {
+static void INC_(void) {
     // inkrementer adressa med 1
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     data++;
     evalNZ(data);
-    storeMem(data);
+    c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("INC");
+    reveller->debug("INC");
 #endif
 }
 
-void INC_abs(void) {	// 0xEE
-	memAbsoluteAddr();
+static void INC_abs(void) {	// 0xEE
+        c64_memAbsoluteAddr();
 	INC_();
 }
 
-void INC_absx(void) {	// 0xFE
-    memAbsoluteAddrX();
+static void INC_absx(void) {	// 0xFE
+    c64_memAbsoluteAddrX();
     INC_();    
 }
 
-void INC_zp(void) {		// 0xE6
-	memZero();
+static void INC_zp(void) {		// 0xE6
+        c64_memZero();
 	INC_();
 }
 
-void INC_zpx(void) {	// 0xF6
-	memZeroX();
+static void INC_zpx(void) {	// 0xF6
+        c64_memZeroX();
 	INC_();
 }
 
-void INX_(void) {		// 0xE8
+static void INX_(void) {		// 0xE8
     reg.x++;
 #ifdef DEBUG
-    platform_debug("        INX");
+    reveller->debug("        INX");
 #endif
     evalNZ(reg.x);
 }
 
-void DEX_(void) {		// 0xCA
+static void DEX_(void) {		// 0xCA
     reg.x--;
 #ifdef DEBUG
-    platform_debug("        DEX");
+    reveller->debug("        DEX");
 #endif
     evalNZ(reg.x);
 }
 
-void INY_(void) {		// 0xC8
+static void INY_(void) {		// 0xC8
     reg.y++;
 #ifdef DEBUG
-    platform_debug("        INY");
+    reveller->debug("        INY");
 #endif
     evalNZ(reg.y);
 }
 
-void DEY_(void) {		// 0x88
+static void DEY_(void) {		// 0x88
     reg.y--;
 #ifdef DEBUG
-    platform_debug("        DEY");
+    reveller->debug("        DEY");
 #endif
     evalNZ(reg.y);
 }
 
-void ASL_(void) {
+static void ASL_(void) {
     // left shift (bit 7 gÂr til C)
-	loadMem(effAddr);
+        c64_loadMem(effAddr);
     reg.p &= 0xfe;
     if (data & 0x80) reg.p |= 0x1;
     data <<= 1;
     evalNZ(data);
-	storeMem(data);
+        c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("        ASL");
+    reveller->debug("        ASL");
 #endif
 }
 
-void ASL_abs(void) {	// 0x0E
-	memAbsoluteAddr();
+static void ASL_abs(void) {	// 0x0E
+        c64_memAbsoluteAddr();
 	ASL_();
 }
 
-void ASL_absx(void) {	// 0x1E
-	memAbsoluteAddrX();
+static void ASL_absx(void) {	// 0x1E
+        c64_memAbsoluteAddrX();
 	ASL_();
 }
 
-void ASL_zp(void) {		// 0x06
-	memZero();
+static void ASL_zp(void) {		// 0x06
+        c64_memZero();
 	ASL_();
 }
 
-void ASL_zpx(void) {	// 0x16
-	memZeroX();
+static void ASL_zpx(void) {	// 0x16
+        c64_memZeroX();
 	ASL_();
 }
 
-void ASL_imp(void) {	// 0x0A
+static void ASL_imp(void) {	// 0x0A
     reg.p &= 0xfe;
     if (reg.a & 0x80) reg.p |= 0x1;
     reg.a <<= 1;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("ASL");
+    reveller->debug("ASL");
 #endif
 }
 
-void LSR_(void) {
-	loadMem(effAddr);
+static void LSR_(void) {
+        c64_loadMem(effAddr);
     reg.p &= 0xfe;
     if (data & 0x1) reg.p |= 0x1;
     data >>= 1;
     evalNZ(data);
 #ifdef DEBUG
-    platform_debug("        LSR");
+    reveller->debug("        LSR");
 #endif
-    storeMem(data);
+    c64_storeMem(data);
 }
 
-void LSR_abs(void) {	// 0x4E
-	memAbsoluteAddr();
+static void LSR_abs(void) {	// 0x4E
+        c64_memAbsoluteAddr();
 	LSR_();
 }
 
-void LSR_absx(void) {	// 0x5E
-	memAbsoluteAddrX();
+static void LSR_absx(void) {	// 0x5E
+        c64_memAbsoluteAddrX();
 	LSR_();
 }
 
-void LSR_zp(void) {		// 0x46
-	memZero();
+static void LSR_zp(void) {		// 0x46
+        c64_memZero();
 	LSR_();
 }
 
-void LSR_zpx(void) {	// 0x56
-	memZeroX();
+static void LSR_zpx(void) {	// 0x56
+        c64_memZeroX();
 	LSR_();
 }
 
-void LSR_imp(void) {	// 0x4A
+static void LSR_imp(void) {	// 0x4A
     // right shift (bit 0 gÂr til C)
     reg.p &= 0xfe;
     if (reg.a & 0x1) reg.p |= 0x1;
     reg.a >>= 1;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("        LSR");
+    reveller->debug("        LSR");
 #endif
 }
 
 // ROTATE
-void ROL_(void) {
+static void ROL_(void) {
     // left rotate
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     unsigned char temp = reg.p & 0x1;
 
     reg.p &= 0xfe;
@@ -285,13 +284,13 @@ void ROL_(void) {
     data <<= 1;
     if (temp) data |= 0x1;
     evalNZ(data);
-    storeMem(data);
+    c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("        ROL");
+    reveller->debug("        ROL");
 #endif
 }
 
-void ROL_imp(void) {		// 0x2A
+static void ROL_imp(void) {		// 0x2A
     // left rotate
     unsigned char temp = reg.p & 0x1;
 
@@ -302,33 +301,33 @@ void ROL_imp(void) {		// 0x2A
     if (temp) reg.a |= 0x1;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("        ROL");
+    reveller->debug("        ROL");
 #endif
 }
 
-void ROL_abs(void) {	// 0x2E
-	memAbsoluteAddr();
+static void ROL_abs(void) {	// 0x2E
+        c64_memAbsoluteAddr();
 	ROL_();
 }
 
-void ROL_absx(void) {	// 0x3E
-	memAbsoluteAddrX();
+static void ROL_absx(void) {	// 0x3E
+        c64_memAbsoluteAddrX();
 	ROL_();
 }
 
-void ROL_zp(void) {		// 0x26
-    memZero();
+static void ROL_zp(void) {		// 0x26
+    c64_memZero();
     ROL_();    
 }
 
-void ROL_zpx(void) {	// 0x36
-	memZeroX();
+static void ROL_zpx(void) {	// 0x36
+        c64_memZeroX();
 	ROL_();
 }
 
-void ROR_(void) {
+static void ROR_(void) {
     // right rotate
-    loadMem(effAddr);
+    c64_loadMem(effAddr);
     unsigned char temp = reg.p & 0x1;
 
     reg.p &= 0xfe;
@@ -337,13 +336,13 @@ void ROR_(void) {
     data >>= 1;
     if (temp) data |= 0x80;
     evalNZ(data);
-	storeMem(data);
+        c64_storeMem(data);
 #ifdef DEBUG
-    platform_debug("ROR");
+    reveller->debug("ROR");
 #endif
 }
 
-void ROR_imp(void) {	// 0x6A
+static void ROR_imp(void) {	// 0x6A
     unsigned char temp = reg.p & 0x1;
 
     reg.p &= 0xfe;
@@ -353,203 +352,203 @@ void ROR_imp(void) {	// 0x6A
     if (temp) reg.a |= 0x80;
     evalNZ(reg.a);
 #ifdef DEBUG
-    platform_debug("        ROR");
+    reveller->debug("        ROR");
 #endif
 }
 
-void ROR_abs(void) {	// 0x6E
-	memAbsoluteAddr();
+static void ROR_abs(void) {	// 0x6E
+        c64_memAbsoluteAddr();
 	ROR_();
 }
 
-void ROR_absx(void) {	// 0x7E
-	memAbsoluteAddrX();
+static void ROR_absx(void) {	// 0x7E
+        c64_memAbsoluteAddrX();
 	ROR_();
 }
 
-void ROR_zp(void) {		// 0x66
-    memZero();
+static void ROR_zp(void) {		// 0x66
+    c64_memZero();
     ROR_();    
 }
 
-void ROR_zpx(void) {	// 0x76
-    memZeroX();
+static void ROR_zpx(void) {	// 0x76
+    c64_memZeroX();
     ROR_();    
 }
 
 // AND
-void AND_(void) {
-    loadMem(effAddr);
+static void AND_(void) {
+    c64_loadMem(effAddr);
 #ifdef DEBUG
-    platform_debug("AND");
+    reveller->debug("AND");
 #endif
     reg.a &= data;
     evalNZ(reg.a);
 }
 
-void AND_imm(void) {	// 0x29
-    memImm();
+static void AND_imm(void) {	// 0x29
+    c64_memImm();
 #ifdef DEBUG
-    platform_debug("AND_imm");
+    reveller->debug("AND_imm");
 #endif
     reg.a &= data;
     evalNZ(reg.a);
 }
 
-void AND_abs(void) {	// 0x2D
-	memAbsoluteAddr();
+static void AND_abs(void) {	// 0x2D
+        c64_memAbsoluteAddr();
 	AND_();
 }
 
-void AND_absx(void) {	// 0x3D
-    memAbsoluteAddrX();
+static void AND_absx(void) {	// 0x3D
+    c64_memAbsoluteAddrX();
     AND_();
 }
 
-void AND_absy(void) {	// 0x39
-	memAbsoluteAddrY();
+static void AND_absy(void) {	// 0x39
+        c64_memAbsoluteAddrY();
 	AND_();
 }
 
-void AND_zp(void) {		// 0x25
-	memZero();
+static void AND_zp(void) {		// 0x25
+        c64_memZero();
 	AND_();
 }
 
-void AND_zpx(void) {	// 0x35
-	memZeroX();
+static void AND_zpx(void) {	// 0x35
+        c64_memZeroX();
 	AND_();
 }
 
-void AND_izx(void) {	// 0x21
-	memIndirectZeroX();
+static void AND_izx(void) {	// 0x21
+        c64_memIndirectZeroX();
 	AND_();
 }
 
-void AND_izy(void) {	// 0x31
-	memIndirectZeroY();
+static void AND_izy(void) {	// 0x31
+        c64_memIndirectZeroY();
 	AND_();
 }
 
 // OR(acc)
-void ORA_(void) {
-    loadMem(effAddr);
+static void ORA_(void) {
+    c64_loadMem(effAddr);
 #ifdef DEBUG
-    platform_debug("ORA");
+    reveller->debug("ORA");
 #endif
     reg.a |= data;
     evalNZ(reg.a);
 }
 
-void ORA_imm(void) {	// 0x09
-	memImm();
+static void ORA_imm(void) {	// 0x09
+        c64_memImm();
 #ifdef DEBUG
-    platform_debug("ORA_imm");
+    reveller->debug("ORA_imm");
 #endif
     reg.a |= data;
     evalNZ(reg.a);
 }
 
-void ORA_abs(void) {	// 0x0D
-	memAbsoluteAddr();
+static void ORA_abs(void) {	// 0x0D
+        c64_memAbsoluteAddr();
 	ORA_();
 }
 
-void ORA_absx(void) {	// 0x1D
-	memAbsoluteAddrX();
+static void ORA_absx(void) {	// 0x1D
+        c64_memAbsoluteAddrX();
 	ORA_();
 }
 
-void ORA_absy(void) {	// 0x19
-	memAbsoluteAddrY();
+static void ORA_absy(void) {	// 0x19
+        c64_memAbsoluteAddrY();
 	ORA_();
 }
 
-void ORA_zp(void) {		// 0x05
-	memZero();
+static void ORA_zp(void) {		// 0x05
+        c64_memZero();
 	ORA_();
 }
 
-void ORA_zpx(void) {	// 0x15
-	memZero();
+static void ORA_zpx(void) {	// 0x15
+        c64_memZero();
 	ORA_();
 }
 
-void ORA_izx(void) {	// 0x01
-	memIndirectZeroX();
+static void ORA_izx(void) {	// 0x01
+        c64_memIndirectZeroX();
 	ORA_();
 }
 
-void ORA_izy(void) {	// 0x11
-	memIndirectZeroY();
+static void ORA_izy(void) {	// 0x11
+        c64_memIndirectZeroY();
 	ORA_();
 }
 
 // EOR(acc)
-void EOR_(void) {
-    loadMem(effAddr);
+static void EOR_(void) {
+    c64_loadMem(effAddr);
 #ifdef DEBUG
-    platform_debug("EOR");
+    reveller->debug("EOR");
 #endif
     reg.a ^= data;
     evalNZ(reg.a);
 }
 
-void EOR_imm(void) {	// 0x49
-	memImm();
+static void EOR_imm(void) {	// 0x49
+        c64_memImm();
 #ifdef DEBUG
-    platform_debug("EOR_imm");
+    reveller->debug("EOR_imm");
 #endif
     reg.a ^= data;
     evalNZ(reg.a);
 }
 
-void EOR_abs(void) {	// 0x4D
-	memAbsoluteAddr();
+static void EOR_abs(void) {	// 0x4D
+        c64_memAbsoluteAddr();
 	EOR_();
 }
 
-void EOR_absx(void) {	// 0x5D
-	memAbsoluteAddrX();
+static void EOR_absx(void) {	// 0x5D
+        c64_memAbsoluteAddrX();
 	EOR_();
 }
 
-void EOR_absy(void) {	// 0x59
-	memAbsoluteAddrY();
+static void EOR_absy(void) {	// 0x59
+        c64_memAbsoluteAddrY();
 	EOR_();
 }
 
-void EOR_zp(void) {		// 0x45
-	memZero();
+static void EOR_zp(void) {		// 0x45
+        c64_memZero();
 	EOR_();
 }
 
-void EOR_zpx(void) {	// 0x55
-	memZeroX();
+static void EOR_zpx(void) {	// 0x55
+        c64_memZeroX();
 	EOR_();
 }
 
-void EOR_izx(void) {	// 0x41
-	memIndirectZeroX();
+static void EOR_izx(void) {	// 0x41
+        c64_memIndirectZeroX();
 	EOR_();
 }
 
-void EOR_izy(void) {	// 0x51
-	memIndirectZeroY();
+static void EOR_izy(void) {	// 0x51
+        c64_memIndirectZeroY();
 	EOR_();
 }
 
 // ADC og SBC baserer seg veldig sterkt pÂ SIDPlayer-4.4
 // ADC, ADD with Carry
-void ADC_(unsigned char d) {
+static void ADC_(unsigned char d) {
 	if (d)
-		loadMem(effAddr);
+                c64_loadMem(effAddr);
 		
     unsigned char carry = reg.p & 0x1;
     
     if (reg.p & FLAG_D) {
 	// BCD calc.
-	platform_abort("ADC: BCD calculation is not yet implemented\n");
+        reveller->abort("ADC: BCD calculation is not yet implemented\n");
     } else {
 	// Binary
 	unsigned int temp = reg.a + data + carry;
@@ -566,58 +565,58 @@ void ADC_(unsigned char d) {
 		reg.p |= FLAG_V;
 	}
 #ifdef DEBUG
-	platform_debug("ADC");
+        reveller->debug("ADC");
 #endif
 	reg.a = (temp & 0xff);
 	evalNZ(reg.a);
     }
 }
 
-void ADC_imm(void) {	// 0x69
-    memImm();
+static void ADC_imm(void) {	// 0x69
+    c64_memImm();
     ADC_(0);
 }
 
-void ADC_abs(void) {	// 0x6D
-    memAbsoluteAddr();
+static void ADC_abs(void) {	// 0x6D
+    c64_memAbsoluteAddr();
     ADC_(1);
 }
 
-void ADC_absx(void) {	// 0x7D
-    memAbsoluteAddrX();
+static void ADC_absx(void) {	// 0x7D
+    c64_memAbsoluteAddrX();
     ADC_(1);
 }
 
-void ADC_absy(void) {	// 0x79
-    memAbsoluteAddrY();
+static void ADC_absy(void) {	// 0x79
+    c64_memAbsoluteAddrY();
     ADC_(1);
 }
 
-void ADC_zp(void) {		// 0x65
-    memZero();
+static void ADC_zp(void) {		// 0x65
+    c64_memZero();
     ADC_(1);
 }
 
-void ADC_zpx(void) {	// 0x75
-	memZeroX();
+static void ADC_zpx(void) {	// 0x75
+        c64_memZeroX();
 	ADC_(1);
 }
 
-void ADC_izx(void) {	// 0x61
-	memIndirectZeroX();
+static void ADC_izx(void) {	// 0x61
+        c64_memIndirectZeroX();
 	ADC_(1);
 }
 
-void ADC_izy(void) {	// 0x71
-	memIndirectZeroY();
+static void ADC_izy(void) {	// 0x71
+        c64_memIndirectZeroY();
 	ADC_(1);
 }
 
 
 // SBC, Subtract with Carry
-void SBC_(unsigned char d) {
+static void SBC_(unsigned char d) {
 	if (d)
-		loadMem(effAddr);
+                c64_loadMem(effAddr);
 
     unsigned char carry = !(reg.p & 0x1);
     unsigned int temp = reg.a - data - carry;
@@ -633,54 +632,54 @@ void SBC_(unsigned char d) {
     
     if (reg.p & FLAG_D) {
 	// BCD calc
-	platform_abort("SBC: BCD calculation is not yet implemented\n");
+        reveller->abort("SBC: BCD calculation is not yet implemented\n");
     } else {
 	// Binary
 #ifdef DEBUG
-	platform_debug("SBC");
+        reveller->debug("SBC");
 #endif
 	reg.a = (temp & 0xff);
     }
     evalNZ(reg.a);
 }
 
-void SBC_imm(void) {	// 0xE9
-    memImm();
+static void SBC_imm(void) {	// 0xE9
+    c64_memImm();
     SBC_(0);
 }
 
-void SBC_abs(void) {	// 0xED
-    memAbsoluteAddr();
+static void SBC_abs(void) {	// 0xED
+    c64_memAbsoluteAddr();
     SBC_(1);
 }
 
-void SBC_absx(void) {	// 0xFD
-    memAbsoluteAddrX();
+static void SBC_absx(void) {	// 0xFD
+    c64_memAbsoluteAddrX();
     SBC_(1);
 }
 
-void SBC_absy(void) {	// 0xF9
-    memAbsoluteAddrY();
+static void SBC_absy(void) {	// 0xF9
+    c64_memAbsoluteAddrY();
     SBC_(1);
 }
 
-void SBC_zp(void) {		// 0xE5
-    memZero();
+static void SBC_zp(void) {		// 0xE5
+    c64_memZero();
     SBC_(1);
 }
 
-void SBC_zpx(void) {	// 0xF5
-    memZeroX();
+static void SBC_zpx(void) {	// 0xF5
+    c64_memZeroX();
     SBC_(1);
 }
 
-void SBC_izx(void) {	// 0xE1
-    memIndirectZeroX();
+static void SBC_izx(void) {	// 0xE1
+    c64_memIndirectZeroX();
     SBC_(1);
 }
 
-void SBC_izy(void) {	// 0xF1
-    memIndirectZeroY();
+static void SBC_izy(void) {	// 0xF1
+    c64_memIndirectZeroY();
     SBC_(1);
 }
 
