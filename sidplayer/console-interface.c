@@ -11,8 +11,6 @@
 #include <conio.h>
 #endif
 
-extern FILE* inputSidFile;
-
 void continuosPlay(void) {
 #if defined unix || (defined(__APPLE__) && defined(__MACH__))
 	struct termios currentTerm;
@@ -103,19 +101,19 @@ void console_interface(void) {
 				   "(q)uit\n"
 				   );
 		} else if (! strcmp(input, "load") || ! strcmp(input, "l")) {
-			if (inputSidFile) {
-				fclose(inputSidFile);
+            if (reveller_input_file) {
+                fclose(reveller_input_file);
 			}
 
-			inputSidFile = fopen(args, "rb");
-			if (inputSidFile == 0) {
+            reveller_input_file = fopen(args, "rb");
+            if (reveller_input_file == 0) {
 				printf("ERROR: File %s not found\n", args);
 			}
 			
             c64_setSubSong(0);
 		} else if (! strcmp(input, "play") || ! strcmp(input, "p")) {
 			int i;
-			if (! inputSidFile) {
+            if (! reveller_input_file) {
 				printf("No SID is loaded\n");
 				continue;
 			}
@@ -149,7 +147,7 @@ void console_interface(void) {
 			}
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
 			int i;
-			if (! inputSidFile) {
+            if (! reveller_input_file) {
 				printf("No SID is loaded\n");
 				continue;
 			}
@@ -184,7 +182,7 @@ void console_interface(void) {
 				interactive = 1;
                 c64_sid_resume();
 			}
-		} else if (interactive && inputSidFile) {
+        } else if (interactive && reveller_input_file) {
 			printf("Starting PlayAddr 1 time\n");
 			interpret(1, sh.playAddress);
 		}

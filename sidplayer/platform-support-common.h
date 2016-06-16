@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #define MAP_SIZE 4096UL
 #define MAP_MASK (MAP_SIZE - 1)
@@ -19,5 +20,6 @@ void* get_addr(uint32_t addr);
 void release_addr(void* addr);
 
 void set_realtime();
+void detect_platform();
 
 #endif

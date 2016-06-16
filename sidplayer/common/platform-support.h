@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
 /*
   These functions must be implemented to support a new platform
@@ -26,5 +27,6 @@ struct reveller_platform {
 };
 
 extern struct reveller_platform *reveller;
+extern FILE* reveller_input_file;
 
 #endif

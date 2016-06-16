@@ -4,8 +4,7 @@ PROJECT(sidplayer)
 
 ADD_SUBDIRECTORY(c64emu) # "${CMAKE_CURRENT_BINARY_DIR}/c64emu")
 
-ADD_EXECUTABLE(sidplayer
-    sidplayer.c
+ADD_LIBRARY(reveller
     console-interface.c
 
     platform-support-common.c
@@ -16,9 +15,13 @@ ADD_EXECUTABLE(sidplayer
     common/endian-conversion.c
 )
 
+ADD_EXECUTABLE(sidplayer
+    sidplayer.c
+)
+
 INCLUDE_DIRECTORIES(c64emu common)
 
 SET(CMAKE_C_FLAGS "-Wall")
 
-TARGET_LINK_LIBRARIES(sidplayer c64emu)
+TARGET_LINK_LIBRARIES(sidplayer c64emu reveller)
 

@@ -1,16 +1,17 @@
 #include "platform-support-common.h"
+#include "platform-support.h"
 
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 
 #include <sched.h>
 
-extern FILE* inputSidFile;
-extern FILE* outfile;
+FILE* reveller_input_file = NULL;
 
 void common_platform_debug(const char *msg, ...) {
     va_list argp;
@@ -38,10 +39,10 @@ void common_platform_abort(const char *msg, ...) {
 size_t common_platform_read_source(uint32_t offset, uint32_t length, uint8_t *dest) {
     size_t ret;
     // printf("Reading at offset %d - %d bytes\n", offset, length);
-    if (fseek(inputSidFile, offset, SEEK_SET) < 0) {
+    if (fseek(reveller_input_file, offset, SEEK_SET) < 0) {
         common_platform_abort("Failed to seek inputSidFile, offset %x\n", offset);
     }
-    ret = fread(dest, 1, length, inputSidFile);
+    ret = fread(dest, 1, length, reveller_input_file);
     return ret;
 }
 
@@ -84,5 +85,55 @@ void set_realtime() {
     param.sched_priority = 20;
     if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
         printf("Failed to get RealTime priority");
+    }
+}
+
+extern struct reveller_platform dummy_platform;
+extern struct reveller_platform rpi_platform;
+extern struct reveller_platform rpi2_platform;
+extern struct reveller_platform bbb_platform;
+struct reveller_platform *reveller = NULL;
+
+void detect_platform() {
+    reveller = &dummy_platform;
+
+    struct stat info;
+    if (stat("/proc", &info) != 0) {
+        return;
+    } else if (info.st_mode & S_IFDIR) {    // S_ISDIR() if avail. on windows
+        FILE *fp;
+
+        if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
+            return;
+        }
+
+        char buffer[1024];
+        char hardware[1024];
+        while(! feof(fp)) {
+            fgets(buffer, sizeof(buffer), fp);
+            int res = sscanf(buffer, "Hardware	: %1023c", hardware);
+            hardware[1023] = 0;
+
+            switch (res) {
+            case 0:
+                break;
+            case EOF:
+                break;
+            default:
+                if (strstr(hardware, "BCM2708") != NULL) {
+                    reveller = &rpi_platform;
+                } else if (strstr(hardware, "BCM2709") != NULL) {
+                    reveller = &rpi2_platform;
+                } else if (strstr(hardware, "AM33XX") != NULL) {
+                    reveller = &bbb_platform;
+                }
+
+                break;
+            }
+        }
+
+        fclose(fp);
+    } else {
+        return;
     }
 }
