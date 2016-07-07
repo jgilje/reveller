@@ -88,6 +88,7 @@ void set_realtime() {
     }
 }
 
+extern struct reveller_platform stream_platform;
 extern struct reveller_platform dummy_platform;
 extern struct reveller_platform rpi_platform;
 extern struct reveller_platform rpi2_platform;
@@ -98,7 +99,10 @@ void detect_platform() {
     reveller = &dummy_platform;
 
     struct stat info;
-    if (stat("/proc", &info) != 0) {
+    if (stat("/dev/reveller", &info) == 0) {
+        reveller = &stream_platform;
+        return;
+    } else if (stat("/proc", &info) != 0) {
         return;
     } else if (info.st_mode & S_IFDIR) {    // S_ISDIR() if avail. on windows
         FILE *fp;

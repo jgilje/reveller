@@ -11,6 +11,7 @@ ADD_LIBRARY(reveller
     platform-support-rpi.c
     platform-support-bbb.c
     platform-support-dummy.c
+    platform-support-stream.c
 
     common/endian-conversion.c
 )
