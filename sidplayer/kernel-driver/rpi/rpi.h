@@ -1,0 +1,5 @@
+#define PERI_BASE   0x20000000
+#define GPIO_BASE  (PERI_BASE + 0x200000)
+#define TIMER_BASE (PERI_BASE + 0x3000)
+
+#define IRQ_NO 24 + TIMER_NO
