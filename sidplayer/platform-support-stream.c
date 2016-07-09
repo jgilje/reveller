@@ -46,18 +46,11 @@ static void init() {
     }
 }
 
-static void stream_platform_debug(const char *msg, ...) {
-}
-
-void stream_platform_abort(const char *msg, ...) {
-    exit(1);
-}
-
 struct reveller_platform stream_platform = {
     .init = &init,
 
-    .debug = &stream_platform_debug,
-    .abort = &stream_platform_abort,
+    .debug = &common_platform_debug,
+    .abort = &common_platform_abort,
 
     .usleep = &stream_usleep,
     .shutdown = &stream_shutdown,
