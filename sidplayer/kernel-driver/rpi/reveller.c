@@ -25,10 +25,6 @@
 /*
 
 #include <linux/irq.h>
-
-
-#include <asm/uaccess.h>
-
 #include <plat/regs-timer.h>
 */
 
@@ -36,9 +32,18 @@
 #define TIMER_NO 1
 #define TIMER_MASK (1 << TIMER_NO)
 
-#define REVELLER_CLEAR 1024
+// IOCTL
+enum {
+REVELLER_CLEAR = 1024,
+REVELLER_PAUSE
+};
 
-#include "rpi-platform.h"
+static int rpi_peri_base = 0;
+static int rpi_irq_no = 0;
+#define GPIO_OFFSET  0x200000
+#define TIMER_OFFSET 0x3000
+#define PWM_OFFSET   0x20C000
+#define CLOCK_OFFSET 0x101000
 
 MODULE_LICENSE("GPL");
 
@@ -64,7 +69,7 @@ static struct device *reveller_device = NULL;
 static int timer_active = 0;
 static DECLARE_WAIT_QUEUE_HEAD(reveller_wq);
 
-#define CIRC_BUFFER_SIZE (1 << 20)
+#define CIRC_BUFFER_SIZE (1 << 16)
 static struct circ_buf cb;
 
 static inline void reveller_set_timer(unsigned int next) {
@@ -105,7 +110,7 @@ static void sid_write(uint8_t reg, uint8_t data) {
 	writel_relaxed(clear_pins, gpio0_clear);
 }
 
-static void advance_tail(void) {
+static void inline advance_tail(void) {
     cb.tail = (cb.tail + 1) & (CIRC_BUFFER_SIZE - 1);
 }
 
@@ -134,12 +139,14 @@ static unsigned int consume(int avail) {
         switch (cmd & 0xe0) {
         case 0x20:
             cmd = get_uint24_t();
-            // fprintf(stderr, "Consume Sleep: %d\n", cmd);
-            // reveller->usleep(cmd);
-            // avail -= 3;
+
+            if (cmd < 20) {
+                avail -= 3;
+                continue;
+            }
+
             return cmd;
         case 0:
-            // fprintf(stderr, "Consume Write: %x -> %hhx\n", cmd & 0x1f, cb.buf[cb.tail]);
             sid_write(cmd & 0x1f, cb.buf[cb.tail]);
             advance_tail();
             avail -= 1;
@@ -155,14 +162,12 @@ static unsigned int consume(int avail) {
 
 static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
     unsigned int t = readl_relaxed(timer);
-    // printk(KERN_DEBUG "reveller irq: %x %u\n", t, readl_relaxed(counter_lo));
 
     if (t & TIMER_MASK) {
         int avail;
         unsigned int next;
 
         writel_relaxed(TIMER_MASK, timer);
-        // printk(KERN_DEBUG "reveller: irq on mask: %x, now: %x\n", t, readl_relaxed(timer));
 
         avail = CIRC_CNT(cb.head, cb.tail, CIRC_BUFFER_SIZE);
         next = consume(avail);
@@ -209,29 +214,28 @@ static long reveller_chardev_ioctl(struct file *filp, unsigned int cmd, unsigned
 }
 
 
-static size_t buffer_bytes = 0;
-static void advance_head(size_t bytes) {
-    buffer_bytes -= bytes;
-    cb.head = (cb.head + bytes) & (CIRC_BUFFER_SIZE - 1);
-}
 
 static ssize_t reveller_chardev_write(struct file *filp, const char __user *buf, size_t count, loff_t *f_pos) {
-    buffer_bytes = count;
+    size_t consumed = 0;
 
-    while (buffer_bytes > 0) {
+    while (consumed < count) {
         size_t space = CIRC_SPACE(cb.head, cb.tail, CIRC_BUFFER_SIZE);
-        size_t to_end = CIRC_SPACE_TO_END(cb.head, cb.tail, CIRC_BUFFER_SIZE);
 
-        if (buffer_bytes > to_end) {
-            if (space == 0) {
-                wait_event_interruptible(reveller_wq, (space = CIRC_SPACE(cb.head, cb.tail, CIRC_BUFFER_SIZE)) > 0);
-            } else {
-                copy_from_user(&cb.buf[cb.head], buf, to_end);
-                advance_head(to_end);
+        if (space == 0) {
+            if (wait_event_interruptible_timeout(reveller_wq, (space = CIRC_SPACE(cb.head, cb.tail, CIRC_BUFFER_SIZE)) > 0, msecs_to_jiffies(1000)) == 0) {
+                printk(KERN_WARNING "reveller: timeout while waiting for free buffer. restarting IRQ\n");
+                reveller_set_timer(10000);
             }
         } else {
-            copy_from_user(&cb.buf[cb.head], buf, buffer_bytes);
-            advance_head(buffer_bytes);
+            size_t remaining = count - consumed;
+            size_t to_end = CIRC_SPACE_TO_END(cb.head, cb.tail, CIRC_BUFFER_SIZE);
+            size_t bytes = (to_end > remaining) ? remaining : to_end;
+            if (copy_from_user(&cb.buf[cb.head], &buf[consumed], bytes)) {
+                return -EFAULT;
+            }
+
+            consumed += bytes;
+            cb.head = (cb.head + bytes) & (CIRC_BUFFER_SIZE - 1);
         }
     }
 
@@ -293,7 +297,7 @@ static void reveller_cleanup(void) {
 static void reveller_init_gpio(void) {
     int result;
     
-    gpio = ioremap(GPIO_BASE, 4096);
+    gpio = ioremap(rpi_peri_base + GPIO_OFFSET, 4096);
     gpio0_fsel = gpio;
     gpio1_fsel = gpio + 4;
     gpio2_fsel = gpio + 8;
@@ -333,11 +337,11 @@ static void reveller_init_gpio(void) {
 
 static void reveller_init_pwm(void) {
     unsigned int pwm_pwd = (0x5A << 24);
-    void __iomem *pwm = ioremap(PWM_BASE, 4096);
+    void __iomem *pwm = ioremap(rpi_peri_base + PWM_OFFSET, 4096);
     void __iomem *rng1 = pwm + 0x10;
     void __iomem *dat1 = pwm + 0x14;
 
-    void __iomem *clock = ioremap(CLOCK_BASE, 4096);
+    void __iomem *clock = ioremap(rpi_peri_base + CLOCK_OFFSET, 4096);
     void __iomem *clock_cntl = clock + 0xa0;
     void __iomem *clock_div = clock + 0xa4;
 
@@ -365,61 +369,49 @@ static void reveller_init_pwm(void) {
 }
 
 static int reveller_init(void) {
-    int result;
+    int result = 0;
+    const char* model;
+    struct device_node *dn;
 
-    printk(KERN_DEBUG "reveller: init\n");
+    if ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2708")) != NULL) {
+        rpi_peri_base = 0x20000000;
+        rpi_irq_no = 24 + TIMER_NO;
+    } else if ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2709")) != NULL) {
+        rpi_peri_base = 0x3f000000;
+        rpi_irq_no = 30 + TIMER_NO;
+    }
+
+    if (dn == NULL) {
+        printk(KERN_WARNING "reveller: unable to detect raspberry pi platform. running on an old kernel? "
+                            "this module requires a kernel with device tree support\n");
+        goto fail;
+    }
+
+    of_property_read_string(dn, "model", &model);
+    printk("reveller: initializing on %s\n", model);
+    of_node_put(dn);
 
     cb.buf = kzalloc(CIRC_BUFFER_SIZE, GFP_KERNEL);
     // timer_resource = request_mem_region(TIMER_BASE, 4096, "Reveller");
-    timer = ioremap(TIMER_BASE, 4096);
-    printk(KERN_DEBUG "reveller: timer address %x: %p\n", TIMER_BASE, timer);
+    timer = ioremap(rpi_peri_base + TIMER_OFFSET, 4096);
     if (timer == NULL) {
-        return -1;
+        goto fail;
     }
 
-    printk(KERN_DEBUG "reveller: tcon: %x\n", readl_relaxed(timer));
     counter_lo = timer + 0x4;
     compare = timer + 0xc + (4 * TIMER_NO);// + 4;
-    printk(KERN_DEBUG "reveller: compare: %p %u\n", compare, readl_relaxed(compare));
 
     // unsigned int mapped_irq = irq_create_mapping(NULL, IRQ_NO);
     // printk(KERN_DEBUG "reveller: mapped %d to %d\n", IRQ_NO, mapped_irq);
 
-    result = request_irq(IRQ_NO, reveller_interrupt, 0, "Reveller", NULL);
+    result = request_irq(rpi_irq_no, reveller_interrupt, 0, "Reveller", NULL);
     if (result < 0) {
         printk(KERN_DEBUG "reveller: failed to register irq handler\n");
-        return result;
+        goto fail;
     }
-
 
     reveller_init_gpio();
     reveller_init_pwm();
-
-    /*
-    unsigned int now = readl_relaxed(counter_lo);
-    printk(KERN_DEBUG "reveller: init now %u, next: %u\n", now, now + WAIT);
-    writel_relaxed(TIMER_MASK, timer);
-    writel_relaxed(now + WAIT, compare);
-    printk(KERN_DEBUG "reveller: after init: %p %u %u\n", compare, readl_relaxed(counter_lo), readl_relaxed(compare));
-    */
-    // writel_relaxed(readl(counter_lo) + WAIT, compare);
-
-    /*
-    static void __iomem *int_base = NULL;
-    int_base = ioremap(BCM2709_PERI_BASE + 0xB000, 4096);
-    printk(KERN_DEBUG "reveller: int1 %x, int2 %x, intbase %x\n",
-        readl_relaxed(int_base + 0x210),
-        readl_relaxed(int_base + 0x214),
-        readl_relaxed(int_base + 0x218)
-    );
-    writel_relaxed(0xf8000, int_base + 0x210);
-    printk(KERN_DEBUG "reveller: int1 %x, int2 %x, intbase %x\n",
-        readl_relaxed(int_base + 0x210),
-        readl_relaxed(int_base + 0x214),
-        readl_relaxed(int_base + 0x218)
-    );
-    iounmap(int_base);
-    */
 
     /* Get a range of minor numbers (starting with 0) to work with */
     result = alloc_chrdev_region(&reveller_dev, 0, 1, "reveller");
@@ -469,15 +461,14 @@ static int reveller_init(void) {
 
 static void reveller_exit(void) {
     reveller_cleanup();
-    
-    
+
     /*
     if (timer_resource != NULL) {
         release_mem_region(TIMER_BASE, 4096);
     }
     */
 
-    free_irq(IRQ_NO, NULL);
+    free_irq(rpi_irq_no, NULL);
     printk(KERN_DEBUG "reveller: exit()\n");
 }
 
