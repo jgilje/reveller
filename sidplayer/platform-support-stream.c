@@ -8,21 +8,27 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-static int reveller_fileno = -1;
+#define BUFFER_SIZE 4096
 
-union command {
-    uint8_t c[4];
-    uint32_t us;
-};
+static int reveller_fileno = -1;
+static uint8_t buffer[BUFFER_SIZE];
+static int buffer_pos = 0;
+
+static void advance(int bytes) {
+    buffer_pos += bytes;
+
+    if (buffer_pos >= (BUFFER_SIZE - 4)) {
+        write(reveller_fileno, buffer, buffer_pos);
+        buffer_pos = 0;
+    }
+}
 
 static void stream_usleep(uint32_t us) {
-    // union command u = {.us = us & 0xffffff};
-    uint8_t c[4];
-    c[0] = 0x20;
-    c[1] = (us >> 16) & 0xff;
-    c[2] = (us >>  8) & 0xff;
-    c[3] = us & 0xff;
-    write(reveller_fileno, &c, sizeof(c));
+    buffer[buffer_pos + 0] = 0x20;
+    buffer[buffer_pos + 1] = (us >> 16) & 0xff;
+    buffer[buffer_pos + 2] = (us >>  8) & 0xff;
+    buffer[buffer_pos + 3] = us & 0xff;
+    advance(4);
 }
 
 static void stream_shutdown() {
@@ -32,10 +38,9 @@ static void stream_shutdown() {
 }
 
 static void stream_sid_write(uint8_t reg, uint8_t data) {
-    uint8_t buf[2];
-    buf[0] = reg & 0x1f;
-    buf[1] = data;
-    write(reveller_fileno, buf, 2);
+    buffer[buffer_pos + 0] = reg & 0x1f;
+    buffer[buffer_pos + 1] = data;
+    advance(2);
 }
 
 static void init() {
