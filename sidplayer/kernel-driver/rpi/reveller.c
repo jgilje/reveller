@@ -425,8 +425,6 @@ static int reveller_init(void) {
     }
     reveller_major = MAJOR(reveller_dev);
 
-    printk(KERN_DEBUG "reveller: registered with major %d\n", reveller_major);
-
     /* Create device class (before allocation of the array of devices) */
     reveller_class = class_create(THIS_MODULE, "reveller");
     if (IS_ERR(reveller_class)) {
