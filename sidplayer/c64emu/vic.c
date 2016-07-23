@@ -18,6 +18,7 @@ void c64_vic_write(unsigned char addr, unsigned char data) {
 		case 0x1a:			// Interrupt Enable
 			vicReg.icr = (data & 0xf);
 			if (vicReg.icr != 0) {
+				// PAL timing in bus cycles: 20000.0 * (985248.0 / 1000000.0)
 				c64_vic_timer.latch = 19705;	// PAL latch, NTSC is different
 				c64_vic_timer.counter = c64_vic_timer.latch;
 				c64_vic_timer.enabled = 1;
