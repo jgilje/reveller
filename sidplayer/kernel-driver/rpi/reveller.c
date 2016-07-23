@@ -31,6 +31,11 @@
 #define WAIT 1000000
 #define TIMER_NO 1
 #define TIMER_MASK (1 << TIMER_NO)
+/* This 'magic' number has been found by listening to Turbo_Outrun and comparing with actual
+ * recordings from Stone Oakvalley. This value adjusts for the delay between the requested timer
+ * interrupt and actual time of interrupt.
+ */
+#define TIMER_SUBTRACT 5
 
 // IOCTL
 enum {
@@ -74,8 +79,7 @@ static struct circ_buf cb;
 
 static inline void reveller_set_timer(unsigned int next) {
     unsigned int now = readl_relaxed(counter_lo);
-    // printk(KERN_DEBUG "reveller: now %u, next: %u\n", now, now + WAIT);
-    writel_relaxed(now + next, compare);
+    writel_relaxed(now + next - TIMER_SUBTRACT, compare);
 }
 
 static void sid_write(uint8_t reg, uint8_t data) {
