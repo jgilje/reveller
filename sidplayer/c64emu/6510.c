@@ -280,6 +280,7 @@ int32_t c64_play(void) {
 		sleep_time += next;
 	}
 	
+	sleep_time = sleep_time * (1000000.0f / (float) sh.hz);
 	return sleep_time;
 }
 

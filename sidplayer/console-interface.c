@@ -36,8 +36,7 @@ void continuosPlay(void) {
 	
 	while (getc(stdin) < 0) {
 		int32_t next = c64_play();
-		next = next * ((float) sh.hz / 1000000.0f);
-        reveller->usleep(next);
+		reveller->usleep(next);
 	}
 	
 	if (fcntl(STDIN_FILENO, F_SETFL, originalFcntl) < 0) {
