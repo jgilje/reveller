@@ -2,7 +2,7 @@
 package main
 
 import (
-	"code.google.com/p/go.net/websocket"
+	"golang.org/x/net/websocket"
 	"flag"
 	"log"
 	"net/http"
