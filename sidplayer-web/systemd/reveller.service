@@ -1,0 +1,10 @@
+[Unit]
+Description=Reveller
+After=network.target
+
+[Service]
+ExecStart=/opt/reveller/bin/sidplayer-web -player ../bin/sidplayer -rootpath ../C64Music
+WorkingDirectory=/opt/reveller/www
+
+[Install]
+WantedBy=default.target
