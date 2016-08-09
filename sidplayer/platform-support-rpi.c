@@ -157,7 +157,7 @@ static void init_rpi() {
     }
 
     init_gpio(BCM2835_BASE);
-    init_pwm(BCM2836_BASE);
+    init_pwm(BCM2835_BASE);
 }
 
 static void init_rpi2() {
