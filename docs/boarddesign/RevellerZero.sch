@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.5.0">
+<eagle version="7.6.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -1990,7 +1990,6 @@ Source: http://www.vishay.com/docs/20008/dcrcw.pdf</description>
 <wire x1="57.235" y1="29.05" x2="55.965" y2="29.05" width="0.1524" layer="21"/>
 <wire x1="57.235" y1="29.05" x2="57.87" y2="28.415" width="0.1524" layer="21"/>
 <wire x1="57.87" y1="24.605" x2="57.235" y2="23.97" width="0.1524" layer="21"/>
-<wire x1="57.235" y1="23.97" x2="55.965" y2="23.97" width="0.1524" layer="21"/>
 <wire x1="55.33" y1="24.605" x2="55.965" y2="23.97" width="0.1524" layer="21"/>
 <wire x1="57.87" y1="28.415" x2="57.87" y2="24.605" width="0.1524" layer="21"/>
 <pad name="1" x="8.37" y="25.24" drill="1.016" shape="square"/>
@@ -2037,8 +2036,6 @@ Source: http://www.vishay.com/docs/20008/dcrcw.pdf</description>
 <text x="20" y="22.28" size="1.27" layer="21">11</text>
 <text x="33" y="22.28" size="1.27" layer="21">21</text>
 <text x="45.5" y="22.28" size="1.27" layer="21">31</text>
-<text x="10.5" y="3.5" size="1.27" layer="21" align="center">Raspberry Pi
-ZERO</text>
 </package>
 </packages>
 <symbols>

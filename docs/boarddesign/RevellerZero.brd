@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.5.0">
+<eagle version="7.6.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -87,8 +87,14 @@
 </layers>
 <board>
 <plain>
-<text x="19.812" y="6.985" size="1.778" layer="25" rot="R180">Reveller-Zero</text>
-<text x="14.224" y="4.572" size="1.778" layer="25" rot="R180">#FluxXx</text>
+<text x="20.066" y="7.366" size="1.27" layer="31" font="vector" ratio="12" distance="40" rot="R180">Reveller-Zero
+Sidplayer
+#FluxXx
+</text>
+<text x="20.066" y="7.366" size="1.27" layer="29" font="vector" ratio="12" distance="40" rot="R180">Reveller-Zero
+Sidplayer
+#FluxXx
+</text>
 </plain>
 <libraries>
 <library name="ic-package">
@@ -549,7 +555,6 @@ http://www.chemi-con.co.jp/e/catalog/pdf/al-e/al-sepa-e/002-cp/al-pxe-e-111201.p
 <wire x1="57.235" y1="29.05" x2="55.965" y2="29.05" width="0.1524" layer="21"/>
 <wire x1="57.235" y1="29.05" x2="57.87" y2="28.415" width="0.1524" layer="21"/>
 <wire x1="57.87" y1="24.605" x2="57.235" y2="23.97" width="0.1524" layer="21"/>
-<wire x1="57.235" y1="23.97" x2="55.965" y2="23.97" width="0.1524" layer="21"/>
 <wire x1="55.33" y1="24.605" x2="55.965" y2="23.97" width="0.1524" layer="21"/>
 <wire x1="57.87" y1="28.415" x2="57.87" y2="24.605" width="0.1524" layer="21"/>
 <pad name="1" x="8.37" y="25.24" drill="1.016" shape="square"/>
@@ -596,8 +601,6 @@ http://www.chemi-con.co.jp/e/catalog/pdf/al-e/al-sepa-e/002-cp/al-pxe-e-111201.p
 <text x="20" y="22.28" size="1.27" layer="21">11</text>
 <text x="33" y="22.28" size="1.27" layer="21">21</text>
 <text x="45.5" y="22.28" size="1.27" layer="21">31</text>
-<text x="10.5" y="3.5" size="1.27" layer="21" align="center">Raspberry Pi
-ZERO</text>
 </package>
 </packages>
 </library>
@@ -819,7 +822,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="61.479090625" y="7.8640375" size="0.6096" layer="26" font="vector" ratio="16" rot="MR179.9"/>
 </element>
 <element name="C106" library="cyviz" package="SMD-IPC_CT7343" value="10uF" x="7.747" y="5.588" smashed="yes" rot="MR270">
-<attribute name="NAME" x="5.334" y="1.143" size="0.6096" layer="26" font="vector" ratio="16" rot="MR180"/>
+<attribute name="NAME" x="4.699" y="1.143" size="0.6096" layer="26" font="vector" ratio="16" rot="MR180"/>
 </element>
 <element name="C105" library="cyviz" package="SMD-IPC_CT7343" value="10uF" x="13.589" y="5.588" smashed="yes" rot="MR270">
 <attribute name="NAME" x="11.303" y="1.143" size="0.6096" layer="26" font="vector" ratio="16" rot="MR180"/>
@@ -1168,8 +1171,8 @@ design rules under a new name.</description>
 <polygon width="0.3048" layer="1" isolate="0.254" rank="2">
 <vertex x="12.192" y="26.543"/>
 <vertex x="12.319" y="29.591"/>
-<vertex x="2.667" y="29.591"/>
-<vertex x="0.254" y="27.178"/>
+<vertex x="2.032" y="30.353"/>
+<vertex x="-0.381" y="27.94"/>
 <vertex x="0.127" y="10.414"/>
 <vertex x="11.176" y="10.414"/>
 <vertex x="11.049" y="16.764"/>
