@@ -39,7 +39,7 @@
 
 // IOCTL
 enum {
-REVELLER_CLEAR = 1024,
+REVELLER_FLUSH = 1024,
 REVELLER_PAUSE
 };
 
@@ -189,7 +189,7 @@ static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
     }
 }
 
-static void reveller_clear(void) {
+static void reveller_flush(void) {
     cb.head = cb.tail = 0;
     timer_active = 0;
 }
@@ -198,7 +198,7 @@ static int reveller_chardev_open(struct inode *inode, struct file *filp) {
     return 0;
 }
 static int reveller_chardev_release(struct inode *inode, struct file *filp) {
-    reveller_clear();
+    reveller_flush();
     sid_write(0x18, 0);
     return 0;
 }
@@ -207,8 +207,8 @@ static ssize_t reveller_chardev_read(struct file *filp, char *buf, size_t count,
 }
 static long reveller_chardev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
     switch (cmd) {
-        case REVELLER_CLEAR:
-            reveller_clear();
+        case REVELLER_FLUSH:
+            reveller_flush();
             break;
         default:
             return 1;

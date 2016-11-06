@@ -6,9 +6,15 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 
 #define BUFFER_SIZE 4096
+
+enum {
+IOCTL_REVELLER_FLUSH = 1024,
+IOCTL_REVELLER_PAUSE
+};
 
 static int reveller_fileno = -1;
 static uint8_t buffer[BUFFER_SIZE];
@@ -51,6 +57,10 @@ static void init() {
     }
 }
 
+static void stream_flush() {
+    ioctl(reveller_fileno, IOCTL_REVELLER_FLUSH);
+}
+
 struct reveller_platform stream_platform = {
     .init = &init,
 
@@ -61,6 +71,7 @@ struct reveller_platform stream_platform = {
     .shutdown = &stream_shutdown,
 
     .read = &common_platform_read_source,
+    .flush = &stream_flush,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,

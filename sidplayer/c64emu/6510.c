@@ -370,6 +370,8 @@ void c64_sid_init(void) {
 }
 
 void c64_setSubSong(unsigned char song) {
+    reveller->flush();
+
 	c64_cia_init();
 	c64_vic_init();
 	c64_sid_init();
