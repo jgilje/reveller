@@ -199,7 +199,6 @@ struct reveller_platform rpi2_platform = {
     .shutdown = &rpi_shutdown,
 
     .read = &common_platform_read_source,
-    .flush = &common_platform_flush,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,

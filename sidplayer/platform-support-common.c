@@ -36,9 +36,6 @@ void common_platform_abort(const char *msg, ...) {
     exit(1);
 }
 
-void common_platform_flush() {
-}
-
 size_t common_platform_read_source(uint32_t offset, uint32_t length, uint8_t *dest) {
     size_t ret;
     // printf("Reading at offset %d - %d bytes\n", offset, length);

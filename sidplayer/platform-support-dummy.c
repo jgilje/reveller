@@ -22,10 +22,6 @@ static void dummy_usleep(uint32_t us) {
 #endif
 }
 
-static void dummy_shutdown() {
-
-}
-
 static void dummy_sid_write(uint8_t reg, uint8_t data) {
 //	platform_debug("SID Write: %x: %x\n", reg, data);
 }
@@ -40,10 +36,8 @@ struct reveller_platform dummy_platform = {
     .abort = &common_platform_abort,
 
     .usleep = &dummy_usleep,
-    .shutdown = &dummy_shutdown,
 
     .read = &common_platform_read_source,
-    .flush = &common_platform_flush,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,

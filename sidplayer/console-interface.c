@@ -196,7 +196,9 @@ void console_interface(void) {
 		} else if (! strcmp(input, "dump") || ! strcmp(input, "d")) {
             c64_dumpMem();
 		} else if (! strcmp(input, "quit") || ! strcmp(input, "q")) {
-            reveller->shutdown();
+            if (reveller->shutdown) {
+                reveller->shutdown();
+            }
 
 			fflush(NULL);
 			printf("Bye\n");
