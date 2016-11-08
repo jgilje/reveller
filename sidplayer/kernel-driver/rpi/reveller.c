@@ -12,6 +12,7 @@
 #include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
+#include <linux/poll.h>
 
 #include <linux/slab.h>
 #include <linux/circ_buf.h>
@@ -176,7 +177,7 @@ static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
         avail = CIRC_CNT(cb.head, cb.tail, CIRC_BUFFER_SIZE);
         next = consume(avail);
 
-        wake_up(&reveller_wq);
+        wake_up_interruptible(&reveller_wq);
         if (next == 0) {
             timer_active = 0;
             return IRQ_HANDLED;
@@ -251,10 +252,25 @@ static ssize_t reveller_chardev_write(struct file *filp, const char __user *buf,
     return 0;
 }
 
+static unsigned int reveller_poll(struct file *filp, poll_table *wait) {
+    poll_wait(filp, &reveller_wq, wait);
+    /* poll for at least 1/8 of CIRC_BUFFER_SIZE before reporting avail
+     *
+     * because a write cycle writes more than just a couple of bytes,
+     * we wait until a relatively large buffer is avail.
+     */
+    if (CIRC_SPACE(cb.head, cb.tail, CIRC_BUFFER_SIZE) > (CIRC_BUFFER_SIZE / 8)) {
+        return (POLLOUT | POLLWRNORM);
+    }
+
+    return 0;
+}
+
 static struct file_operations reveller_fops = {
   .owner = THIS_MODULE,
   .read = reveller_chardev_read,
   .write = reveller_chardev_write,
+  .poll = reveller_poll,
   .unlocked_ioctl = reveller_chardev_ioctl,
   .open = reveller_chardev_open,
   .release = reveller_chardev_release
