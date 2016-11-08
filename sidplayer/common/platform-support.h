@@ -19,6 +19,7 @@ struct reveller_platform {
 
     size_t (*read)(uint32_t offset, uint32_t length, uint8_t *dest);
     void (*flush)();
+    int (*write_handle)();
 
     void (*sid_block_start)(void);
     void (*sid_block_end)(void);

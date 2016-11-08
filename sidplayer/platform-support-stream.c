@@ -9,7 +9,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 8192
 
 enum {
 IOCTL_REVELLER_FLUSH = 1024,
@@ -61,6 +61,10 @@ static void stream_flush() {
     ioctl(reveller_fileno, IOCTL_REVELLER_FLUSH);
 }
 
+static int stream_write_handle() {
+    return reveller_fileno;
+}
+
 struct reveller_platform stream_platform = {
     .init = &init,
 
@@ -72,6 +76,7 @@ struct reveller_platform stream_platform = {
 
     .read = &common_platform_read_source,
     .flush = &stream_flush,
+    .write_handle = &stream_write_handle,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,

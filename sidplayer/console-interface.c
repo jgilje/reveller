@@ -6,44 +6,74 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <poll.h>
 #endif
+
 #if defined _WIN32
 #include <conio.h>
 #endif
 
 void continuosPlay(void) {
+    c64_sid_resume();
+
 #if defined unix || (defined(__APPLE__) && defined(__MACH__))
 	struct termios currentTerm;
 	struct termios originalTerm;
-	int originalFcntl;
 	
-    c64_sid_resume();
-
     tcgetattr(STDIN_FILENO, &currentTerm);
-	originalTerm = currentTerm;
-	
-	currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
-	currentTerm.c_cc[VMIN] = 1;
-	currentTerm.c_cc[VTIME] = 0;
-	tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
-	originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
-	if (fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK) < 0) {
-        reveller->abort("Failed to set stdin nonblocking\n");
-	}
-	
-	printf("Playing... (any key to stop)...");
-	fflush(stdout);
-	
-	while (getc(stdin) < 0) {
-		int32_t next = c64_play();
-		reveller->usleep(next);
-	}
-	
-	if (fcntl(STDIN_FILENO, F_SETFL, originalFcntl) < 0) {
-        reveller->abort("Failed to restore stdin\n");
-	}
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
-	printf("\n");
+    originalTerm = currentTerm;
+    currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
+    currentTerm.c_cc[VMIN] = 1;
+    currentTerm.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &currentTerm);
+
+    printf("Playing... (any key to stop)...");
+    fflush(stdout);
+
+    if (reveller->write_handle) {
+        struct pollfd pollfds[2];
+        memset(&pollfds, 0, sizeof(struct pollfd) * 2);
+        pollfds[0].fd = STDIN_FILENO;
+        pollfds[0].events = POLLIN;
+
+        pollfds[1].fd = reveller->write_handle();
+        pollfds[1].events = POLLOUT;
+
+        int ok = 1;
+        while (ok) {
+            int ret = poll(&pollfds[0], 2, -1);
+            if (ret > 0) {
+                if (pollfds[0].revents & POLLIN) {
+                    ok = 0;
+                }
+                if (pollfds[1].revents & POLLOUT) {
+                    int32_t next = c64_play();
+                    reveller->usleep(next);
+                }
+            } else {
+                reveller->abort("Failed poll() in continuosPlay()\n");
+                ok = 0;
+            }
+        }
+    } else {
+        int originalFcntl = fcntl(STDIN_FILENO, F_GETFL, 1);
+        if (fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK) < 0) {
+            reveller->abort("Failed to set stdin nonblocking\n");
+        }
+
+        while (getc(stdin) < 0) {
+            int32_t next = c64_play();
+            reveller->usleep(next);
+        }
+
+        if (fcntl(STDIN_FILENO, F_SETFL, originalFcntl) < 0) {
+            reveller->abort("Failed to restore stdin\n");
+        }
+    }
+
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTerm);
+
+    printf("\n");
 	fflush(stdout);
 #elif defined _WIN32
 	while (! _kbhit()) {
