@@ -14,6 +14,8 @@ size_t common_platform_read_source(uint32_t offset, uint32_t length, uint8_t *de
 
 void common_sid_block_start(void);
 void common_sid_block_end(void);
+void common_pause();
+void common_resume();
 
 int open_mem();
 void* get_addr(uint32_t addr);

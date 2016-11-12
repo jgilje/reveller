@@ -410,11 +410,3 @@ void c64_setSubSong(unsigned char song) {
 		}
 	}
 }
-
-void c64_sid_pause() {
-    reveller->sid_write(0x18, 0);
-}
-
-void c64_sid_resume() {
-    reveller->sid_write(0x18, c64_sid_register[0x18]);
-}

@@ -194,6 +194,8 @@ struct reveller_platform bbb_platform = {
     .debug = &common_platform_debug,
     .abort = &common_platform_abort,
 
+    .pause = &common_pause,
+    .resume = &common_resume,
     .usleep = &bbb_usleep,
     .shutdown = &shutdown,
 

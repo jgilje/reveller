@@ -14,6 +14,8 @@ struct reveller_platform {
     void (*debug)(const char *msg, ...);
     void (*abort)(const char *msg, ...);
 
+    void (*pause)();
+    void (*resume)();
     void (*usleep)(uint32_t us);
     void (*shutdown)();
 

@@ -1,6 +1,8 @@
 #include "platform-support-common.h"
 #include "platform-support.h"
 
+#include "c64emu/6510.h"
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +52,13 @@ void common_sid_block_start() {
 }
 
 void common_sid_block_end() {
+}
+
+void common_pause() {
+    reveller->sid_write(0x18, 0);
+}
+void common_resume() {
+    reveller->sid_write(0x18, c64_sid_register[0x18]);
 }
 
 static int fd_mem = -1;

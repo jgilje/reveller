@@ -35,6 +35,8 @@ struct reveller_platform dummy_platform = {
     .debug = &common_platform_debug,
     .abort = &common_platform_abort,
 
+    .pause = &common_pause,
+    .resume = &common_resume,
     .usleep = &dummy_usleep,
 
     .read = &common_platform_read_source,

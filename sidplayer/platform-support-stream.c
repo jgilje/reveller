@@ -13,7 +13,8 @@
 
 enum {
 IOCTL_REVELLER_FLUSH = 1024,
-IOCTL_REVELLER_PAUSE
+IOCTL_REVELLER_PAUSE,
+IOCTL_REVELLER_RESUME
 };
 
 static int reveller_fileno = -1;
@@ -61,6 +62,14 @@ static void stream_flush() {
     ioctl(reveller_fileno, IOCTL_REVELLER_FLUSH);
 }
 
+static void stream_pause() {
+    ioctl(reveller_fileno, IOCTL_REVELLER_PAUSE);
+}
+
+static void stream_resume() {
+    ioctl(reveller_fileno, IOCTL_REVELLER_RESUME);
+}
+
 static int stream_write_handle() {
     return reveller_fileno;
 }
@@ -71,6 +80,8 @@ struct reveller_platform stream_platform = {
     .debug = &common_platform_debug,
     .abort = &common_platform_abort,
 
+    .pause = &stream_pause,
+    .resume = &stream_resume,
     .usleep = &stream_usleep,
     .shutdown = &stream_shutdown,
 

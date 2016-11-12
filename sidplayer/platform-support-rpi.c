@@ -177,6 +177,8 @@ struct reveller_platform rpi_platform = {
     .debug = &common_platform_debug,
     .abort = &common_platform_abort,
 
+    .pause = &common_pause,
+    .resume = &common_resume,
     .usleep = &rpi_usleep,
     .shutdown = &rpi_shutdown,
 
@@ -195,6 +197,8 @@ struct reveller_platform rpi2_platform = {
     .debug = &common_platform_debug,
     .abort = &common_platform_abort,
 
+    .pause = &common_pause,
+    .resume = &common_resume,
     .usleep = &rpi_usleep,
     .shutdown = &rpi_shutdown,
 

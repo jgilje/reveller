@@ -14,7 +14,7 @@
 #endif
 
 void continuosPlay(void) {
-    c64_sid_resume();
+    reveller->resume();
 
 #if defined unix || (defined(__APPLE__) && defined(__MACH__))
 	struct termios currentTerm;
@@ -89,7 +89,7 @@ void continuosPlay(void) {
 	#error Unimplemented continuosPlay for this platform
 #endif
 
-    c64_sid_pause();
+    reveller->pause();
 }
 
 char* nextToken(char* in) {
@@ -167,13 +167,13 @@ void console_interface(void) {
 			printf("Starting PlayAddr %d times\n", i);
 			{
 				int j;
-				for (j = 0; j < i; j++) {
-                    c64_sid_resume();
+                reveller->resume();
+                for (j = 0; j < i; j++) {
 					c64_play();
-                    c64_sid_pause();
                     reveller->usleep(1000000 / 55);
 				}
-			}
+                reveller->pause();
+            }
 		} else if (! strcmp(input, "song") || ! strcmp(input, "s")) {
 			int i;
             if (! reveller_input_file) {
@@ -207,11 +207,11 @@ void console_interface(void) {
 			if (interactive) {
 				printf("Disabling interactive mode\n");
 				interactive = 0;
-                c64_sid_pause();
+                reveller->pause();
 			} else {
 				printf("Enabling interactive mode\n");
 				interactive = 1;
-                c64_sid_resume();
+                reveller->resume();
 			}
         } else if (interactive && reveller_input_file) {
 			printf("Starting PlayAddr 1 time\n");
