@@ -41,7 +41,8 @@
 // IOCTL
 enum {
 REVELLER_FLUSH = 1024,
-REVELLER_PAUSE
+REVELLER_PAUSE,
+REVELLER_RESUME
 };
 
 static int rpi_peri_base = 0;
@@ -78,6 +79,8 @@ static DECLARE_WAIT_QUEUE_HEAD(reveller_wq);
 #define CIRC_BUFFER_SIZE (1 << 16)
 static struct circ_buf cb;
 
+static uint8_t c64_sid_register[0x1f];
+
 static inline void reveller_set_timer(unsigned int next) {
     unsigned int now = readl_relaxed(counter_lo);
     writel_relaxed(now + next - TIMER_SUBTRACT, compare);
@@ -113,6 +116,8 @@ static void sid_write(uint8_t reg, uint8_t data) {
 	set_pins |= (1 << 4);		// SID CS
 	writel_relaxed(set_pins, gpio0_set);
 	writel_relaxed(clear_pins, gpio0_clear);
+	
+	c64_sid_register[reg & 0x1f] = data;
 }
 
 static void inline advance_tail(void) {
@@ -210,6 +215,16 @@ static long reveller_chardev_ioctl(struct file *filp, unsigned int cmd, unsigned
     switch (cmd) {
         case REVELLER_FLUSH:
             reveller_flush();
+            break;
+        case REVELLER_PAUSE:
+            sid_write(0x18, 0);
+            writel(0x0, compare);
+            timer_active = 0;
+            break;
+        case REVELLER_RESUME:
+            sid_write(0x18, c64_sid_register[0x18]);
+            reveller_set_timer(1000);
+            timer_active = 1;
             break;
         default:
             return 1;
