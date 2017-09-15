@@ -133,7 +133,7 @@ void detect_platform() {
             case EOF:
                 break;
             default:
-                if (strstr(hardware, "BCM2708") != NULL) {
+                if (strstr(hardware, "BCM2708") != NULL || strstr(hardware, "BCM2835") != NULL) {
                     reveller = &rpi_platform;
                 } else if (strstr(hardware, "BCM2709") != NULL) {
                     reveller = &rpi2_platform;
