@@ -408,10 +408,13 @@ static int reveller_init(void) {
     const char* model;
     struct device_node *dn;
 
-    if ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2708")) != NULL) {
+    if (((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2708")) != NULL) ||
+        ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2835")) != NULL)) {
         rpi_peri_base = 0x20000000;
         rpi_irq_no = 24 + TIMER_NO;
-    } else if ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2709")) != NULL) {
+    } else if (((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2709")) != NULL) ||
+               ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2836")) != NULL) ||
+               ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2837")) != NULL)) {
         rpi_peri_base = 0x3f000000;
         rpi_irq_no = 30 + TIMER_NO;
     }
@@ -439,6 +442,10 @@ static int reveller_init(void) {
     // unsigned int mapped_irq = irq_create_mapping(NULL, IRQ_NO);
     // printk(KERN_DEBUG "reveller: mapped %d to %d\n", IRQ_NO, mapped_irq);
 
+    // TODO use irq_of_parse_and_map(device_node, index) (where device_node is brcm,bcm2835-system-timer)
+    // of_irq_parse_one(device, index, struct of_phandle_args oirq) - resolve an interrupt - drivers/of/irq.c
+    // of_irq_get(device, index) - Decode a node's IRQ and return it as a Linux IRQ number - use brcm,bcm2835-armctrl-ic
+    //                                                                                           brcm,bcm2836-armctrl-ic
     result = request_irq(rpi_irq_no, reveller_interrupt, 0, "Reveller", NULL);
     if (result < 0) {
         printk(KERN_DEBUG "reveller: failed to register irq handler\n");
