@@ -36,7 +36,7 @@
  * recordings from Stone Oakvalley. This value adjusts for the delay between the requested timer
  * interrupt and actual time of interrupt.
  */
-#define TIMER_SUBTRACT 5
+#define TIMER_SUBTRACT 25
 
 // IOCTL
 enum {
@@ -82,15 +82,21 @@ static struct circ_buf cb;
 static uint8_t c64_sid_register[0x1f];
 
 static inline void reveller_set_timer(unsigned int next) {
-    unsigned int now = readl_relaxed(counter_lo);
-    writel_relaxed(now + next - TIMER_SUBTRACT, compare);
+    unsigned int now = readl(counter_lo);
+    unsigned int n = next - TIMER_SUBTRACT;
+    // n may overflow AND require at least 10us before next
+    if ((n <= next) && (n > 10)) {
+        writel(now + next - TIMER_SUBTRACT, compare);
+    } else {
+        writel(now + 10, compare);
+    }
 }
 
 static void sid_write(uint8_t reg, uint8_t data) {
 	uint8_t data_01 = data & 0x3;
 	uint8_t data_23 = (data & 0xC) >> 2;
 	uint8_t data_4567 = (data & 0xF0) >> 4;
-	
+
 	uint32_t set_pins = 0, clear_pins = 0;
 	set_pins |= data_01;		// compatability with v1
 	set_pins |= data_01 << 2;	// and v2
@@ -98,25 +104,26 @@ static void sid_write(uint8_t reg, uint8_t data) {
 	set_pins |= data_4567 << 22;
 
 	set_pins |= (reg & 0x1F) << 7;	// SID Address
-	
+
 	// SET Pins
-	writel_relaxed(set_pins, gpio0_set);
-	
+	writel(set_pins, gpio0_set);
+
 	// Clear Pins
 	clear_pins |= (1 << 17);	// SID read/Write
 	clear_pins |= (1 << 4);		// SID CS
-	
-	while (readl_relaxed(gpio0_level) & (1 << 18)); 	// wait for low
-	writel_relaxed(clear_pins, gpio0_clear);
-	while (!(readl_relaxed(gpio0_level) & (1 << 18)));	// wait for high
-	while (readl_relaxed(gpio0_level) & (1 << 18)); 	// wait for low
-	
-	clear_pins = 0x03C0CF8F;	// Clear 0-3, 7-11, 14-15, 22-25
+
+	while (readl(gpio0_level) & (1 << 18)); 	// wait for low
+	writel(clear_pins, gpio0_clear);
+	while (!(readl(gpio0_level) & (1 << 18)));	// wait for high
+	while (readl(gpio0_level) & (1 << 18)); 	// wait for low
+
 	set_pins  = (1 << 17);		// SID Read/write
 	set_pins |= (1 << 4);		// SID CS
-	writel_relaxed(set_pins, gpio0_set);
-	writel_relaxed(clear_pins, gpio0_clear);
-	
+	writel(set_pins, gpio0_set);
+
+	clear_pins = 0x03C0CF8F;	// Clear 0-3, 7-11, 14-15, 22-25
+	writel(clear_pins, gpio0_clear);
+
 	c64_sid_register[reg & 0x1f] = data;
 }
 
@@ -171,13 +178,13 @@ static unsigned int consume(int avail) {
 }
 
 static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
-    unsigned int t = readl_relaxed(timer);
+    unsigned int t = readl(timer);
 
     if (t & TIMER_MASK) {
         int avail;
         unsigned int next;
 
-        writel_relaxed(TIMER_MASK, timer);
+        writel(TIMER_MASK, timer);
 
         avail = CIRC_CNT(cb.head, cb.tail, CIRC_BUFFER_SIZE);
         next = consume(avail);
@@ -337,37 +344,37 @@ static void reveller_init_gpio(void) {
     gpio1_fsel = gpio + 4;
     gpio2_fsel = gpio + 8;
 
-    result  = readl_relaxed(gpio0_fsel);
+    result  = readl(gpio0_fsel);
     result &= 0x1f8000;
-    writel_relaxed(result, gpio0_fsel);
+    writel(result, gpio0_fsel);
     result |= 0x9201249;
-    writel_relaxed(result, gpio0_fsel);
+    writel(result, gpio0_fsel);
 
-    result  = readl_relaxed(gpio1_fsel);
+    result  = readl(gpio1_fsel);
     // clear all except 12, 13, 16 and 19
     result &= 0x381c0fc0;
     //  enable input on 10, 11, 14, 15, 17
-    writel_relaxed(result, gpio1_fsel);
+    writel(result, gpio1_fsel);
     // enable output on 10, 11, 14, 15, 17
     // alt.fun. 5 on 18
     result |= 0x2209009;
-    writel_relaxed(result, gpio1_fsel);
+    writel(result, gpio1_fsel);
 
     // function selection register 2, GPIO 20-29
-    result = readl_relaxed(gpio2_fsel);
+    result = readl(gpio2_fsel);
     // clear 21, 22-25, 27
     result &= 0x3f1C0007;
     //  enable input on 21, 22-25, 27
-    writel_relaxed(result, gpio2_fsel);
+    writel(result, gpio2_fsel);
     // enable output on 21, 22-25, 27
     result |= 0x209248;
-    writel_relaxed(result, gpio2_fsel);
+    writel(result, gpio2_fsel);
 
     gpio0_set = gpio + 0x1c;
     gpio0_clear = gpio + 0x28;
     gpio0_level = gpio + 0x34;
 
-    writel_relaxed(0x08200000, gpio0_clear);
+    writel(0x08200000, gpio0_clear);
 }
 
 static void reveller_init_pwm(void) {
@@ -381,23 +388,23 @@ static void reveller_init_pwm(void) {
     void __iomem *clock_div = clock + 0xa4;
 
     // Stop PWM clock
-    writel_relaxed(pwm_pwd | 0x01, clock_cntl);
+    writel(pwm_pwd | 0x01, clock_cntl);
     udelay(110);
 
     // Wait for the clock to be not busy
-    while ((readl_relaxed(clock_cntl) & 0x80) != 0) {
+    while ((readl(clock_cntl) & 0x80) != 0) {
         udelay(1);
     }
 
     // set the clock divider and enable PWM clock
     // hardcoded to PAL freqs. We get a clock on PWM of PLLD (500MHz) / 254 / 2= 0.984MHz,
-    writel_relaxed(pwm_pwd | (254 << 12), clock_div);
-    writel_relaxed(pwm_pwd | 0x16, clock_cntl);
+    writel(pwm_pwd | (254 << 12), clock_div);
+    writel(pwm_pwd | 0x16, clock_cntl);
 
-    writel_relaxed(0x80 | 1, pwm);
+    writel(0x80 | 1, pwm);
 
-    writel_relaxed(2, rng1);
-    writel_relaxed(1, dat1);
+    writel(2, rng1);
+    writel(1, dat1);
 
     iounmap(clock);
     iounmap(pwm);
