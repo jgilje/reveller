@@ -8,7 +8,7 @@
 #include "platform-support.h"
 #include "platform-support-common.h"
 
-static void rpi_usleep(u_int32_t us) {
+static void rpi_usleep(uint32_t us) {
     usleep(us);
 }
 
