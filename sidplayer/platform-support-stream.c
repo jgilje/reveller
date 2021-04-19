@@ -1,5 +1,6 @@
 #include "platform-support.h"
 #include "platform-support-common.h"
+#include "platform-support-stream.h"
 
 #include <stdlib.h>
 #include <unistd.h>
