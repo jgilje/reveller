@@ -2,6 +2,8 @@
 
 #include <linux/module.h>
 
+#include <linux/of_irq.h>
+#include <linux/of_address.h>
 #include <linux/interrupt.h>
 #include <linux/irqreturn.h>
 #include <linux/irqdomain.h>
@@ -23,20 +25,16 @@
 #include <asm/uaccess.h>
 
 #include <asm/delay.h>
-/*
 
-#include <linux/irq.h>
-#include <plat/regs-timer.h>
-*/
-
-#define WAIT 1000000
 #define TIMER_NO 1
 #define TIMER_MASK (1 << TIMER_NO)
-/* This 'magic' number has been found by listening to Turbo_Outrun and comparing with actual
- * recordings from Stone Oakvalley. This value adjusts for the delay between the requested timer
+/* This 'magic' number is most probably only correct for Pi4 at the moment.
+ * It's only applicable for sample playback
+ *
+ * This value adjusts for the delay between the requested timer
  * interrupt and actual time of interrupt.
  */
-#define TIMER_SUBTRACT 25
+#define TIMER_SUBTRACT 10
 
 // IOCTL
 enum {
@@ -45,8 +43,18 @@ REVELLER_PAUSE,
 REVELLER_RESUME
 };
 
-static int rpi_peri_base = 0;
+static struct device_node *dn = NULL;
+static struct device_node *dn_pwm = NULL;
+static struct device_node *dn_timer = NULL;
+static struct device_node *dn_gpio = NULL;
+static struct device_node *dn_clock = NULL;
+
+static void __iomem *rpi_pwm_base = NULL;
+static void __iomem *rpi_gpio_base = NULL;
+static void __iomem *rpi_clock_base = NULL;
+static void __iomem *rpi_timer_base = NULL;
 static int rpi_irq_no = 0;
+
 #define GPIO_OFFSET  0x200000
 #define TIMER_OFFSET 0x3000
 #define PWM_OFFSET   0x20C000
@@ -54,11 +62,9 @@ static int rpi_irq_no = 0;
 
 MODULE_LICENSE("GPL");
 
-static void __iomem *timer = NULL;
 static void __iomem *counter_lo = NULL;
 static void __iomem *compare = NULL;
 
-static void __iomem *gpio = NULL;
 static void __iomem *gpio0_fsel = NULL;
 static void __iomem *gpio1_fsel = NULL;
 static void __iomem *gpio2_fsel = NULL;
@@ -178,13 +184,13 @@ static unsigned int consume(int avail) {
 }
 
 static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
-    unsigned int t = readl(timer);
+    unsigned int t = readl(rpi_timer_base);
 
     if (t & TIMER_MASK) {
         int avail;
         unsigned int next;
 
-        writel(TIMER_MASK, timer);
+        writel(TIMER_MASK, rpi_timer_base);
 
         avail = CIRC_CNT(cb.head, cb.tail, CIRC_BUFFER_SIZE);
         next = consume(avail);
@@ -326,23 +332,47 @@ static void reveller_cleanup(void) {
         kfree(cb.buf);
     }
 
-    if (timer != NULL) {
-        writel(0x0, compare);
-        iounmap(timer);
+   if (rpi_timer_base != NULL) {
+       writel(0x0, compare);
+       iounmap(rpi_timer_base);
+   }
+   if (rpi_gpio_base != NULL) {
+       iounmap(rpi_gpio_base);
+   }
+   if (rpi_clock_base != NULL) {
+       iounmap(rpi_clock_base);
+   }
+   if (rpi_pwm_base != NULL) {
+       iounmap(rpi_pwm_base);
+   }
+
+    if (rpi_irq_no != 0) {
+        free_irq(rpi_irq_no, NULL);
     }
 
-    if (gpio != NULL) {
-        iounmap(gpio);
+    if (dn != NULL) {
+        of_node_put(dn);
+    }
+    if (dn_pwm != NULL) {
+        of_node_put(dn_pwm);
+    }
+    if (dn_gpio != NULL) {
+        of_node_put(dn_gpio);
+    }
+    if (dn_clock != NULL) {
+        of_node_put(dn_clock);
+    }
+    if (dn_timer != NULL) {
+        of_node_put(dn_timer);
     }
 }
 
 static void reveller_init_gpio(void) {
     int result;
     
-    gpio = ioremap(rpi_peri_base + GPIO_OFFSET, 4096);
-    gpio0_fsel = gpio;
-    gpio1_fsel = gpio + 4;
-    gpio2_fsel = gpio + 8;
+    gpio0_fsel = rpi_gpio_base;
+    gpio1_fsel = rpi_gpio_base + 4;
+    gpio2_fsel = rpi_gpio_base + 8;
 
     result  = readl(gpio0_fsel);
     result &= 0x1f8000;
@@ -370,22 +400,20 @@ static void reveller_init_gpio(void) {
     result |= 0x209248;
     writel(result, gpio2_fsel);
 
-    gpio0_set = gpio + 0x1c;
-    gpio0_clear = gpio + 0x28;
-    gpio0_level = gpio + 0x34;
+    gpio0_set = rpi_gpio_base + 0x1c;
+    gpio0_clear = rpi_gpio_base + 0x28;
+    gpio0_level = rpi_gpio_base + 0x34;
 
     writel(0x08200000, gpio0_clear);
 }
 
 static void reveller_init_pwm(void) {
     unsigned int pwm_pwd = (0x5A << 24);
-    void __iomem *pwm = ioremap(rpi_peri_base + PWM_OFFSET, 4096);
-    void __iomem *rng1 = pwm + 0x10;
-    void __iomem *dat1 = pwm + 0x14;
+    void __iomem *rng1 = rpi_pwm_base + 0x10;
+    void __iomem *dat1 = rpi_pwm_base + 0x14;
 
-    void __iomem *clock = ioremap(rpi_peri_base + CLOCK_OFFSET, 4096);
-    void __iomem *clock_cntl = clock + 0xa0;
-    void __iomem *clock_div = clock + 0xa4;
+    void __iomem *clock_cntl = rpi_clock_base + 0xa0;
+    void __iomem *clock_div = rpi_clock_base + 0xa4;
 
     // Stop PWM clock
     writel(pwm_pwd | 0x01, clock_cntl);
@@ -398,32 +426,113 @@ static void reveller_init_pwm(void) {
 
     // set the clock divider and enable PWM clock
     // hardcoded to PAL freqs. We get a clock on PWM of PLLD (500MHz) / 254 / 2= 0.984MHz,
-    writel(pwm_pwd | (254 << 12), clock_div);
-    writel(pwm_pwd | 0x16, clock_cntl);
+    // Dervied from OSC, 54MHz on Pi4
+    writel(pwm_pwd | (27 << 12), clock_div);
+    writel(pwm_pwd | 0x11, clock_cntl);
 
-    writel(0x80 | 1, pwm);
+    writel(0x80 | 1, rpi_pwm_base);
 
     writel(2, rng1);
     writel(1, dat1);
-
-    iounmap(clock);
-    iounmap(pwm);
 }
 
 static int reveller_init(void) {
     int result = 0;
     const char* model;
-    struct device_node *dn;
 
-    if (((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2708")) != NULL) ||
-        ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2835")) != NULL)) {
-        rpi_peri_base = 0x20000000;
-        rpi_irq_no = 24 + TIMER_NO;
-    } else if (((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2709")) != NULL) ||
-               ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2836")) != NULL) ||
+    // RPi 1
+    if ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2835")) != NULL) {
+        dn_timer = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-system-timer");
+        if (dn_timer == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi system timer\n");
+            goto fail;
+        }
+        rpi_timer_base = of_iomap(dn_timer, 0);
+        rpi_irq_no = irq_of_parse_and_map(dn_timer, TIMER_NO);
+        if (rpi_irq_no <= 0) {
+            pr_err("Can't parse IRQ\n");
+            result = -EINVAL;
+            goto fail;
+        }
+
+        dn_gpio = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-gpio");
+        if (dn_gpio == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi gpio\n");
+            goto fail;
+        }
+        rpi_gpio_base = of_iomap(dn_gpio, 0);
+
+        dn_clock = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-cprman");
+        if (dn_clock == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi clock\n");
+            goto fail;
+        }
+        rpi_clock_base = of_iomap(dn_clock, 0);
+    // RPi 2, RPi 3
+    } else if (((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2836")) != NULL) ||
                ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2837")) != NULL)) {
-        rpi_peri_base = 0x3f000000;
-        rpi_irq_no = 30 + TIMER_NO;
+        unsigned int mmc_interrupt;
+        struct device_node *dn_mmc = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-sdhost");
+        if (dn_mmc == NULL) {
+            printk(KERN_WARNING "reveller: unable to find brcm,bcm2835-sdhost\n");
+            goto fail;
+        }
+
+        dn_gpio = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-gpio");
+        if (dn_gpio == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi gpio\n");
+            goto fail;
+        }
+        rpi_gpio_base = of_iomap(dn_gpio, 0);
+
+        dn_clock = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-cprman");
+        if (dn_clock == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi clock\n");
+            goto fail;
+        }
+        rpi_clock_base = of_iomap(dn_clock, 0);
+
+        // this has just been found by trial and error
+        dn_clock = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-cprman");
+
+        // because the brcm,bcm2835-system-timer is not exposed on 2836 and 2837
+        // we can find the correct irq via one of the other devices exposed on the
+        // same interrupt controller. we use sdhost here, which is irq no. 56
+        // locally (ref. https://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf page 84)
+        mmc_interrupt = irq_of_parse_and_map(dn_mmc, 0);
+        of_node_put(dn_mmc);
+        rpi_irq_no = mmc_interrupt - 56 + TIMER_NO;
+
+        // similar, we need to directly call ioremap to map the timer registers
+        rpi_timer_base = ioremap(0x3f000000 + TIMER_OFFSET, 4096);
+    // RPi 4
+    } else if ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2711")) != NULL) {
+        dn_timer = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-system-timer");
+        if (dn_timer == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi system timer\n");
+            goto fail;
+        }
+        rpi_timer_base = of_iomap(dn_timer, 0);
+        rpi_irq_no = irq_of_parse_and_map(dn_timer, TIMER_NO);
+        if (rpi_irq_no <= 0) {
+            pr_err("Can't parse IRQ\n");
+            result = -EINVAL;
+            goto fail;
+        }
+
+        dn_gpio = of_find_compatible_node(NULL, NULL, "brcm,bcm2711-gpio");
+        if (dn_gpio == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi gpio\n");
+            goto fail;
+        }
+        rpi_gpio_base = of_iomap(dn_gpio, 0);
+
+        dn_clock = of_find_compatible_node(NULL, NULL, "brcm,bcm2711-cprman");
+        if (dn_clock == NULL) {
+            printk(KERN_WARNING "reveller: unable to detect raspberry pi clock\n");
+            goto fail;
+        }
+        rpi_clock_base = of_iomap(dn_clock, 0);
     }
 
     if (dn == NULL) {
@@ -432,27 +541,20 @@ static int reveller_init(void) {
         goto fail;
     }
 
-    of_property_read_string(dn, "model", &model);
-    printk("reveller: initializing on %s\n", model);
-    of_node_put(dn);
-
-    cb.buf = kzalloc(CIRC_BUFFER_SIZE, GFP_KERNEL);
-    // timer_resource = request_mem_region(TIMER_BASE, 4096, "Reveller");
-    timer = ioremap(rpi_peri_base + TIMER_OFFSET, 4096);
-    if (timer == NULL) {
+    dn_pwm = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-pwm");
+    if (dn_pwm == NULL) {
+        printk(KERN_WARNING "reveller: unable to detect raspberry pi pwm\n");
         goto fail;
     }
+    rpi_pwm_base = of_iomap(dn_pwm, 0);
 
-    counter_lo = timer + 0x4;
-    compare = timer + 0xc + (4 * TIMER_NO);// + 4;
+    of_property_read_string(dn, "model", &model);
+    printk("reveller: initializing on %s\n", model);
 
-    // unsigned int mapped_irq = irq_create_mapping(NULL, IRQ_NO);
-    // printk(KERN_DEBUG "reveller: mapped %d to %d\n", IRQ_NO, mapped_irq);
+    cb.buf = kzalloc(CIRC_BUFFER_SIZE, GFP_KERNEL);
+    counter_lo = rpi_timer_base + 0x4;
+    compare = rpi_timer_base + 0xc + (4 * TIMER_NO);// + 4;
 
-    // TODO use irq_of_parse_and_map(device_node, index) (where device_node is brcm,bcm2835-system-timer)
-    // of_irq_parse_one(device, index, struct of_phandle_args oirq) - resolve an interrupt - drivers/of/irq.c
-    // of_irq_get(device, index) - Decode a node's IRQ and return it as a Linux IRQ number - use brcm,bcm2835-armctrl-ic
-    //                                                                                           brcm,bcm2836-armctrl-ic
     result = request_irq(rpi_irq_no, reveller_interrupt, 0, "Reveller", NULL);
     if (result < 0) {
         printk(KERN_DEBUG "reveller: failed to register irq handler\n");
@@ -508,14 +610,6 @@ static int reveller_init(void) {
 
 static void reveller_exit(void) {
     reveller_cleanup();
-
-    /*
-    if (timer_resource != NULL) {
-        release_mem_region(TIMER_BASE, 4096);
-    }
-    */
-
-    free_irq(rpi_irq_no, NULL);
     printk(KERN_DEBUG "reveller: exit()\n");
 }
 
