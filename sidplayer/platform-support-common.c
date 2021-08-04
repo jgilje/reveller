@@ -101,6 +101,7 @@ extern struct reveller_platform stream_platform;
 extern struct reveller_platform dummy_platform;
 extern struct reveller_platform rpi_platform;
 extern struct reveller_platform rpi2_platform;
+extern struct reveller_platform rpi4_platform;
 extern struct reveller_platform bbb_platform;
 struct reveller_platform *reveller = NULL;
 
@@ -137,6 +138,8 @@ void detect_platform() {
                     reveller = &rpi_platform;
                 } else if (strstr(hardware, "BCM2709") != NULL) {
                     reveller = &rpi2_platform;
+                } else if (strstr(hardware, "BCM2711") != NULL) {
+                    reveller = &rpi4_platform;
                 } else if (strstr(hardware, "AM33XX") != NULL) {
                     reveller = &bbb_platform;
                 }

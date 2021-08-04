@@ -171,6 +171,17 @@ static void init_rpi2() {
     init_pwm(BCM2836_BASE);
 }
 
+static void init_rpi4() {
+    set_realtime();
+
+    if (open_mem() != EXIT_SUCCESS) {
+        exit(EXIT_FAILURE);
+    }
+
+    init_gpio(BCM2711_BASE);
+    init_pwm(BCM2711_BASE);
+}
+
 struct reveller_platform rpi_platform = {
     .init = &init_rpi,
 
@@ -209,4 +220,24 @@ struct reveller_platform rpi2_platform = {
     .sid_write = &sid_write,
 
     .platform_id = "Raspberry Pi 2/3",
+};
+
+struct reveller_platform rpi4_platform = {
+    .init = &init_rpi4,
+
+    .debug = &common_platform_debug,
+    .abort = &common_platform_abort,
+
+    .pause = &common_pause,
+    .resume = &common_resume,
+    .usleep = &rpi_usleep,
+    .shutdown = &rpi_shutdown,
+
+    .read = &common_platform_read_source,
+
+    .sid_block_start = &common_sid_block_start,
+    .sid_block_end = &common_sid_block_end,
+    .sid_write = &sid_write,
+
+    .platform_id = "Raspberry Pi 4",
 };
