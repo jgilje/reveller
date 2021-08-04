@@ -407,7 +407,7 @@ static void reveller_init_gpio(void) {
     writel(0x08200000, gpio0_clear);
 }
 
-static void reveller_init_pwm(void) {
+static void reveller_init_pwm(int use_osc) {
     unsigned int pwm_pwd = (0x5A << 24);
     void __iomem *rng1 = rpi_pwm_base + 0x10;
     void __iomem *dat1 = rpi_pwm_base + 0x14;
@@ -425,10 +425,18 @@ static void reveller_init_pwm(void) {
     }
 
     // set the clock divider and enable PWM clock
-    // hardcoded to PAL freqs. We get a clock on PWM of PLLD (500MHz) / 254 / 2= 0.984MHz,
-    // Dervied from OSC, 54MHz on Pi4
-    writel(pwm_pwd | (27 << 12), clock_div);
-    writel(pwm_pwd | 0x11, clock_cntl);
+    // hardcoded to PAL freqs. We get a clock on PWM of
+    //
+    // On Pi4: Dervied from OSC (54MHz) / 27 / 2 = 1MHz
+    // Others: PLLD (500MHz) / 254 / 2 = 0.984MHz
+
+    if (use_osc) {
+        writel(pwm_pwd | (254 << 12), clock_div);
+        writel(pwm_pwd | 0x16, clock_cntl);
+    } else {
+        writel(pwm_pwd | (27 << 12), clock_div);
+        writel(pwm_pwd | 0x11, clock_cntl);
+    }
 
     writel(0x80 | 1, rpi_pwm_base);
 
@@ -438,6 +446,7 @@ static void reveller_init_pwm(void) {
 
 static int reveller_init(void) {
     int result = 0;
+    int use_osc = 0;
     const char* model;
 
     // RPi 1
@@ -533,6 +542,7 @@ static int reveller_init(void) {
             goto fail;
         }
         rpi_clock_base = of_iomap(dn_clock, 0);
+        use_osc = 1;
     }
 
     if (dn == NULL) {
@@ -562,7 +572,7 @@ static int reveller_init(void) {
     }
 
     reveller_init_gpio();
-    reveller_init_pwm();
+    reveller_init_pwm(use_osc);
 
     /* Get a range of minor numbers (starting with 0) to work with */
     result = alloc_chrdev_region(&reveller_dev, 0, 1, "reveller");
