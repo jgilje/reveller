@@ -431,11 +431,11 @@ static void reveller_init_pwm(int use_osc) {
     // Others: PLLD (500MHz) / 254 / 2 = 0.984MHz
 
     if (use_osc) {
-        writel(pwm_pwd | (254 << 12), clock_div);
-        writel(pwm_pwd | 0x16, clock_cntl);
-    } else {
         writel(pwm_pwd | (27 << 12), clock_div);
         writel(pwm_pwd | 0x11, clock_cntl);
+    } else {
+        writel(pwm_pwd | (254 << 12), clock_div);
+        writel(pwm_pwd | 0x16, clock_cntl);
     }
 
     writel(0x80 | 1, rpi_pwm_base);
