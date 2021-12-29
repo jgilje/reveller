@@ -8,6 +8,7 @@
 #include "vic.h"
 #include "platform-support.h"
 
+c64_vic_timer_t c64_vic_timer;
 static vicRegister vicReg;
 
 void c64_vic_write(unsigned char addr, unsigned char data) {

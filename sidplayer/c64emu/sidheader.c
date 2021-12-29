@@ -6,6 +6,8 @@
 #include "platform-support.h"
 #include "endian-conversion.h"
 
+sidHeader sh;
+
 int parseHeader() {
     unsigned char buffer[128];
     if (reveller->read(0, 128, buffer) == 0) {

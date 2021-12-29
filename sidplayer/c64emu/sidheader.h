@@ -23,9 +23,9 @@ typedef struct sidHeader {
     // 0x08
     unsigned short loadAddress;	// C64 minnelokasjon for C64 data (little endian)
 			// (som betyr lowByte, highByte)
-			// (== 0: de to første byte i dataseksjon
+			// (== 0: de to fÃ¸rste byte i dataseksjon
 			//        inneholder startposisjon (og da i
-			//        lav - høy format, dette gjelder for
+			//        lav - hÃ¸y format, dette gjelder for
 			//	  alle RSID)
     // 0x0A
     unsigned short initAddress;	// Addressen som initialiserer sangen, dette er
@@ -33,19 +33,19 @@ typedef struct sidHeader {
 			// 6510 Accumulator
 			// (== 0: initAddress == loadAddress)
     // 0x0C
-    unsigned short playAddress;	// Adresse til en subroutine som kalles for å
+    unsigned short playAddress;	// Adresse til en subroutine som kalles for Ã¥
 			// gjengi en sammenhengende lyd
-			// (== 0: initAddress forventes å legge inn en
-			//	  IRQ handler, som så kaller playeren,
+			// (== 0: initAddress forventes Ã¥ legge inn en
+			//	  IRQ handler, som sÃ¥ kaller playeren,
 			//	  dette gjelder for alle RSID)
     // 0x0E
     short songs;	// antall sanger som _kan_ bli initialisert av
 			// initAddress.  min.: 1, maks.: 256
     // 0x10
-    short startSong;	// første sang som spilles i fila, (==0: 1)
+    short startSong;	// fÃ¸rste sang som spilles i fila, (==0: 1)
     // 0x12
     int speed;		// 32 bit, bigendian.  Hvert bit angir hastigheten
-			// til de 32 første sangene.  Over 32 så settes hastighet
+			// til de 32 fÃ¸rste sangene.  Over 32 sÃ¥ settes hastighet
 			// til den gjeldende for nr. 32.  Bit 0 == hastighet for
 			// sang 1.  Bit'et betyr: 0: vertical blank interrupt
 			// som igjen betyr 50Hz PAL, 60Hz NTSC.  1: CIA1 timer
@@ -60,37 +60,37 @@ typedef struct sidHeader {
     char released[32];
     
     // 0x76
-    // Nå må det sjekkes i programkoden: for SIDv1 begynner dataseksjonen på 0x76, for
-    // SIDv2* så fortsetter headerinfoen
+    // NÃ¥ mÃ¥ det sjekkes i programkoden: for SIDv1 begynner dataseksjonen pÃ¥ 0x76, for
+    // SIDv2* sÃ¥ fortsetter headerinfoen
     short flags;	// 16 bit, bigendian.
-			// 0: formatet til binærdata
-			//    0 - innebygd musikkspiller, 1 - Compute! music player må 'merges'
+			// 0: formatet til binÃ¦rdata
+			//    0 - innebygd musikkspiller, 1 - Compute! music player mÃ¥ 'merges'
 			// 1: PlaySID spesifikk SID (PlaySID samples)
 			//    0 - C64 Kompatibel, 1 PlaySID spesifikk (v2NG), C64 BASIC flag (RSID)
-			// 2 og 3: utgjør 4 bit om hastigheten (v2NG)
+			// 2 og 3: utgjÃ¸r 4 bit om hastigheten (v2NG)
 			//    0 - Ukjent, 1 - PAL, 2 - NTSC, 3 - Begge
 			// 4 og 5: angir SID modell (v2NG)
 			//    0 - Ukjent, 1 - 6581, 2 - 8580, 3 - Begge
 			// 6 til 15: Ubrukt
     // 0x78
-    char startPage;	// Angir hvor en finner største ledige minneblokk (page),
-			// innenfor "driver området"(?) (v2NG)
-			// (== 00: SID fila skriver ikke utenfor dataområdet 
-			//         innenfor "driver området")
+    char startPage;	// Angir hvor en finner stÃ¸rste ledige minneblokk (page),
+			// innenfor "driver omrÃ¥det"(?) (v2NG)
+			// (== 00: SID fila skriver ikke utenfor dataomrÃ¥det
+			//         innenfor "driver omrÃ¥det")
 			// (== FF: ingen ledige minneblokker)
     // 0x79
     char pageLength;	// Antall ledige minneblokker (pages) etter startPage (v2NG)
-			// Denne er alltid 00, når startPage er 00 eller FF
+			// Denne er alltid 00, nÃ¥r startPage er 00 eller FF
     
     // 0x7C
-    // Dataområdet til SIDv2 og etterkommere begynner her
-    // Husk å sjekke loadAddress, de to første BYTE her _kan_ være loadAddress
+    // DataomrÃ¥det til SIDv2 og etterkommere begynner her
+    // Husk Ã¥ sjekke loadAddress, de to fÃ¸rste BYTE her _kan_ vÃ¦re loadAddress
 
 	// angir PAL/NTSC kompabilitet
 	int hz;
 } sidHeader;
 
-sidHeader sh;
+extern sidHeader sh;
 int parseHeader(void);
 
 #endif

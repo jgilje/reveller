@@ -1,6 +1,12 @@
 #include "6510.h"
 #include <stdint.h>
 
+unsigned char data;
+unsigned short effAddr;
+unsigned char c64_current_song;
+unsigned char SIDDriverPage;
+Register reg;
+
 uint8_t c64_sid_register[0x1f];
 unsigned char instruction[3];	// vi leser maksimalt inn 3 byte
 FILE* file;

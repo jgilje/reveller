@@ -17,7 +17,7 @@ typedef struct c64_vic_timer_t {
 	unsigned char enabled;
 	unsigned char interrupt;
 } c64_vic_timer_t;
-c64_vic_timer_t c64_vic_timer;
+extern c64_vic_timer_t c64_vic_timer;
 
 void c64_vic_write(unsigned char addr, unsigned char data);
 unsigned char c64_vic_read(unsigned char addr);

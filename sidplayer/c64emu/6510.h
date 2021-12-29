@@ -127,20 +127,20 @@ typedef struct Register {
 } Register;
 
 // Registeret
-Register reg;
+extern Register reg;
 
 extern uint8_t c64_sid_register[0x1f];
 
 // innholdet er den byte som er gjeldende i øyeblikket
-unsigned char data;
+extern unsigned char data;
 //volatile int data;
 // den effektive adresse
-unsigned short effAddr;
+extern unsigned short effAddr;
 
 // dette flagget bryter interpret funksjonen, typisk ved RTS i bin¾rkoden
 // (eks.: stack overflow)
-unsigned char SIDDriverPage;
-unsigned char c64_current_song;
+extern unsigned char SIDDriverPage;
+extern unsigned char c64_current_song;
 
 void IRQTrigger(void);
 void NMITrigger(void);
