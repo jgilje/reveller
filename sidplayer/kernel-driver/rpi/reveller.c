@@ -21,6 +21,7 @@
 
 #include <linux/sched.h>
 #include <linux/wait.h>
+#include <linux/sort.h>
 
 #include <asm/uaccess.h>
 
@@ -28,13 +29,6 @@
 
 #define TIMER_NO 1
 #define TIMER_MASK (1 << TIMER_NO)
-/* This 'magic' number is most probably only correct for Pi4 at the moment.
- * It's only applicable for sample playback
- *
- * This value adjusts for the delay between the requested timer
- * interrupt and actual time of interrupt.
- */
-#define TIMER_SUBTRACT 10
 
 // IOCTL
 enum {
@@ -87,12 +81,18 @@ static struct circ_buf cb;
 
 static uint8_t c64_sid_register[0x1f];
 
-static inline void reveller_set_timer(unsigned int next) {
-    unsigned int now = readl(counter_lo);
-    unsigned int n = next - TIMER_SUBTRACT;
+#define SELFTUNE_TIMEOUT 20000
+#define SELFTUNE_N (1000000 / SELFTUNE_TIMEOUT)
+static uint selftune_n = 0;
+static u32 *selftune_results;
+static u32 selftuning_adjust = 0;
+
+static inline void reveller_set_timer(uint next) {
+    uint now = readl(counter_lo);
+    uint n = next - selftuning_adjust;
     // n may overflow AND require at least 10us before next
     if ((n <= next) && (n > 10)) {
-        writel(now + next - TIMER_SUBTRACT, compare);
+        writel(now + next - selftuning_adjust, compare);
     } else {
         writel(now + 10, compare);
     }
@@ -153,7 +153,7 @@ static uint32_t get_uint24_t(void) {
 }
 
 // always four available
-static unsigned int consume(int avail) {
+static uint consume(int avail) {
     while (avail > 4) {
         uint32_t cmd = cb.buf[cb.tail];
         advance_tail();
@@ -183,15 +183,19 @@ static unsigned int consume(int avail) {
     return 0;
 }
 
+irq_handler_t reveller_interrupt_handler;
 static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
-    unsigned int t = readl(rpi_timer_base);
+    return reveller_interrupt_handler(irq, dev_id);
+}
+
+static irqreturn_t reveller_interrupt_playback(int irq, void *dev_id) {
+    uint t = readl(rpi_timer_base);
 
     if (t & TIMER_MASK) {
         int avail;
-        unsigned int next;
+        uint next;
 
         writel(TIMER_MASK, rpi_timer_base);
-
         avail = CIRC_CNT(cb.head, cb.tail, CIRC_BUFFER_SIZE);
         next = consume(avail);
 
@@ -208,12 +212,66 @@ static irqreturn_t reveller_interrupt(int irq, void *dev_id) {
     }
 }
 
+static int cmp_u32(const void *pa, const void *pb) {
+    u32 a = *(u32 *)pa;
+    u32 b = *(u32 *)pb;
+
+    if (a < b) {
+        return -1;
+    } else if (a > b) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static irqreturn_t reveller_interrupt_tune(int irq, void *dev_id) {
+    uint t = readl(rpi_timer_base);
+
+    if (t & TIMER_MASK) {
+        u32 now = readl(counter_lo);
+        writel(TIMER_MASK, rpi_timer_base);
+        selftune_results[selftune_n] = now;
+        selftune_n++;
+
+        if (selftune_n >= SELFTUNE_N) {
+            u32 selftune_diffs[SELFTUNE_N];
+            int i;
+
+            for (i = 1; i < SELFTUNE_N; ++i) {
+                selftune_diffs[i] = selftune_results[i]-selftune_results[i - 1];
+            }
+            sort(&selftune_diffs[1],
+                SELFTUNE_N - 1,
+                sizeof(u32),
+                cmp_u32,
+                NULL);
+            selftuning_adjust = selftune_diffs[SELFTUNE_N / 2] - SELFTUNE_TIMEOUT;
+            printk(KERN_DEBUG "reveller: selftuned offset: %u\n", selftuning_adjust);
+            kfree(selftune_results);
+
+            reveller_interrupt_handler = reveller_interrupt_playback;
+        } else {
+            writel(now + SELFTUNE_TIMEOUT, compare);
+        }
+
+        return IRQ_HANDLED;
+    } else {
+        return IRQ_NONE;
+    }
+}
+
 static void reveller_flush(void) {
     cb.head = cb.tail = 0;
     timer_active = 0;
 }
 
 static int reveller_chardev_open(struct inode *inode, struct file *filp) {
+    selftuning_adjust = 0;
+    selftune_n = 0;
+    selftune_results = kmalloc(SELFTUNE_N * sizeof(u32), GFP_KERNEL);
+    reveller_interrupt_handler = reveller_interrupt_tune;
+    writel(readl(counter_lo) + SELFTUNE_TIMEOUT, compare);
     return 0;
 }
 static int reveller_chardev_release(struct inode *inode, struct file *filp) {
@@ -224,7 +282,7 @@ static int reveller_chardev_release(struct inode *inode, struct file *filp) {
 static ssize_t reveller_chardev_read(struct file *filp, char *buf, size_t count, loff_t *f_pos) {
     return 0;
 }
-static long reveller_chardev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
+static long reveller_chardev_ioctl(struct file *filp, uint cmd, unsigned long arg) {
     switch (cmd) {
         case REVELLER_FLUSH:
             reveller_flush();
@@ -280,7 +338,7 @@ static ssize_t reveller_chardev_write(struct file *filp, const char __user *buf,
     return 0;
 }
 
-static unsigned int reveller_poll(struct file *filp, poll_table *wait) {
+static uint reveller_poll(struct file *filp, poll_table *wait) {
     poll_wait(filp, &reveller_wq, wait);
     /* poll for at least 1/8 of CIRC_BUFFER_SIZE before reporting avail
      *
@@ -408,7 +466,7 @@ static void reveller_init_gpio(void) {
 }
 
 static void reveller_init_pwm(int use_osc) {
-    unsigned int pwm_pwd = (0x5A << 24);
+    uint pwm_pwd = (0x5A << 24);
     void __iomem *rng1 = rpi_pwm_base + 0x10;
     void __iomem *dat1 = rpi_pwm_base + 0x14;
 
@@ -480,7 +538,7 @@ static int reveller_init(void) {
     // RPi 2, RPi 3
     } else if (((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2836")) != NULL) ||
                ((dn = of_find_compatible_node(NULL, NULL, "brcm,bcm2837")) != NULL)) {
-        unsigned int mmc_interrupt;
+        uint mmc_interrupt;
         struct device_node *dn_mmc = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-sdhost");
         if (dn_mmc == NULL) {
             printk(KERN_WARNING "reveller: unable to find brcm,bcm2835-sdhost\n");
