@@ -9,31 +9,28 @@ import (
 	"strings"
 )
 
-var walkerFinished = make(chan bool)
-
 type browser struct {
 	RootPath string
 }
 
 var Browser = browser{}
 
-
 func SidPath(path string) (string, error) {
 	file := filepath.Join(Browser.RootPath, path)
 	if !strings.HasPrefix(file, Browser.RootPath) {
 		log.Println("Trying to escape rootpath")
-		return "", errors.New("Trying to escape rootpath")
+		return "", errors.New("trying to escape rootpath")
 	}
 
 	ext := strings.ToLower(filepath.Ext(file))
 	if ext != ".sid" {
 		log.Println("Wrong extension:", ext)
-		return "", errors.New("Wrong extension")
+		return "", errors.New("wrong extension")
 	}
 
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		log.Println("File not found:", file)
-		return "", errors.New("File not found")
+		return "", errors.New("file not found")
 	}
 
 	return file, nil

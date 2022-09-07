@@ -1,10 +1,11 @@
 package main
 
 import (
-	"golang.org/x/net/websocket"
 	"encoding/json"
 	"log"
 	"strconv"
+
+	"golang.org/x/net/websocket"
 )
 
 type connection struct {

@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/godbus/dbus"
-	"github.com/oleksandr/bonjour"
 	"log"
 	"os"
+
+	"github.com/godbus/dbus"
+	"github.com/oleksandr/bonjour"
 )
 
 const AVAHI_DBUS_NAME string = "org.freedesktop.Avahi"

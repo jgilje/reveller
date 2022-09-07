@@ -1,7 +1,6 @@
 package main
 
 import (
-	"./sid"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -10,6 +9,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/jgilje/reveller/sidplayer-web/sid"
 )
 
 type sidplayer struct {

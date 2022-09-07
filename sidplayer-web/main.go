@@ -2,13 +2,13 @@
 package main
 
 import (
-	"golang.org/x/net/websocket"
 	"flag"
 	"log"
 	"net/http"
 	"strconv"
 	"text/template"
-	"time"
+
+	"golang.org/x/net/websocket"
 )
 
 var port uint
@@ -16,15 +16,6 @@ var homeTempl = template.Must(template.ParseFiles("home.html"))
 
 func homeHandler(c http.ResponseWriter, req *http.Request) {
 	homeTempl.Execute(c, req.Host)
-}
-
-func broadCaster() {
-	for {
-		time.Sleep(3 * time.Second)
-		now := time.Now().String()
-		log.Println("broadcasting", now)
-		h.broadcast <- now
-	}
 }
 
 func main() {
@@ -42,7 +33,9 @@ func main() {
 	/* go broadCaster() */
 
 	http.HandleFunc("/", homeHandler)
-	http.Handle("/ws", websocket.Handler(wsHandler))
+
+	ws := websocket.Server{Handler: wsHandler}
+	http.Handle("/ws", ws)
 
 	registerService(uint16(port))
 	addr := ":" + strconv.FormatUint(uint64(port), 10)
