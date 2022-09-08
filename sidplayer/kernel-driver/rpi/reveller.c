@@ -34,7 +34,8 @@
 enum {
 REVELLER_FLUSH = 1024,
 REVELLER_PAUSE,
-REVELLER_RESUME
+REVELLER_RESUME,
+REVELLER_POWER
 };
 
 static struct device_node *dn = NULL;
@@ -266,6 +267,17 @@ static void reveller_flush(void) {
     timer_active = 0;
 }
 
+static void reveller_power(unsigned int state) {
+    u32 fsel = readl(gpio2_fsel);
+    // clear 21 and 27
+    fsel &= 0x3f1fffc7;
+    if (state) {
+        // set output enable on 21 and 27
+        fsel |= 0x200008;
+    }
+    writel(fsel, gpio2_fsel);
+}
+
 static int reveller_chardev_open(struct inode *inode, struct file *filp) {
     selftuning_adjust = 0;
     selftune_n = 0;
@@ -296,6 +308,9 @@ static long reveller_chardev_ioctl(struct file *filp, uint cmd, unsigned long ar
             sid_write(0x18, c64_sid_register[0x18]);
             reveller_set_timer(1000);
             timer_active = 1;
+            break;
+        case REVELLER_POWER:
+            reveller_power(arg);
             break;
         default:
             return 1;

@@ -2,6 +2,7 @@
 #include "platform-support-common.h"
 #include "platform-support-stream.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -15,7 +16,8 @@
 enum {
 IOCTL_REVELLER_FLUSH = 1024,
 IOCTL_REVELLER_PAUSE,
-IOCTL_REVELLER_RESUME
+IOCTL_REVELLER_RESUME,
+IOCTL_REVELLER_POWER
 };
 
 static int reveller_fileno = -1;
@@ -29,6 +31,10 @@ static void advance(int bytes) {
         write(reveller_fileno, buffer, buffer_pos);
         buffer_pos = 0;
     }
+}
+
+static void stream_power(uint32_t state) {
+    ioctl(reveller_fileno, IOCTL_REVELLER_POWER, state);
 }
 
 static void stream_usleep(uint32_t us) {
@@ -84,6 +90,7 @@ struct reveller_platform stream_platform = {
     .pause = &stream_pause,
     .resume = &stream_resume,
     .usleep = &stream_usleep,
+    .power = &stream_power,
     .shutdown = &stream_shutdown,
 
     .read = &common_platform_read_source,

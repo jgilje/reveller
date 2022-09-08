@@ -187,6 +187,13 @@ func (s *sidplayer) run() {
 			broadCastState()
 		case <-s.help:
 			io.WriteString(s.stdin, "h\n")
+		case requested_state := <-s.power:
+			state := "off"
+			if requested_state {
+				state = "on"
+			}
+			power := fmt.Sprintf("power %s\n", state)
+			io.WriteString(s.stdin, power)
 		}
 	}
 }

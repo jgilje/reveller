@@ -12,13 +12,19 @@ static void rpi_usleep(uint32_t us) {
     usleep(us);
 }
 
+static void rpi_power(uint32_t state) {
+    uint32_t fsel = *bcm2835_registers.gpio_fsel2;
+    // clear 21 and 27
+    fsel &= 0x3f1fffc7;
+    if (state) {
+        // set output enable on 21 and 27
+        fsel |= 0x200008;
+    }
+    *bcm2835_registers.gpio_fsel2 = fsel;
+}
+
 static void rpi_shutdown() {
-	// function selection register 2, GPIO 20-29
-	uint32_t fsel = *bcm2835_registers.gpio_fsel2;
-	// clear 21 and 27
-	fsel &= 0xff1fffc7;
-	//  enable input on 21 and 27
-	*bcm2835_registers.gpio_fsel2 = fsel;
+    rpi_power(0);
 }
 
 static void sid_write(uint8_t reg, uint8_t data) {
@@ -191,6 +197,7 @@ struct reveller_platform rpi_platform = {
     .pause = &common_pause,
     .resume = &common_resume,
     .usleep = &rpi_usleep,
+    .power = &rpi_power,
     .shutdown = &rpi_shutdown,
 
     .read = &common_platform_read_source,

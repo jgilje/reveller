@@ -127,6 +127,7 @@ void console_interface(void) {
 				   "(l)oad <file>\n"
 				   "(d)umpmem\n"
 				   "(i)nteractive (toggle)\n"
+				   "power <on/off>\n"
 				   "(q)uit\n"
 				   );
 		} else if (! strcmp(input, "load") || ! strcmp(input, "l")) {
@@ -212,6 +213,12 @@ void console_interface(void) {
 				printf("Enabling interactive mode\n");
 				interactive = 1;
                 reveller->resume();
+			}
+		} else if (! strcmp(input, "power")) {
+			if (! strcmp(args, "on")) {
+				reveller->power(1);
+			} else if (! strcmp(args, "off")) {
+				reveller->power(0);
 			}
         } else if (interactive && reveller_input_file) {
 			printf("Starting PlayAddr 1 time\n");

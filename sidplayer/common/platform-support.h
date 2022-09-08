@@ -17,6 +17,7 @@ struct reveller_platform {
     void (*pause)();
     void (*resume)();
     void (*usleep)(uint32_t us);
+    void (*power)(uint32_t state);
     void (*shutdown)();
 
     size_t (*read)(uint32_t offset, uint32_t length, uint8_t *dest);
