@@ -13,18 +13,26 @@ import (
 	"github.com/jgilje/reveller/sidplayer-web/sid"
 )
 
+type PlayState string
+
+const (
+	Stopped PlayState = "stop"
+	Playing PlayState = "play"
+)
+
 type sidplayer struct {
-	load chan string
-	play chan bool
-	stop chan bool
-	help chan bool
-	song chan uint16
+	load  chan string
+	play  chan bool
+	stop  chan bool
+	help  chan bool
+	song  chan uint16
+	power chan bool
 
 	Command string
 
 	currentFile      string
 	currentSong      uint16
-	currentState     string
+	currentState     PlayState
 	currentSidHeader sid.SidFile
 
 	stdin  io.WriteCloser
@@ -33,11 +41,12 @@ type sidplayer struct {
 }
 
 var Sidplayer = sidplayer{
-	load: make(chan string),
-	play: make(chan bool),
-	stop: make(chan bool),
-	help: make(chan bool),
-	song: make(chan uint16),
+	load:  make(chan string),
+	play:  make(chan bool),
+	stop:  make(chan bool),
+	help:  make(chan bool),
+	song:  make(chan uint16),
+	power: make(chan bool),
 }
 
 func (s *sidplayer) stopPlayback() error {
@@ -46,7 +55,7 @@ func (s *sidplayer) stopPlayback() error {
 		return err
 	}
 
-	s.currentState = "stop"
+	s.currentState = Stopped
 	broadCastState()
 
 	return nil
@@ -77,7 +86,7 @@ func (s *sidplayer) startCmd() {
 	}
 
 	s.currentFile = ""
-	s.currentState = "stop"
+	s.currentState = Stopped
 	s.currentSong = 0
 
 	broadCastState()
@@ -129,7 +138,7 @@ func (s *sidplayer) run() {
 				break
 			}
 
-			if s.currentState == "play" {
+			if s.currentState == Playing {
 				if s.stopPlayback() != nil {
 					return
 				}
@@ -153,7 +162,7 @@ func (s *sidplayer) run() {
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
 
-			if s.currentState == "play" {
+			if s.currentState == Playing {
 				if s.stopPlayback() != nil {
 					return
 				}
@@ -170,7 +179,7 @@ func (s *sidplayer) run() {
 				songno = s.currentSidHeader.StartSong
 			}
 			s.currentSong = songno
-			s.currentState = "play"
+			s.currentState = Playing
 
 			broadCastState()
 		case <-s.stop:
@@ -184,6 +193,7 @@ func (s *sidplayer) run() {
 				return
 			}
 
+			s.currentState = Playing
 			broadCastState()
 		case <-s.help:
 			io.WriteString(s.stdin, "h\n")

@@ -33,9 +33,9 @@ type lsReply struct {
 }
 
 type StateReply struct {
-	File  string `json:"file"`
-	State string `json:"state"`
-	Song  uint16 `json:"song"`
+	File  string    `json:"file"`
+	State PlayState `json:"state"`
+	Song  uint16    `json:"song"`
 }
 
 func broadCastState() {
