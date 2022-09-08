@@ -155,7 +155,6 @@ void interpretInit(unsigned char song) {
 	reg.p |= FLAG_I;
 
 	setPC(sh.initAddress);
-	uint32_t cycles = 0;
 	work = 1;
 	while (work) {
         c64_fetchOP();
@@ -165,18 +164,17 @@ void interpretInit(unsigned char song) {
 		/* Until we correct the opcode handling, assume each opcode is 3 cycles */
 		c64_cia_update_timers(3);
 		c64_vic_update_timer(3);
-		cycles += 3;
 
 		if (c64_cia_nmi()) {
             // reveller->debug("interpretMain(): NMI\n");
-			cycles += c64_trigger_nmi();
+			c64_trigger_nmi();
 			reg.pc -= 2;
 			work = 1;
 		}
 
 		if ((c64_cia_irq() || c64_vic_irq()) && !(reg.p & FLAG_I)) {
             // reveller->debug("interpretMain(): IRQ\n");
-			cycles += c64_trigger_irq();
+			c64_trigger_irq();
 			reg.pc -= 2;
 			work = 1;
 		}
