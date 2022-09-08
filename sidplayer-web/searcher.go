@@ -1,14 +1,16 @@
 package main
 
 import (
-	"os"
-	"fmt"
-	"path/filepath"
 	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Searcher struct {
-	search string
+	search  string
+	prefix  string
 	results []string
 }
 
@@ -18,26 +20,34 @@ type searchReply struct {
 
 func (s *Searcher) walker(path string, info os.FileInfo, err error) error {
 	if err != nil {
-        return nil
-    }
-    if info.IsDir() {
-        return nil
-    }
-    matched, err := filepath.Match(s.search, info.Name())
-    if err != nil {
-        return err
-    }
-    if matched {
-        fmt.Println(path)
+		return nil
+	}
+	if info.IsDir() {
+		return nil
+	}
+	matched, err := filepath.Match(s.search, info.Name())
+	if err != nil {
+		return err
+	}
+	if matched {
+		path = strings.TrimPrefix(path, s.prefix)
 		s.results = append(s.results, path)
-    }
-    return nil
+	}
+	return nil
 }
 
 func (s *Searcher) SearchFile(search string, c *connection) {
 	go func() {
 		s.search = "*" + search + "*"
-		filepath.Walk(Browser.RootPath, s.walker)
+
+		if prefix, err := filepath.EvalSymlinks(Browser.RootPath); err != nil {
+			fmt.Println(err)
+			return
+		} else {
+			s.prefix = prefix
+		}
+
+		filepath.Walk(s.prefix, s.walker)
 		fmt.Println(s.results)
 		reply, _ := json.Marshal(searchReply{Results: s.results})
 		msg, _ := json.Marshal(ReplyMessage{MsgType: "search", Data: string(reply)})
