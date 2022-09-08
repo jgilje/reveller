@@ -104,6 +104,10 @@ func (c *connection) reader() {
 			msg, _ := json.Marshal(Sidplayer.currentSidHeader)
 			reply := ReplyMessage{MsgType: "currentSidHeader", Data: string(msg)}
 			websocket.JSON.Send(c.ws, reply)
+		case "power":
+			if state, err := strconv.ParseBool(action.Argument); err == nil {
+				Sidplayer.power <- state
+			}
 		default:
 			websocket.JSON.Send(c.ws, "unknown action")
 		}
