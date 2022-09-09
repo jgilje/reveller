@@ -14,8 +14,14 @@ import (
 var port uint
 var homeTempl = template.Must(template.ParseFiles("home.html"))
 
+var fileServer = http.FileServer(http.Dir("../www"))
+
 func homeHandler(c http.ResponseWriter, req *http.Request) {
-	homeTempl.Execute(c, req.Host)
+	if req.URL.Path == "/" {
+		homeTempl.Execute(c, req.Host)
+	} else {
+		fileServer.ServeHTTP(c, req)
+	}
 }
 
 func main() {
