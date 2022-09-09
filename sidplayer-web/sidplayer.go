@@ -34,6 +34,7 @@ type sidplayer struct {
 	currentSong      uint16
 	currentState     PlayState
 	currentSidHeader sid.SidFile
+	currentPower     bool
 
 	stdin  io.WriteCloser
 	reader *bufio.Reader
@@ -88,8 +89,10 @@ func (s *sidplayer) startCmd() {
 	s.currentFile = ""
 	s.currentState = Stopped
 	s.currentSong = 0
-
-	broadCastState()
+	go func() {
+		// state is broadcaster by s.power channel
+		s.power <- true
+	}()
 }
 
 func (s *sidplayer) run() {
@@ -204,6 +207,8 @@ func (s *sidplayer) run() {
 			}
 			power := fmt.Sprintf("power %s\n", state)
 			io.WriteString(s.stdin, power)
+			s.currentPower = requested_state
+			broadCastState()
 		}
 	}
 }

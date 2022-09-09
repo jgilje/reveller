@@ -36,10 +36,11 @@ type StateReply struct {
 	File  string    `json:"file"`
 	State PlayState `json:"state"`
 	Song  uint16    `json:"song"`
+	Power bool      `json:"power"`
 }
 
 func broadCastState() {
-	s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong}
+	s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong, Power: Sidplayer.currentPower}
 	msg, _ := json.Marshal(s)
 	reply := ReplyMessage{MsgType: "state", Data: string(msg)}
 	msg, _ = json.Marshal(reply)
@@ -96,7 +97,7 @@ func (c *connection) reader() {
 		case "play":
 			Sidplayer.play <- true
 		case "state":
-			s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong}
+			s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong, Power: Sidplayer.currentPower}
 			msg, _ := json.Marshal(s)
 			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
 			websocket.JSON.Send(c.ws, reply)
