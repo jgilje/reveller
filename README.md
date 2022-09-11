@@ -7,8 +7,10 @@ and listen to the beautiful un-emulated SID-music.
 [sidplayer/](https://github.com/jgilje/reveller/tree/master/sidplayer) contains the core program. It emulates a simple C=64,
 and redirects SID-IO to the chip. Build using CMake.
 
-[sidplayer-web/](https://github.com/jgilje/reveller/tree/master/sidplayer-web) is a frontend for the core, allowing
-clients to connect and control the more basic core. This is a Go project.
+[sidplayer-web-backend/](https://github.com/jgilje/reveller/tree/master/sidplayer-web-backend) is a frontend for the core, allowing
+clients to connect and control the more basic core. This project allows any websocket client to control the 'backend' of the sidplayer. This is a Go project.
+
+[sidplayer-web-frontend/](https://github.com/jgilje/reveller/tree/master/sidplayer-web-frontend) This is a webfrontend for reveller communicating with the webscoket backend. built using js/html 
 
 [qt-gui/](https://github.com/jgilje/reveller/tree/master/qt-gui) is a client for the frontend written in Qt. Build
 using qmake.
