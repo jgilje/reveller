@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Reveller </title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link id="bootstrap" href="css/bootstrap.min.css" rel="stylesheet" />
+<link id="stylez" href="css/page.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript" src="js/handler.js"></script>
+
+</head>
+    <body>
+        <div class="header">
+            <div id="button">
+                <button class="btn btn-success btn-lg" id="power" type="button" onclick="control('true')">On</button>
+            </div>
+            <div class="header-text" id="reveller">
+                Reveller
+            </div>
+            <div id="logo">
+                    <img class="header-logo-svg"
+                        src="artwork/c64.svg"
+                    />
+            </div>
+        </div>
+        <div class="container" id="songcontrol">
+            <table class="table table-sm table-dark">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                        <div id="dir">Control</div>
+                    </th>
+                    <th scope="col">
+                    </th>       
+                  </tr>
+                </thead>
+                <tbody id="control">
+                    <tr>
+                        <td><b>Artist</b></td>
+                        <td id="artist"></td>
+                    </tr>
+                    <tr>
+                        <td><b>Song</b></td>
+                        <td id="song"></td>
+                    </tr>
+                    <tr>
+                        <td><b>Subsongs</b></td>
+                        <td id="subsongavail"></td>
+                    </tr>
+                    <tr>
+                        <td><b>Current Subsong</b></td>
+                        <td id="currsubsong"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="container justify-content-center">
+                <div class="d-flex justify-content-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-light btn-lg" type="button" onclick="control('prev')"><i class="bi bi-skip-backward"></i> Prev</button>
+                            <button class="btn btn-success btn-lg" type="button" onclick="control('play')"><i class="bi bi-play"></i>Play</button>
+                            <button class="btn btn-danger btn-lg" type="button" onclick="control('stop')"><i class="bi bi-stop"></i>Stop</button>
+                            <button class="btn btn-light btn-lg" type="button" onclick="control('fwd')"></i>Fwd <i class="bi bi-skip-forward"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <table class="table table-sm table-dark">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                        <div>
+                            <div id="dir" onclick="home()">Directory</div>
+                            <div id="backbtn" onclick="backDir()">Back</div>
+                        </div>
+                    </th>           
+                  </tr>
+                </thead>
+                <tbody id="directory">
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
