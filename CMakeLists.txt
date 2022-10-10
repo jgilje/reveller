@@ -22,4 +22,13 @@ set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
 
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+    "${CMAKE_CURRENT_SOURCE_DIR}/debian/prerm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/debian/postinst"
+    "${CMAKE_CURRENT_SOURCE_DIR}/debian/postrm"
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer-web-backend/systemd/reveller.service
+  DESTINATION /usr/local/lib/systemd/system)
+
 include(CPack)

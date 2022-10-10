@@ -3,7 +3,7 @@ Description=Reveller
 After=network.target
 
 [Service]
-ExecStart=/opt/reveller/bin/sidplayer-web -player ../bin/sidplayer -rootpath ../C64Music
+ExecStart=/opt/reveller/bin/reveller-backend -player ../bin/sidplayer -rootpath ../C64Music
 WorkingDirectory=/opt/reveller/www
 
 [Install]
