@@ -2,7 +2,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
-PROJECT(reveller C CXX Go)
+cmake_policy(SET CMP0048 NEW)
+PROJECT(reveller VERSION 0.1.0 LANGUAGES C CXX Go)
 
 include(cmake/golang.cmake)
 
@@ -29,6 +30,14 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 )
 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer-web-backend/systemd/reveller.service
-  DESTINATION /usr/local/lib/systemd/system)
+  DESTINATION /usr/local/lib/systemd/system
+)
+
+INSTALL(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer/kernel-driver/rpi/Makefile
+  ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer/kernel-driver/rpi/reveller.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer/kernel-driver/rpi/dkms.conf
+  DESTINATION /usr/src/reveller-0.1.0
+)
 
 include(CPack)

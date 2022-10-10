@@ -30,7 +30,8 @@ case "$1" in
 esac
 
 if [ -d /run/systemd/system ] && [ "$1" = remove ]; then
-        deb-systemd-invoke stop 'reveller.service' >/dev/null || true
+    dkms remove -m reveller -v 0.1.0 --all || true
+    deb-systemd-invoke stop 'reveller.service' >/dev/null || true
 fi
 
 exit 0

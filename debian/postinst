@@ -37,7 +37,10 @@ if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-decon
 		if [ -n "$2" ]; then
 			systemctl restart 'reveller.service' >/dev/null || true
 		fi
-	done
+	fi
+
+    dkms add -m reveller -v 0.1.0
+    dkms build -m reveller -v 0.1.0 && dkms install -m reveller -v 0.1.0 || true
 fi
 
 exit 0
