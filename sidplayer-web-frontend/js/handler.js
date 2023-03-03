@@ -24,7 +24,7 @@ getHeaders = {
     "action": "currentHeader"
 }
 
-// ("ws://reveller.rottlan.fluxxx.lan:8080/ws")
+// ("ws://{{$}}:8080/ws")
 //conn = new WebSocket("ws://{{$}}/ws");
 if (window["WebSocket"]) {
     reCon()
@@ -37,12 +37,21 @@ if (window["WebSocket"]) {
 });
 
 function reCon(state){
+    let ws_url = ""
+    if (location.protocol === "http:")
+    {
+        ws_url = "ws://" + window.location.host + "/ws";
+    }
+    else if (location.protocol === "https:")
+    {
+        ws_url = "wss://" + window.location.host + "/ws";
+    }
     console.log(conn)
     if (state == "recon"){
         if (typeof conn != "undefined" ){
             if (conn.readyState != 1 ){
                 console.log("trying to reconnect")  
-                conn = new WebSocket("ws://reveller.rottlan.fluxxx.lan:8080/ws");
+                conn = new WebSocket(ws_url);
             }
             else if (conn.readyState == 1){
                 console.log("We have reconnected...")
@@ -51,7 +60,7 @@ function reCon(state){
         }
     }
     else {
-    conn = new WebSocket("ws://reveller.rottlan.fluxxx.lan:8080/ws");
+    conn = new WebSocket(ws_url);
     clearInterval(intervalID);
     }
     conn.onopen = function(evt) {
