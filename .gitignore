@@ -3,3 +3,7 @@
 build/
 C64Music/
 .cache
+*.o
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
