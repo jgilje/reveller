@@ -24,17 +24,11 @@ MainWindow::MainWindow(bool &ok, QWidget *parent) :
     ui->columnView->setPreviewWidget(info);
 
     QSettings settings;
-    QString url = settings.value("url").toString();
-    if (url.isEmpty()) {
-        url = runConnectionDialog();
-        if (url.isEmpty()) {
-            ok = false;
-            return;
-        }
-        wsConnect(url);
-    } else {
-        wsConnect(url);
+    QString url = runConnectionDialog();
+    if (! url.startsWith("http://")) {
+        url.prepend("http://");
     }
+    wsConnect(url);
 
     connect(ui->labelCurrentSong, &QLabel::linkActivated, this, &MainWindow::onNavigation);
     ok = true;

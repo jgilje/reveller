@@ -22,7 +22,6 @@
      <property name="font">
       <font>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -42,7 +41,11 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="lineUrl"/>
+       <widget class="QLineEdit" name="lineUrl">
+        <property name="placeholderText">
+         <string>ex. http://reveller:8080</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
