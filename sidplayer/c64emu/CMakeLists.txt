@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 SET(CMAKE_C_FLAGS "-Wall")
 INCLUDE_DIRECTORIES(../helpers ../common)
