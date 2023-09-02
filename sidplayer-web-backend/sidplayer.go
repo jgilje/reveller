@@ -164,7 +164,7 @@ func (s *sidplayer) run() {
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
 			if !s.currentPower {
-				io.WriteString(s.stdin, "power on")
+				io.WriteString(s.stdin, "power on\n")
 				s.currentPower = true
 			}
 
@@ -194,7 +194,7 @@ func (s *sidplayer) run() {
 			}
 
 			if s.currentPower {
-				io.WriteString(s.stdin, "power off")
+				io.WriteString(s.stdin, "power off\n")
 				s.currentPower = false
 			}
 
@@ -202,7 +202,7 @@ func (s *sidplayer) run() {
 
 		case <-s.play:
 			if !s.currentPower {
-				io.WriteString(s.stdin, "power on")
+				io.WriteString(s.stdin, "power on\n")
 				s.currentPower = true
 			}
 
