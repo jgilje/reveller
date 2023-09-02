@@ -57,7 +57,6 @@ func (s *sidplayer) stopPlayback() error {
 	}
 
 	s.currentState = Stopped
-	broadCastState()
 
 	return nil
 }
@@ -91,7 +90,7 @@ func (s *sidplayer) startCmd() {
 	s.currentSong = 0
 	go func() {
 		// state is broadcaster by s.power channel
-		s.power <- true
+		s.power <- false
 	}()
 }
 
@@ -117,8 +116,8 @@ func (s *sidplayer) run() {
 		for {
 			_, err := s.stderr.Read(buf)
 			if err != nil {
-				log.Println("sidplayer crashed, respawning in 3 secs")
-				errormsg := strings.Trim(string(buf), string(0x0))
+				errormsg := strings.Trim(string(buf), "\x00")
+				log.Println("sidplayer crashed, respawning in 3 secs. errormsg ", errormsg)
 
 				msg, _ := json.Marshal(ReplyMessage{MsgType: "crash", Data: errormsg})
 				h.broadcast <- string(msg)
@@ -164,6 +163,10 @@ func (s *sidplayer) run() {
 			h.broadcast <- string(msg)
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
+			if !s.currentPower {
+				io.WriteString(s.stdin, "power on")
+				s.currentPower = true
+			}
 
 			if s.currentState == Playing {
 				if s.stopPlayback() != nil {
@@ -189,7 +192,20 @@ func (s *sidplayer) run() {
 			if s.stopPlayback() != nil {
 				return
 			}
+
+			if s.currentPower {
+				io.WriteString(s.stdin, "power off")
+				s.currentPower = false
+			}
+
+			broadCastState()
+
 		case <-s.play:
+			if !s.currentPower {
+				io.WriteString(s.stdin, "power on")
+				s.currentPower = true
+			}
+
 			_, err := io.WriteString(s.stdin, "p\n")
 			if err != nil {
 				log.Println("Fatal error from reading coming up! (play)")
