@@ -83,7 +83,7 @@ QVariant SidItemModel::data(const QModelIndex &index, int role) const {
 
 Qt::ItemFlags SidItemModel::flags(const QModelIndex &index) const {
     if (!index.isValid())
-        return 0;
+        return Qt::NoItemFlags;
 
     return QAbstractItemModel::flags(index);
 }
