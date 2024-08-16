@@ -1,6 +1,7 @@
 #include <linux/kern_levels.h>
 
 #include <linux/module.h>
+#include <linux/version.h>
 
 #include <linux/of_irq.h>
 #include <linux/of_address.h>
@@ -656,7 +657,11 @@ static int reveller_init(void) {
     reveller_major = MAJOR(reveller_dev);
 
     /* Create device class (before allocation of the array of devices) */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
     reveller_class = class_create(THIS_MODULE, "reveller");
+#else
+    reveller_class = class_create("reveller");
+#endif
     if (IS_ERR(reveller_class)) {
         result = PTR_ERR(reveller_class);
         goto fail;
