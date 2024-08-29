@@ -33,6 +33,11 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer-web-backend/systemd/reveller
   DESTINATION /usr/local/lib/systemd/system
 )
 
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer-web-backend/systemd/reveller
+  DESTINATION /etc/modules-load.d
+)
+
+
 INSTALL(FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer/kernel-driver/rpi/Makefile
   ${CMAKE_CURRENT_SOURCE_DIR}/sidplayer/kernel-driver/rpi/reveller.c
