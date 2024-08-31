@@ -48,9 +48,14 @@ func (s *Searcher) SearchFile(search string, c *connection) {
 		}
 
 		filepath.WalkDir(s.prefix, s.walker)
-		fmt.Println(s.results)
 		reply, _ := json.Marshal(searchReply{Results: s.results})
 		msg, _ := json.Marshal(ReplyMessage{MsgType: "search", Data: string(reply)})
-		c.send <- string(msg)
+
+		select {
+		case <-c.Done():
+			return
+		default:
+			c.send <- string(msg)
+		}
 	}()
 }

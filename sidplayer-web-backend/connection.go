@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"strconv"
@@ -14,6 +15,8 @@ type connection struct {
 
 	// Buffered channel of outbound messages.
 	send chan string
+
+	context.Context
 }
 
 type SidAction struct {
@@ -127,9 +130,15 @@ func (c *connection) writer() {
 }
 
 func wsHandler(ws *websocket.Conn) {
-	c := &connection{send: make(chan string, 256), ws: ws}
+	ctx := context.Background()
+	ctxWithCancel, cancel := context.WithCancel(ctx)
+
+	c := &connection{send: make(chan string, 256), ws: ws, Context: ctxWithCancel}
 	h.register <- c
-	defer func() { h.unregister <- c }()
+	defer func() {
+		cancel()
+		h.unregister <- c
+	}()
 	go c.writer()
 	c.reader()
 }
