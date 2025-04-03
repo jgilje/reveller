@@ -1,17 +1,19 @@
 module github.com/jgilje/reveller/sidplayer-web
 
-go 1.18
+go 1.23.0
+
+toolchain go1.23.7
 
 require (
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/oleksandr/bonjour v0.0.0-20210301155756-30f43c61b915
-	golang.org/x/net v0.36.0
+	golang.org/x/net v0.38.0
 )
 
 require (
-	github.com/miekg/dns v1.1.50 // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/tools v0.1.6-0.20210726203631-07bc1bf47fb2 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	github.com/miekg/dns v1.1.64 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/tools v0.31.0 // indirect
 )
