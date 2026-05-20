@@ -26,7 +26,7 @@ type SidAction struct {
 
 type ReplyMessage struct {
 	MsgType string `json:"type"`
-	Data    string `json:"data"`
+	Data    any    `json:"data"`
 }
 
 type lsReply struct {
@@ -44,9 +44,8 @@ type StateReply struct {
 
 func broadCastState() {
 	s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong, Power: Sidplayer.currentPower}
-	msg, _ := json.Marshal(s)
-	reply := ReplyMessage{MsgType: "state", Data: string(msg)}
-	msg, _ = json.Marshal(reply)
+	reply := ReplyMessage{MsgType: "state", Data: s}
+	msg, _ := json.Marshal(reply)
 	h.broadcast <- string(msg)
 }
 
@@ -74,8 +73,7 @@ func (c *connection) reader() {
 		case "ls":
 			dirs, sids := Readpath(action.Argument)
 			lsreply := lsReply{Path: action.Argument, Directories: dirs, SidFiles: sids}
-			msg, _ := json.Marshal(lsreply)
-			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
+			reply := ReplyMessage{MsgType: action.Action, Data: lsreply}
 			websocket.JSON.Send(c.ws, reply)
 		case "search":
 			path := action.Argument
@@ -101,12 +99,10 @@ func (c *connection) reader() {
 			Sidplayer.play <- true
 		case "state":
 			s := StateReply{File: Sidplayer.currentFile, State: Sidplayer.currentState, Song: Sidplayer.currentSong, Power: Sidplayer.currentPower}
-			msg, _ := json.Marshal(s)
-			reply := ReplyMessage{MsgType: action.Action, Data: string(msg)}
+			reply := ReplyMessage{MsgType: action.Action, Data: s}
 			websocket.JSON.Send(c.ws, reply)
 		case "currentHeader":
-			msg, _ := json.Marshal(Sidplayer.currentSidHeader)
-			reply := ReplyMessage{MsgType: "currentSidHeader", Data: string(msg)}
+			reply := ReplyMessage{MsgType: "currentSidHeader", Data: Sidplayer.currentSidHeader}
 			websocket.JSON.Send(c.ws, reply)
 		case "power":
 			if state, err := strconv.ParseBool(action.Argument); err == nil {
