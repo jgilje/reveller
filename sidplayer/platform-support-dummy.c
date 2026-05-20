@@ -26,8 +26,8 @@ static void dummy_sid_write(uint8_t reg, uint8_t data) {
   //	platform_debug("SID Write: %x: %x\n", reg, data);
 }
 
-static void dummy_power() {}
-static void dummy_shutdown(uint32_t state) {}
+static void dummy_power(uint32_t state) {}
+static void dummy_shutdown() {}
 
 static void init() {}
 
