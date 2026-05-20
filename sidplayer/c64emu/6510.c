@@ -381,6 +381,13 @@ void c64_setSubSong(unsigned char song) {
 	c64_cia_init();
 	c64_vic_init();
 	c64_sid_init();
+
+	if (sh.flags & (1 << 4)) {
+	    set_chipmode(MOS6581);
+	}
+	if (sh.flags & (1 << 5)) {
+	    set_chipmode(MOS8580);
+	}
 	initSong();
 
     c64_storeMemRAMShort(0xfffa, 0x43, 0xfe);

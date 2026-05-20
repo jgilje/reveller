@@ -62,6 +62,9 @@ void common_pause() {
 void common_resume() {
     reveller->sid_write(0x18, c64_sid_register[0x18]);
 }
+uint8_t common_sid_read(uint8_t reg) {
+    return 0;
+}
 
 static int fd_mem = -1;
 int open_mem() {
@@ -106,6 +109,7 @@ extern struct reveller_platform rpi2_platform;
 extern struct reveller_platform rpi4_platform;
 extern struct reveller_platform bbb_platform;
 struct reveller_platform *reveller = NULL;
+sidchip_implementation_t sidchip_implementation = SIDCHIP_UNKNOWN;
 
 void detect_platform() {
     reveller = &dummy_platform;
@@ -153,5 +157,43 @@ void detect_platform() {
         fclose(fp);
     } else {
         return;
+    }
+}
+
+#define PETSCII_D 0x44
+#define PETSCII_P 0x50
+#define PETSCII_S 0x53
+
+void detect_chip() {
+    if (sidchip_implementation == SIDCHIP_UNKNOWN) {
+        reveller->sid_write(0x1d, PETSCII_P);
+        reveller->sid_write(0x1e, PETSCII_D);
+        uint8_t value = reveller->sid_read(0x1e);
+        if (value == PETSCII_S) {
+            sidchip_implementation = SIDCHIP_PDSID;
+        }
+    }
+}
+
+void set_chipmode(sidchip_t sidchip) {
+    if (sidchip_override == 1) {
+        return;
+    }
+
+    switch (sidchip_implementation) {
+        case SIDCHIP_PDSID:
+            reveller->sid_write(0x1d, PETSCII_P);
+            reveller->sid_write(0x1e, PETSCII_D);
+            switch (sidchip) {
+                case MOS6581:
+                    reveller->sid_write(0x1f, 0x0);
+                    break;
+                case MOS8580:
+                    reveller->sid_write(0x1f, 0x1);
+                    break;
+            }
+            break;
+        case SIDCHIP_UNKNOWN:
+            break;
     }
 }

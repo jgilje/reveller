@@ -9,6 +9,7 @@
 #include "console-interface.h"
 
 #include "platform-support-common.h"
+#include "platform-support.h"
 
 void printWelcome() {
     printf("Reveller SID, running on %s\n", reveller->platform_id);
@@ -16,22 +17,30 @@ void printWelcome() {
 }
 
 int main(int argc, char **argv) {
-    (void) argc;
+    int last = 0;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--force-pdsid") == 0) {
+            sidchip_implementation = SIDCHIP_PDSID;
+        } else {
+            last = i;
+        }
+    }
 
     detect_platform();
+    detect_chip();
     reveller->init();
 
 	printWelcome();
-	
-	if (argv[1]) {
-        reveller_input_file = fopen(argv[1], "rb");
+
+	if (last > 0 && argv[last]) {
+        reveller_input_file = fopen(argv[last], "rb");
         if (reveller_input_file == 0) {
-			printf("ERROR: File %s not found\n", argv[1]);
+			printf("ERROR: File %s not found\n", argv[last]);
 			exit(1);
 		}
 
 		parseHeader();
-		printf("Loaded %s, %d subsongs\n", argv[1], sh.songs);
+		printf("Loaded %s, %d subsongs\n", argv[last], sh.songs);
 	}
 
 	console_interface();

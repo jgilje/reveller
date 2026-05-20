@@ -16,6 +16,7 @@ void common_sid_block_start(void);
 void common_sid_block_end(void);
 void common_pause();
 void common_resume();
+uint8_t common_sid_read(uint8_t reg);
 
 int open_mem();
 void* get_addr(uint32_t addr);
@@ -23,5 +24,6 @@ void release_addr(void* addr);
 
 void set_realtime();
 void detect_platform();
+void detect_chip();
 
 #endif

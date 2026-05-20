@@ -245,6 +245,7 @@ struct reveller_platform rpi4_platform = {
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,
     .sid_write = &sid_write,
+    .sid_read = &common_sid_read,
 
     .platform_id = "Raspberry Pi 4",
 };

@@ -220,6 +220,15 @@ void console_interface(void) {
 			} else if (! strcmp(args, "off")) {
 				reveller->power(0);
 			}
+		} else if (! strcmp(input, "sid")) {
+		    sidchip_override = 0;
+			if (! strcmp(args, "6581")) {
+				set_chipmode(MOS6581);
+				sidchip_override = 1;
+			} else if (! strcmp(args, "8580")) {
+			    set_chipmode(MOS8580);
+				sidchip_override = 1;
+			}
         } else if (interactive && reveller_input_file) {
 			printf("Starting PlayAddr 1 time\n");
 			interpret(1, sh.playAddress);
