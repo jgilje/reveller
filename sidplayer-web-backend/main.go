@@ -46,7 +46,6 @@ func main() {
 	ws := websocket.Server{Handler: wsHandler}
 	http.Handle("/ws", ws)
 
-	registerService(uint16(port))
 	addr := ":" + strconv.FormatUint(uint64(port), 10)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
