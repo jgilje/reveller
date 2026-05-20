@@ -4,6 +4,7 @@
 #include "c64emu/6510.h"
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,27 +15,28 @@
 #include <sched.h>
 
 FILE* reveller_input_file = NULL;
+int sidchip_override = 0;
 
 void common_platform_debug(const char *msg, ...) {
     va_list argp;
-    
+
     va_start(argp, msg);
     vfprintf(stdout, msg, argp);
     va_end(argp);
-    
+
     fflush(stdout);
 }
 
 void common_platform_abort(const char *msg, ...) {
     va_list argp;
-    
+
     va_start(argp, msg);
     vfprintf(stderr, msg, argp);
     va_end(argp);
-    
+
     fflush(stdout);
     fflush(stderr);
-    
+
     exit(1);
 }
 

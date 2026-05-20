@@ -19,7 +19,7 @@ void continuosPlay(void) {
 #if defined unix || (defined(__APPLE__) && defined(__MACH__))
 	struct termios currentTerm;
 	struct termios originalTerm;
-	
+
     tcgetattr(STDIN_FILENO, &currentTerm);
     originalTerm = currentTerm;
     currentTerm.c_lflag &= ~(ECHO | ICANON | IEXTEN);
@@ -108,17 +108,17 @@ void console_interface(void) {
 	char *args;
 	int song = 0;
 	int interactive = 0;
-	
+
 	while(1) {
 		printf("6510> ");
 		input[0] = 0x0;
 		fgets(input, 256, stdin);
-		
+
 		if (input[0] == 0x0) { printf("\n"); exit(0); }
 		input[strlen(input) - 1] = 0x0;
-		
+
 		args = nextToken(input);
-		
+
 		if (! strcmp(input, "help") || ! strcmp(input, "h")) {
 			printf("\n6510 Commands\n"
 				   "(h)elp\n"
@@ -139,7 +139,7 @@ void console_interface(void) {
             if (reveller_input_file == 0) {
 				printf("ERROR: File %s not found\n", args);
 			}
-			
+
             c64_setSubSong(0);
 		} else if (! strcmp(input, "play") || ! strcmp(input, "p")) {
 			int i;

@@ -64,56 +64,56 @@ static void (*opcodes[])(void) = 	// alle opcodes for prosessoren
 // 0x0,  0x1,     0x2,     0x3,     0x4,     0x5,     0x6,     0x7
 // 0x8,  0x9,     0xA,     0xB,     0xC,     0xD,     0xE,     0xF
 // 0x00
-&BRK_, &ORA_izx, &Un_imp, &Un_imp, &Un_imp, &ORA_zp, &ASL_zp, &Un_imp, 
-&PHP_, &ORA_imm, &ASL_imp, &Un_imp, &Un_imp, &ORA_abs, &ASL_abs, &Un_imp, 
+&BRK_, &ORA_izx, &Un_imp, &Un_imp, &Un_imp, &ORA_zp, &ASL_zp, &Un_imp,
+&PHP_, &ORA_imm, &ASL_imp, &Un_imp, &Un_imp, &ORA_abs, &ASL_abs, &Un_imp,
 // 0x10
-&BPL_, &ORA_izy, &Un_imp, &Un_imp, &Un_imp, &ORA_zpx, &ASL_zpx, &Un_imp, 
-&CLC_, &ORA_absy, &Un_imp, &Un_imp, &Un_imp, &ORA_absx, &ASL_absx, &Un_imp, 
+&BPL_, &ORA_izy, &Un_imp, &Un_imp, &Un_imp, &ORA_zpx, &ASL_zpx, &Un_imp,
+&CLC_, &ORA_absy, &Un_imp, &Un_imp, &Un_imp, &ORA_absx, &ASL_absx, &Un_imp,
 // 0x20
-&JSR_, &AND_izx, &Un_imp, &Un_imp, &BIT_zp, &AND_zp, &ROL_zp, &Un_imp, 
-&PLP_, &AND_imm, &ROL_imp, &Un_imp, &BIT_abs, &AND_abs, &ROL_abs, &Un_imp, 
+&JSR_, &AND_izx, &Un_imp, &Un_imp, &BIT_zp, &AND_zp, &ROL_zp, &Un_imp,
+&PLP_, &AND_imm, &ROL_imp, &Un_imp, &BIT_abs, &AND_abs, &ROL_abs, &Un_imp,
 // 0x30
-&BMI_, &AND_izy, &Un_imp, &Un_imp, &Un_imp, &AND_zpx, &ROL_zpx, &Un_imp, 
-&SEC_, &AND_absy, &Un_imp, &Un_imp, &Un_imp, &AND_absx, &ROL_absx, &Un_imp, 
+&BMI_, &AND_izy, &Un_imp, &Un_imp, &Un_imp, &AND_zpx, &ROL_zpx, &Un_imp,
+&SEC_, &AND_absy, &Un_imp, &Un_imp, &Un_imp, &AND_absx, &ROL_absx, &Un_imp,
 // 0x40
-&RTI_, &EOR_izx, &Un_imp, &Un_imp, &Un_imp, &EOR_zp, &LSR_zp, &Un_imp, 
-&PHA_, &EOR_imm, &LSR_imp, &Un_imp, &JMP_abs, &EOR_abs, &LSR_abs, &Un_imp, 
+&RTI_, &EOR_izx, &Un_imp, &Un_imp, &Un_imp, &EOR_zp, &LSR_zp, &Un_imp,
+&PHA_, &EOR_imm, &LSR_imp, &Un_imp, &JMP_abs, &EOR_abs, &LSR_abs, &Un_imp,
 // 0x50
-&BVC_, &EOR_izy, &Un_imp, &Un_imp, &Un_imp, &EOR_zpx, &LSR_zpx, &Un_imp, 
-&CLI_, &EOR_absy, &Un_imp, &Un_imp, &Un_imp, &EOR_absx, &LSR_absx, &Un_imp, 
+&BVC_, &EOR_izy, &Un_imp, &Un_imp, &Un_imp, &EOR_zpx, &LSR_zpx, &Un_imp,
+&CLI_, &EOR_absy, &Un_imp, &Un_imp, &Un_imp, &EOR_absx, &LSR_absx, &Un_imp,
 // 0x60
-&RTS_, &ADC_izx, &Un_imp, &Un_imp, &Un_imp, &ADC_zp, &ROR_zp, &Un_imp, 
-&PLA_, &ADC_imm, &ROR_imp, &Un_imp, &JMP_ind, &ADC_abs, &ROR_abs, &Un_imp, 
+&RTS_, &ADC_izx, &Un_imp, &Un_imp, &Un_imp, &ADC_zp, &ROR_zp, &Un_imp,
+&PLA_, &ADC_imm, &ROR_imp, &Un_imp, &JMP_ind, &ADC_abs, &ROR_abs, &Un_imp,
 // 0x70
-&BVS_, &ADC_izy, &Un_imp, &Un_imp, &Un_imp, &ADC_zpx, &ROR_zpx, &Un_imp, 
-&SEI_, &ADC_absy, &Un_imp, &Un_imp, &Un_imp, &ADC_absx, &ROR_absx, &Un_imp, 
+&BVS_, &ADC_izy, &Un_imp, &Un_imp, &Un_imp, &ADC_zpx, &ROR_zpx, &Un_imp,
+&SEI_, &ADC_absy, &Un_imp, &Un_imp, &Un_imp, &ADC_absx, &ROR_absx, &Un_imp,
 
 // 0x0,  0x1,     0x2,     0x3,     0x4,     0x5,     0x6,     0x7
 // 0x8,  0x9,     0xA,     0xB,     0xC,     0xD,     0xE,     0xF
 // 0x80
-&Un_imp, &STA_izx, &Un_imp, &Un_imp, &STY_zp, &STA_zp, &STX_zp, &Un_imp, 
-&DEY_, &Un_imp, &TXA_, &Un_imp, &STY_abs, &STA_abs, &STX_abs, &Un_imp, 
+&Un_imp, &STA_izx, &Un_imp, &Un_imp, &STY_zp, &STA_zp, &STX_zp, &Un_imp,
+&DEY_, &Un_imp, &TXA_, &Un_imp, &STY_abs, &STA_abs, &STX_abs, &Un_imp,
 // 0x90
-&BCC_, &STA_izy, &Un_imp, &Un_imp, &STY_zpx, &STA_zpx, &STX_zpy, &Un_imp, 
-&TYA_, &STA_absy, &TXS_, &Un_imp, &Un_imp, &STA_absx, &Un_imp, &Un_imp, 
+&BCC_, &STA_izy, &Un_imp, &Un_imp, &STY_zpx, &STA_zpx, &STX_zpy, &Un_imp,
+&TYA_, &STA_absy, &TXS_, &Un_imp, &Un_imp, &STA_absx, &Un_imp, &Un_imp,
 // 0xA0
-&LDY_imm, &LDA_izx, &LDX_imm, &Un_imp, &LDY_zp, &LDA_zp, &LDX_zp, &Un_imp, 
-&TAY_, &LDA_imm, &TAX_, &Un_imp, &LDY_abs, &LDA_abs, &LDX_abs, &Un_imp, 
+&LDY_imm, &LDA_izx, &LDX_imm, &Un_imp, &LDY_zp, &LDA_zp, &LDX_zp, &Un_imp,
+&TAY_, &LDA_imm, &TAX_, &Un_imp, &LDY_abs, &LDA_abs, &LDX_abs, &Un_imp,
 // 0xB0
-&BCS_, &LDA_izy, &Un_imp, &Un_imp, &LDY_zpx, &LDA_zpx, &LDX_zpy, &Un_imp, 
-&CLV_, &LDA_absy, &TSX_, &Un_imp, &LDY_absx, &LDA_absx, &LDX_absy, &Un_imp, 
+&BCS_, &LDA_izy, &Un_imp, &Un_imp, &LDY_zpx, &LDA_zpx, &LDX_zpy, &Un_imp,
+&CLV_, &LDA_absy, &TSX_, &Un_imp, &LDY_absx, &LDA_absx, &LDX_absy, &Un_imp,
 // 0xC0
-&CPY_imm, &CMP_izx, &Un_imp, &Un_imp, &CPY_zp, &CMP_zp, &DEC_zp, &Un_imp, 
-&INY_, &CMP_imm, &DEX_, &Un_imp, &CPY_abs, &CMP_abs, &DEC_abs, &Un_imp, 
+&CPY_imm, &CMP_izx, &Un_imp, &Un_imp, &CPY_zp, &CMP_zp, &DEC_zp, &Un_imp,
+&INY_, &CMP_imm, &DEX_, &Un_imp, &CPY_abs, &CMP_abs, &DEC_abs, &Un_imp,
 // 0xD0
-&BNE_, &CMP_izy, &Un_imp, &Un_imp, &Un_imp, &CMP_zpx, &DEC_zpx, &Un_imp, 
-&CLD_, &CMP_absy, &Un_imp, &Un_imp, &Un_imp, &CMP_absx, &DEC_absx, &Un_imp, 
+&BNE_, &CMP_izy, &Un_imp, &Un_imp, &Un_imp, &CMP_zpx, &DEC_zpx, &Un_imp,
+&CLD_, &CMP_absy, &Un_imp, &Un_imp, &Un_imp, &CMP_absx, &DEC_absx, &Un_imp,
 // 0xE0
-&CPX_imm, &SBC_izx, &Un_imp, &Un_imp, &CPX_zp, &SBC_zp, &INC_zp, &Un_imp, 
-&INX_, &SBC_imm, &NOP_, &Un_imp, &CPX_abs, &SBC_abs, &INC_abs, &Un_imp, 
+&CPX_imm, &SBC_izx, &Un_imp, &Un_imp, &CPX_zp, &SBC_zp, &INC_zp, &Un_imp,
+&INX_, &SBC_imm, &NOP_, &Un_imp, &CPX_abs, &SBC_abs, &INC_abs, &Un_imp,
 // 0xF0
-&BEQ_, &SBC_izy, &Un_imp, &Un_imp, &Un_imp, &SBC_zpx, &INC_zpx, &Un_imp, 
-&SED_, &SBC_absy, &Un_imp, &Un_imp, &Un_imp, &SBC_absx, &INC_absx, &Un_imp, 
+&BEQ_, &SBC_izy, &Un_imp, &Un_imp, &Un_imp, &SBC_zpx, &INC_zpx, &Un_imp,
+&SED_, &SBC_absy, &Un_imp, &Un_imp, &Un_imp, &SBC_absx, &INC_absx, &Un_imp,
 
 };
 
@@ -125,12 +125,12 @@ uint32_t interpretMain(void) {
         reveller->debug(" PC   A  X  Y  SP  DR PR NV-BDIZC Instr.\n", data, reg.pc);
         reveller->debug("%04x %02x %02x %02x 01%x ", reg.pc, reg.a, reg.x, reg.y, reg.s);
         reveller->debug("%x %x ", *(pages[0]), *(pages[0] + 1));
-		
+
 		int i;
 		for (i = 7; i >= 0; i--) {
             if (reg.p & (1 << i)) reveller->debug("1"); else reveller->debug("0");
 		}
-		
+
         reveller->debug(" %02x", data);
 #endif
 
@@ -207,7 +207,7 @@ void triggerInterrupt(void) {
 	if (reg.s > stack_start) {
         reveller->abort("Stack Overflow");
 	}
-	
+
 	work = 1;
 }
 
@@ -250,14 +250,14 @@ int32_t c64_next_trigger(void) {
 			return vic_next;
 		}
 	}
-	
+
 	if (cia_next > 0) {
 		return cia_next;
 	}
 	if (vic_next > 0) {
 		return vic_next;
 	}
-	
+
     reveller->debug("c64_next_trigger(): no IRQ?\n");
 	return 20000;
 }
@@ -266,12 +266,12 @@ int32_t c64_play(void) {
 	uint32_t sleep_time = 0;
 	uint32_t next = 0;
 	int interrupted = 0;
-	
+
 	while (! interrupted) {
 		next = c64_next_trigger();
 		c64_cia_update_timers(next);
 		c64_vic_update_timer(next);
-		
+
 		if (c64_cia_nmi()) {
 			interrupted = 1;
 			c64_trigger_nmi();
@@ -280,10 +280,10 @@ int32_t c64_play(void) {
 			interrupted = 1;
 			c64_trigger_irq();
 		}
-		
+
 		sleep_time += next;
 	}
-	
+
 	sleep_time = sleep_time * (1000000.0f / (float) sh.hz);
 	return sleep_time;
 }
@@ -300,7 +300,7 @@ unsigned char getIOPort(unsigned short address) {
 			return 0x35;
 		}
 	}
-	
+
 	return 0x0;		// kompilatoren klager
 }
 
@@ -320,7 +320,7 @@ void installSIDDriver(void) {
 			}
 		}
 	}
-	
+
 	if (freePage == 0) {
         reveller->abort("Failed to retrieve a free page for SID Driver\n");
 	}
@@ -331,7 +331,7 @@ void installSIDDriver(void) {
     reveller->debug("Installing SID Driver in free page %x\n", freePage);
 #endif
 	address = freePage << 8;
-	
+
 	// retrieve correct IOPort before running SID
     c64_storeMemRAMShort(address, 0xa9, IOPort); address += 2;
     c64_storeMemRAMShort(address, 0x85, 0x1); address += 2;
@@ -395,14 +395,14 @@ void c64_setSubSong(unsigned char song) {
 
 	// run INIT adress with songNo in reg.a
 	interpretInit(song);
-	
+
 	if (! strcmp(sh.type, "PSID")) {
 		installSIDDriver();
 
 		if (sh.playAddress) {
             c64_storeMemRAMShort(0xfffe, 0x0, SIDDriverPage);
 		}
-		
+
 		// sett opp CIA#1
 		if (sh.speed & (1 << c64_current_song)) {
             reveller->debug("CIA#1 timer enabled from sh.speed\n");
