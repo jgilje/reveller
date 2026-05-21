@@ -2,6 +2,7 @@ find_package(Qt6 COMPONENTS Widgets WebSockets REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 add_executable(reveller-qt
     connectdialog.cpp
@@ -17,6 +18,7 @@ add_executable(reveller-qt
     siditem.h
     siditemmodel.cpp
     siditemmodel.h
+    resources.qrc
 )
 
 target_link_libraries(reveller-qt
