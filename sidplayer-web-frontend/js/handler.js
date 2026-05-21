@@ -56,7 +56,7 @@ function reCon(state){
         ws_url = "wss://" + window.location.host + "/ws";
     }
     else if (location.protocol === "file:"){
-        ws_url = "ws://" + "10.6.67.175:8080/ws";
+        ws_url = "ws://" + "10.6.66.93:8080/ws";
     }
     console.log(conn)
     if (state == "recon"){
@@ -268,7 +268,7 @@ function msgParse(msg) {
     }
     if(typeof jsonobj.data != "undefined" && jsonobj.type == "ls")
     {
-        dir = JSON.parse(jsonobj.data);
+        dir = jsonobj.data;
         if (debug) {
             console.log(dir);
         }
@@ -316,7 +316,7 @@ function msgParse(msg) {
         }
         else if (jsonobj.type == "state" || jsonobj.type == "currentSidHeader"){
             
-            dataobj = JSON.parse(jsonobj.data)
+            dataobj = jsonobj.data
             if (debug) {
                 console.log(dataobj)
             }
@@ -351,7 +351,7 @@ function msgParse(msg) {
             if (debug) {
             console.log(jsonobj.data)
             }
-            searchres = JSON.parse(jsonobj.data)
+            searchres = jsonobj.data
             if (debug) {
                 console.log(searchres.results)  
             }
