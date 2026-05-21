@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -117,7 +116,7 @@ func toUtf8(iso8859_1_buf []byte) string {
 		buf[i] = rune(b)
 	}
 
-	return strings.Trim(string(buf), string(0x0))
+	return strings.Trim(string(buf), string("\x00"))
 }
 
 func Parse(filename string) (SidFile, error) {
@@ -134,7 +133,7 @@ func Parse(filename string) (SidFile, error) {
 		return SidFile{}, errors.New("File too large")
 	}
 
-	file, err := ioutil.ReadFile(filename)
+	file, err := os.ReadFile(filename)
 	if err != nil {
 		log.Println(err)
 		return SidFile{}, errors.New("Failed to open file")
@@ -155,7 +154,7 @@ func Parse(filename string) (SidFile, error) {
 	binary.Read(bytes, binary.BigEndian, &s.Songs)
 	binary.Read(bytes, binary.BigEndian, &s.StartSong)
 	binary.Read(bytes, binary.BigEndian, &s.speed)
-	for i := uint(0); i < 32; i++ {
+	for i := range uint(32) {
 		if ((s.speed >> i) & 1) == 0 {
 			s.Speed[i] = "VBI"
 		} else {
