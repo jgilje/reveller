@@ -112,29 +112,29 @@ void MainWindow::onTextMessageReceived(QString message) {
     QJsonDocument document = QJsonDocument::fromJson(message.toUtf8());
     QJsonObject root = document.object();
     QString type = root["type"].toString();
-    QString data = root["data"].toString();
-
-    QJsonDocument dataDocument = QJsonDocument::fromJson(data.toUtf8());
-    QJsonObject dataObj = dataDocument.object();
 
     if (type == QStringLiteral("state")) {
+        QJsonObject dataObj = root["data"].toObject();
         if (! ui->centralWidget->isEnabled()) {
             ui->centralWidget->setEnabled(true);
         }
 
         handleState(dataObj);
     } else if (type == QStringLiteral("ls")) {
+        QJsonObject dataObj = root["data"].toObject();
         handleLs(dataObj.value("path").toString(), dataObj.value("directories").toArray(), dataObj.value("sidfiles").toArray());
     } else if (type == QStringLiteral("load")) {
+        QString data = root["data"].toString();
         handleLoad(data);
     } else if (type == QStringLiteral("currentSidHeader")) {
+        QJsonObject dataObj = root["data"].toObject();
         header = SidHeader::parse(dataObj);
         SidInfo *info = qobject_cast<SidInfo*>(ui->columnView->previewWidget());
         info->setHeader(header);
         ui->labelTotalSubsongs->setText(QString::number(header.songs));
     } else if (type == QStringLiteral("crash")) {
         ui->centralWidget->setEnabled(false);
-        QMessageBox::warning(this, "Crash!", QString("The SIDPlayer crashed with the following error \"%1\"").arg(data.trimmed()));
+        QMessageBox::warning(this, "Crash!", QString("The SIDPlayer crashed with the following error \"%1\"").arg(root["data"].toString()));
     } else {
         qDebug() << message;
     }

@@ -10,6 +10,11 @@ include(cmake/golang.cmake)
 ADD_SUBDIRECTORY(sidplayer)
 ADD_SUBDIRECTORY(sidplayer-web-backend)
 
+OPTION(REVELLER_QT "Build Qt UI" OFF)
+
+if ("${REVELLER_QT}")
+    ADD_SUBDIRECTORY(qt-gui)
+endif ()
 
 install(TARGETS sidplayer)
 # sidplayer-web-backend already have an install def.
