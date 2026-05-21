@@ -48,8 +48,7 @@ func (s *Searcher) SearchFile(search string, c *connection) {
 		}
 
 		filepath.WalkDir(s.prefix, s.walker)
-		reply, _ := json.Marshal(searchReply{Results: s.results})
-		msg, _ := json.Marshal(ReplyMessage{MsgType: "search", Data: string(reply)})
+		msg, _ := json.Marshal(ReplyMessage{MsgType: "search", Data: searchReply{Results: s.results}})
 
 		select {
 		case <-c.Done():

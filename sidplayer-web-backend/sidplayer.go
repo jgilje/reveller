@@ -158,8 +158,7 @@ func (s *sidplayer) run() {
 
 			msg, _ := json.Marshal(ReplyMessage{MsgType: "load", Data: s.currentFile})
 			h.broadcast <- string(msg)
-			msg, _ = json.Marshal(sidheader)
-			msg, _ = json.Marshal(ReplyMessage{MsgType: "currentSidHeader", Data: string(msg)})
+			msg, _ = json.Marshal(ReplyMessage{MsgType: "currentSidHeader", Data: sidheader})
 			h.broadcast <- string(msg)
 		case songno := <-s.song:
 			fmt.Printf("sidplayer() starting subsong %q\n", songno)
