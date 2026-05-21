@@ -26,6 +26,11 @@ int main(int argc, char **argv) {
         }
     }
 
+    const char *value = getenv("FORCE_PDSID");
+    if (value != NULL) {
+        sidchip_implementation = SIDCHIP_PDSID;
+    }
+
     detect_platform();
     detect_chip();
     reveller->init();
