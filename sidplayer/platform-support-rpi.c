@@ -1,5 +1,4 @@
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,6 +6,7 @@
 #include "bcm2835.h"
 #include "platform-support.h"
 #include "platform-support-common.h"
+#include "platform-support-dummy.h"
 
 static void rpi_usleep(uint32_t us) {
     usleep(us);
@@ -201,10 +201,13 @@ struct reveller_platform rpi_platform = {
     .shutdown = &rpi_shutdown,
 
     .read = &common_platform_read_source,
+    .flush = NULL,
+    .write_handle = NULL,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,
     .sid_write = &sid_write,
+    .sid_read = &dummy_sid_read,
 
     .platform_id = "Raspberry Pi",
 };
@@ -221,10 +224,13 @@ struct reveller_platform rpi2_platform = {
     .shutdown = &rpi_shutdown,
 
     .read = &common_platform_read_source,
+    .flush = NULL,
+    .write_handle = NULL,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,
     .sid_write = &sid_write,
+    .sid_read = &dummy_sid_read,
 
     .platform_id = "Raspberry Pi 2/3",
 };
@@ -241,11 +247,13 @@ struct reveller_platform rpi4_platform = {
     .shutdown = &rpi_shutdown,
 
     .read = &common_platform_read_source,
+    .flush = NULL,
+    .write_handle = NULL,
 
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,
     .sid_write = &sid_write,
-    .sid_read = &common_sid_read,
+    .sid_read = &dummy_sid_read,
 
     .platform_id = "Raspberry Pi 4",
 };

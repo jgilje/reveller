@@ -62,9 +62,6 @@ void common_pause() {
 void common_resume() {
     reveller->sid_write(0x18, c64_sid_register[0x18]);
 }
-uint8_t common_sid_read(uint8_t reg) {
-    return 0;
-}
 
 static int fd_mem = -1;
 int open_mem() {

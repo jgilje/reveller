@@ -1,5 +1,6 @@
 #include "platform-support.h"
 #include "platform-support-common.h"
+#include "platform-support-dummy.h"
 #include "platform-support-stream.h"
 
 #include <stdint.h>
@@ -100,7 +101,7 @@ struct reveller_platform stream_platform = {
     .sid_block_start = &common_sid_block_start,
     .sid_block_end = &common_sid_block_end,
     .sid_write = &stream_sid_write,
-    .sid_read = &common_sid_read,
+    .sid_read = &dummy_sid_read,
 
     .platform_id = "Stream",
 };
