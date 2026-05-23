@@ -41,15 +41,16 @@ static void sid_write(uint8_t reg, uint8_t data) {
 	set_pins |= (reg & 0x1F) << 7;	// SID Address
 
 	// SET Pins
-	*bcm2835_registers.gpio_output_set0 = set_pins;
 
 	// Clear Pins
 	uint32_t clear_pins = 0;
 	clear_pins |= (1 << 17);	// SID read/Write
 	clear_pins |= (1 << 4);		// SID CS
 
+	while (!((*bcm2835_registers.gpio_level0) & (1 << 18)));	// wait for high
 	while ((*bcm2835_registers.gpio_level0) & (1 << 18));	// wait for low
 	*bcm2835_registers.gpio_output_clear0 = clear_pins;
+	*bcm2835_registers.gpio_output_set0 = set_pins;
 	while (!((*bcm2835_registers.gpio_level0) & (1 << 18)));	// wait for high
 	while ((*bcm2835_registers.gpio_level0) & (1 << 18));	// wait for low
 

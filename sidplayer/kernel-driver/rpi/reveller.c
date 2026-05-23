@@ -105,6 +105,7 @@ static void sid_write(uint8_t reg, uint8_t data) {
 	uint8_t data_23 = (data & 0xC) >> 2;
 	uint8_t data_4567 = (data & 0xF0) >> 4;
 
+	// SET Pins
 	uint32_t set_pins = 0, clear_pins = 0;
 	set_pins |= data_01;		// compatability with v1
 	set_pins |= data_01 << 2;	// and v2
@@ -113,15 +114,14 @@ static void sid_write(uint8_t reg, uint8_t data) {
 
 	set_pins |= (reg & 0x1F) << 7;	// SID Address
 
-	// SET Pins
-	writel(set_pins, gpio0_set);
-
 	// Clear Pins
 	clear_pins |= (1 << 17);	// SID read/Write
 	clear_pins |= (1 << 4);		// SID CS
 
+	while (!(readl(gpio0_level) & (1 << 18)));	// wait for high
 	while (readl(gpio0_level) & (1 << 18)); 	// wait for low
 	writel(clear_pins, gpio0_clear);
+	writel(set_pins, gpio0_set);
 	while (!(readl(gpio0_level) & (1 << 18)));	// wait for high
 	while (readl(gpio0_level) & (1 << 18)); 	// wait for low
 
@@ -443,7 +443,7 @@ static void reveller_cleanup(void) {
 
 static void reveller_init_gpio(void) {
     int result;
-    
+
     gpio0_fsel = rpi_gpio_base;
     gpio1_fsel = rpi_gpio_base + 4;
     gpio2_fsel = rpi_gpio_base + 8;
@@ -678,7 +678,7 @@ static int reveller_init(void) {
         goto fail;
     }
 
-    reveller_device = device_create(reveller_class, NULL, /* no parent device */ 
+    reveller_device = device_create(reveller_class, NULL, /* no parent device */
         reveller_dev, NULL, /* no additional data */
         "reveller");
 
@@ -704,4 +704,3 @@ static void reveller_exit(void) {
 
 module_init(reveller_init);
 module_exit(reveller_exit);
-
