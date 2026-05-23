@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
     }
 
     detect_platform();
-    detect_chip();
     reveller->init();
+    detect_chip();
 
 	printWelcome();
 
